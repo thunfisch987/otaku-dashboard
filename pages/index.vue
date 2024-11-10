@@ -5,59 +5,37 @@
 				Dashboard
 			</h1>
 		</div>
-		<div
-			id="form"
-			class="p-1"
-		>
-			<Card>
-				<CardHeader>
-					<CardTitle>
-						Forms
-					</CardTitle>
-				</CardHeader>
-				<CardContent />
-			</Card>
-		</div>
-		<div
-			id="posa"
-			class="p-1"
-		>
-			<Card>
-				<CardHeader>
-					<CardTitle>
-						Point of Sale stuff
-					</CardTitle>
-				</CardHeader>
-				<CardContent />
-			</Card>
-		</div>
-		<div
-			id="inve"
-			class="p-1"
-		>
-			<Card>
-				<CardHeader>
-					<CardTitle>
-						Inventory
-					</CardTitle>
-				</CardHeader>
-				<CardContent />
-			</Card>
-		</div>
+		<Card id="form">
+			<CardHeader>
+				<CardTitle> Forms </CardTitle>
+			</CardHeader>
+			<CardContent />
+		</Card>
+		<Card id="posa">
+			<CardHeader>
+				<CardTitle> Point of Sale stuff </CardTitle>
+			</CardHeader>
+			<CardContent />
+		</Card>
+		<Card id="inve">
+			<CardHeader>
+				<CardTitle>Inventory </CardTitle>
+			</CardHeader>
+			<Separator />
+			<CardContent />
+		</Card>
 	</main>
 </template>
 
 <style>
-div {
-    border: 1px dotted red;
-}
-
 #maingrid {
     display: grid;
+    gap: 1rem;
+    padding: 1rem;
     grid-template-areas:
-        'dash dash form form form'
-        'posa posa posa inve inve'
-        'posa posa posa inve inve';
+        "dash dash form form form"
+        "posa posa posa inve inve"
+        "posa posa posa inve inve";
 }
 
 #form {
