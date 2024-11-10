@@ -11,15 +11,17 @@
   },
   "dependencies": {
     "@nuxt/eslint": "^0.6.1",
-    "@nuxt/rspack-builder": "^3.12.2",
+    "@nuxt/image": "^1.8.1",
+    "@nuxt/rspack-builder": "^3.14.159",
     "@nuxtjs/color-mode": "^3.5.2",
     "@nuxtjs/tailwindcss": "^6.12.2",
+    "@vite-pwa/nuxt": "^0.10.6",
     "@vueuse/core": "^11.2.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "lucide-vue-next": "^0.454.0",
-    "nuxt": "^3.14.0",
-    "radix-vue": "^1.9.8",
+    "lucide-vue-next": "^0.456.0",
+    "nuxt": "^3.14.159",
+    "radix-vue": "^1.9.9",
     "shadcn-nuxt": "^0.11.2",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
@@ -28,6 +30,15 @@
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
+    "@stylistic/eslint-plugin-plus": "^2.10.1",
+    "@vite-pwa/assets-generator": "^0.2.6",
     "typescript": "^5.6.3"
-  }
+  },
+  "trustedDependencies": [
+    "@parcel/watcher",
+    "core-js",
+    "esbuild",
+    "sharp",
+    "vue-demi"
+  ]
 }
