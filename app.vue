@@ -7,7 +7,3 @@
 		<!-- Footer ??? -->
 	</div>
 </template>
-
-<script setup lang="ts">
-const { $pwa } = useNuxtApp();
-</script>

@@ -7,6 +7,7 @@ export default defineNuxtConfig({
 		'@nuxtjs/color-mode',
 		'@nuxt/image',
 		'@vite-pwa/nuxt',
+		'@nuxthub/core',
 	],
 	devtools: { enabled: true },
 	app: {
@@ -39,6 +40,9 @@ export default defineNuxtConfig({
 		payloadExtraction: true,
 	},
 	compatibilityDate: '2024-11-10',
+	hub: {
+		database: true,
+	},
 	typescript: {
 		shim: false,
 		strict: true,
@@ -85,6 +89,5 @@ export default defineNuxtConfig({
 			],
 			theme_color: '#E11D48',
 		},
-
 	},
 });
