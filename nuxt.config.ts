@@ -39,7 +39,7 @@ export default defineNuxtConfig({
 		asyncContext: true,
 		payloadExtraction: true,
 	},
-	compatibilityDate: '2024-11-10',
+	compatibilityDate: '2024-11-29',
 	hub: {
 		database: true,
 	},
