@@ -1,6 +1,8 @@
 <template>
-	<NuxtPwaAssets />
 	<div>
+		<NuxtLoadingIndicator
+			color="#E11D48"
+		/>
 		<OtakuNav />
 		<Separator />
 		<NuxtPage />

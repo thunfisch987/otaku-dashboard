@@ -6,8 +6,9 @@ export default defineNuxtConfig({
 		'@nuxt/eslint',
 		'@nuxtjs/color-mode',
 		'@nuxt/image',
-		'@vite-pwa/nuxt',
 		'@nuxthub/core',
+		'nuxt-auth-utils',
+		'nuxt-typed-router',
 	],
 	devtools: { enabled: true },
 	app: {
@@ -29,6 +30,7 @@ export default defineNuxtConfig({
 		fallback: 'dark',
 		classSuffix: '',
 	},
+	devServer: { port: 3001 },
 	future: {
 		typescriptBundlerResolution: true,
 	},
@@ -40,6 +42,11 @@ export default defineNuxtConfig({
 		payloadExtraction: true,
 	},
 	compatibilityDate: '2024-11-29',
+	nitro: {
+		experimental: {
+			tasks: true,
+		},
+	},
 	hub: {
 		database: true,
 	},
@@ -57,37 +64,6 @@ export default defineNuxtConfig({
 				quoteProps: 'as-needed',
 				arrowParens: true,
 			},
-		},
-	},
-	pwa: {
-		devOptions: {
-			enabled: true,
-		},
-		manifest: {
-			icons: [
-				{
-					src: 'pwa-64x64.png',
-					sizes: '64x64',
-					type: 'image/png',
-				},
-				{
-					src: 'pwa-192x192.png',
-					sizes: '192x192',
-					type: 'image/png',
-				},
-				{
-					src: 'pwa-512x512.png',
-					sizes: '512x512',
-					type: 'image/png',
-				},
-				{
-					src: 'maskable-icon-512x512.png',
-					sizes: '512x512',
-					type: 'image/png',
-					purpose: 'maskable',
-				},
-			],
-			theme_color: '#E11D48',
 		},
 	},
 });
