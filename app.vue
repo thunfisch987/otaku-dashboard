@@ -3,9 +3,9 @@
 		<NuxtLoadingIndicator
 			color="#E11D48"
 		/>
-		<OtakuNav />
-		<Separator />
-		<NuxtPage />
+		<NuxtLayout>
+			<NuxtPage />
+		</NuxtLayout>
 		<!-- Footer ??? -->
 	</div>
 </template>

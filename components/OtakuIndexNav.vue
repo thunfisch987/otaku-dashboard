@@ -6,30 +6,6 @@
 				class="h-16 w-16"
 			/>
 		</NuxtLink>
-		<NuxtLink
-			class="text-lg text-gray-400 hidden md:inline"
-			to="/dashboard"
-		>
-			Overview
-		</NuxtLink>
-		<NuxtLink
-			class="text-lg text-gray-400 hidden md:inline"
-			to="/forms"
-		>
-			Forms
-		</NuxtLink>
-		<NuxtLink
-			class="text-lg text-gray-400 hidden md:inline"
-			to="/inventory"
-		>
-			Inventory
-		</NuxtLink>
-		<NuxtLink
-			class="text-lg text-gray-400 hidden md:inline"
-			to="/pointofsale"
-		>
-			Point of Sale
-		</NuxtLink>
 		<AuthState>
 			<template #default="{ loggedIn, clear }">
 				<Button
@@ -68,6 +44,7 @@
 		</AuthState>
 		<Sheet
 			v-model:open="open"
+			class="md:hidden"
 		>
 			<SheetTrigger
 				variant="ghost"
