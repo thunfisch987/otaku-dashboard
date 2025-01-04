@@ -31,14 +31,24 @@
 			Point of Sale
 		</NuxtLink>
 		<AuthState>
-			<template #default="{ loggedIn, clear }">
-				<Button
+			<template #default="{ loggedIn, clear, user }">
+				<Avatar
 					v-if="loggedIn"
 					class="ml-auto"
+				>
+					<AvatarImage
+						crossorigin="anonymous"
+						:src="user.avatar"
+						:title="`Logged in as: ${user.name}`"
+					/>
+					<AvatarFallback>{{ `${user.given_name[0]}${user.family_name[0]}` }}</AvatarFallback>
+				</Avatar>
+				<Button
+					v-if="loggedIn"
+					class=""
 					@click="clear"
 				>
 					<LogOut class="w-4 h-4 mr-2" />
-
 					Logout
 				</Button>
 				<Button
