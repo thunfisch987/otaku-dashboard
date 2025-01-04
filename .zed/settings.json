@@ -26,5 +26,6 @@
         "classAttributes": ["class", "className", "ngClass", "class:list", "active-class"]
       }
     }
-  }
+  },
+  "hard_tabs": true
 }
