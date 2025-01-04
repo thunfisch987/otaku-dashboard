@@ -1,3 +1,5 @@
+import type { InsertUser } from '~/server/utils/drizzle';
+
 export default defineOAuthGoogleEventHandler({
 	config: {
 		scope: ['email', 'profile'],
@@ -13,6 +15,17 @@ export default defineOAuthGoogleEventHandler({
 				email: user.email,
 			},
 		});
+		const dbUser: InsertUser = {
+			id: user.sub,
+			name: user.name,
+			givenName: user.given_name,
+			familyName: user.family_name,
+			email: user.email,
+			avatar: user.picture,
+			lastLogin: new Date(),
+			createdAt: new Date(),
+		};
+		await useDrizzle().insert(tables.users).values(dbUser).onConflictDoUpdate({ target: tables.users.id, set: { lastLogin: dbUser.lastLogin } });
 		return sendRedirect(event, '/dashboard');
 	},
 });
