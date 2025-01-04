@@ -41,7 +41,7 @@ export default defineNuxtConfig({
 		asyncContext: true,
 		payloadExtraction: true,
 	},
-	compatibilityDate: '2024-11-29',
+	compatibilityDate: '2025-01-05',
 	nitro: {
 		experimental: {
 			tasks: true,
