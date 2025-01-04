@@ -2,10 +2,15 @@ export default defineOAuthGoogleEventHandler({
 	config: {
 		scope: ['email', 'profile'],
 	},
-	async onSuccess(event, { user, tokens }) {
+	// @ts-expect-error these are always any
+	async onSuccess(event, { user }) {
 		await setUserSession(event, {
 			user: {
-				googleId: user.id,
+				name: user.name,
+				given_name: user.given_name,
+				family_name: user.family_name,
+				avatar: user.picture,
+				email: user.email,
 			},
 		});
 		return sendRedirect(event, '/dashboard');
