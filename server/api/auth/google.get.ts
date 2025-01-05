@@ -4,6 +4,7 @@ export default defineOAuthGoogleEventHandler({
 	config: {
 		scope: ['email', 'profile'],
 	},
+	// @ts-expect-error ignore these anys
 	async onSuccess(event, { user }) {
 		await setUserSession(event, {
 			user: {
