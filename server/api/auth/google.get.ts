@@ -16,15 +16,15 @@ export default defineOAuthGoogleEventHandler({
 		});
 		const dbUser: InsertUser = {
 			id: Number(user.sub),
-			name: user.name,
-			givenName: user.given_name,
-			familyName: user.family_name,
-			email: user.email,
-			avatar: user.picture,
+			name: String(user.name),
+			givenName: String(user.given_name),
+			familyName: String(user.family_name),
+			email: String(user.email),
+			avatar: String(user.picture),
 			lastLogin: new Date(),
 			createdAt: new Date(),
 		};
-		await useDrizzle().insert(tables.users).values(dbUser).onConflictDoUpdate({ target: tables.users.id, set: { lastLogin: dbUser.lastLogin } });
+		await useDrizzle().insert(tables.users).values(dbUser);
 		return sendRedirect(event, '/dashboard');
 	},
 });
