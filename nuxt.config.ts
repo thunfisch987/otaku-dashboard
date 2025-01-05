@@ -30,6 +30,13 @@ export default defineNuxtConfig({
 		fallback: 'dark',
 		classSuffix: '',
 	},
+	routeRules: {
+		'/': { prerender: true },
+		'/dash/dashboard.vue': { prerender: true },
+		'/dash/forms.vue': { prerender: true },
+		'/dash/inventory.vue': { prerender: true },
+		'/dash/pointofsale.vue': { prerender: true },
+	},
 	devServer: { port: 3001 },
 	future: {
 		typescriptBundlerResolution: true,
