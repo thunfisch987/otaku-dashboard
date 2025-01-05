@@ -2,25 +2,26 @@ import { sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, check } from 'drizzle-orm/sqlite-core';
 
 export const users = sqliteTable('users', {
-	id: text('id').primaryKey(),
-	name: text('name').notNull(),
-	givenName: text('given_name').notNull(),
-	familyName: text('family_name').notNull(),
-	email: text('email').notNull().unique(),
-	avatar: text('avatar').notNull(),
-	createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-	lastLogin: integer('last_login', { mode: 'timestamp' }).notNull(),
+	id: text().primaryKey(),
+	name: text().notNull(),
+	givenName: text().notNull(),
+	familyName: text().notNull(),
+	email: text().notNull().unique(),
+	avatar: text().notNull(),
+	createdAt: integer({ mode: 'timestamp' }).notNull(),
+	lastLogin: integer({ mode: 'timestamp' }).notNull(),
 });
 
 export const products = sqliteTable('products', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	name: text('name').unique().notNull(),
-	picture: text('picture'),
-	price: integer('price').notNull(),
-	supplier: text('supplier').notNull(),
-	createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-	updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+	picture: text(),
+	price: integer().notNull(),
+	supplier: text().notNull(),
+	createdAt: integer({ mode: 'timestamp' }).notNull(),
+	updatedAt: integer({ mode: 'timestamp' }).notNull(),
 },
 (table) => [
 	check('supplier_check', sql`${table.supplier} IN ("HDJ", "Otaku")`),
+	check('price_check', sql`${table.price} > 0`),
 ]);
