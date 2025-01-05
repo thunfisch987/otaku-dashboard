@@ -27,5 +27,6 @@
       }
     }
   },
+  "languages": {"Vue.js": {"linked_edits": false}},
   "hard_tabs": true
 }
