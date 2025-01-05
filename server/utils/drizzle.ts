@@ -1,5 +1,6 @@
 import { drizzle } from 'drizzle-orm/d1';
-
+import { createInsertSchema, createSelectSchema, createUpdateSchema } from 'drizzle-zod';
+import type { z } from 'zod';
 import * as schema from '../database/schema';
 
 export { sql, eq, and, or } from 'drizzle-orm';
@@ -15,3 +16,11 @@ export type InsertUser = typeof schema.users.$inferInsert;
 
 export type SelectProduct = typeof schema.products.$inferSelect;
 export type InsertProduct = typeof schema.products.$inferInsert;
+
+export const productSelectSchema = createSelectSchema(tables.products);
+export const productInsertSchema = createInsertSchema(tables.products);
+export const productUpdateSchema = createUpdateSchema(tables.products);
+
+type _ProductSelectSchema = z.infer<typeof productSelectSchema>;
+type _ProductInsertSchema = z.infer<typeof productInsertSchema>;
+type _ProductUpdateSchema = z.infer<typeof productUpdateSchema>;
