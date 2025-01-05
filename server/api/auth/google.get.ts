@@ -31,6 +31,6 @@ export default defineOAuthGoogleEventHandler({
 			target: tables.users.id,
 			set: { lastLogin: dbUser.lastLogin },
 		});
-		return sendRedirect(event, '/dashboard');
+		return sendRedirect(event, '/dash/dashboard');
 	},
 });
