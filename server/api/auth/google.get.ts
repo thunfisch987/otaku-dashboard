@@ -4,7 +4,6 @@ export default defineOAuthGoogleEventHandler({
 	config: {
 		scope: ['email', 'profile'],
 	},
-	// @ts-expect-error these are always any
 	async onSuccess(event, { user }) {
 		await setUserSession(event, {
 			user: {
@@ -16,7 +15,7 @@ export default defineOAuthGoogleEventHandler({
 			},
 		});
 		const dbUser: InsertUser = {
-			id: user.sub,
+			id: Number(user.sub),
 			name: user.name,
 			givenName: user.given_name,
 			familyName: user.family_name,
