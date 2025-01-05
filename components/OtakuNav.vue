@@ -6,32 +6,36 @@
 				class="h-16 w-16"
 			/>
 		</NuxtLink>
-		<NuxtLink
-			class="text-lg text-gray-400 hidden md:inline"
-			to="/dashboard"
-		>
-			Overview
-		</NuxtLink>
-		<NuxtLink
-			class="text-lg text-gray-400 hidden md:inline"
-			to="/forms"
-		>
-			Forms
-		</NuxtLink>
-		<NuxtLink
-			class="text-lg text-gray-400 hidden md:inline"
-			to="/inventory"
-		>
-			Inventory
-		</NuxtLink>
-		<NuxtLink
-			class="text-lg text-gray-400 hidden md:inline"
-			to="/pointofsale"
-		>
-			Point of Sale
-		</NuxtLink>
 		<AuthState>
 			<template #default="{ loggedIn, clear, user }">
+				<NuxtLink
+					v-if="loggedIn"
+					class="text-lg text-gray-400 hidden md:inline"
+					to="/dash/dashboard"
+				>
+					Overview
+				</NuxtLink>
+				<NuxtLink
+					v-if="loggedIn"
+					class="text-lg text-gray-400 hidden md:inline"
+					to="/dash/forms"
+				>
+					Forms
+				</NuxtLink>
+				<NuxtLink
+					v-if="loggedIn"
+					class="text-lg text-gray-400 hidden md:inline"
+					to="/dash/inventory"
+				>
+					Inventory
+				</NuxtLink>
+				<NuxtLink
+					v-if="loggedIn"
+					class="text-lg text-gray-400 hidden md:inline"
+					to="/dash/pointofsale"
+				>
+					Point of Sale
+				</NuxtLink>
 				<Avatar
 					v-if="loggedIn"
 					class="ml-auto"
