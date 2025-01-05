@@ -26,7 +26,10 @@ export default defineOAuthGoogleEventHandler({
 			lastLogin: new Date(),
 			createdAt: new Date(),
 		};
-		await useDrizzle().insert(tables.users).values(dbUser).onConflictDoUpdate({ target: tables.users.id, set: { lastLogin: dbUser.lastLogin } });
+		await useDrizzle().insert(tables.users).values(dbUser).onConflictDoUpdate({
+			target: tables.users.id,
+			set: { lastLogin: dbUser.lastLogin },
+		});
 		return sendRedirect(event, '/dashboard');
 	},
 });
