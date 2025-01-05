@@ -30,7 +30,7 @@ export default defineNuxtConfig({
 		fallback: 'dark',
 		classSuffix: '',
 	},
-	devServer: { port: 3000 },
+	devServer: { port: 3001 },
 	future: {
 		typescriptBundlerResolution: true,
 	},

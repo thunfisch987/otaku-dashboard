@@ -15,6 +15,13 @@
       "when": 1736029713718,
       "tag": "0001_confused_shard",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1736092380446,
+      "tag": "0002_uneven_reaper",
+      "breakpoints": true
     }
   ]
 }

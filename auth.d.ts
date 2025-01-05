@@ -5,14 +5,10 @@ declare module '#auth-utils' {
 		family_name: string;
 		avatar: string;
 		email: string;
+		id: string;
 	}
 	interface UserSession {
-		user: {
-			name: string;
-			given_name: string;
-			family_name: string;
-			avatar: string;
-			email: string;
-		};
+		user: User;
+		login_at: Date;
 	}
 }

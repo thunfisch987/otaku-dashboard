@@ -1,4 +1,4 @@
-import type { InsertUser } from '~/server/utils/drizzle';
+import { type InsertUser, tables, useDrizzle } from '~/server/utils/drizzle';
 
 export default defineOAuthGoogleEventHandler({
 	config: {
@@ -12,19 +12,21 @@ export default defineOAuthGoogleEventHandler({
 				family_name: user.family_name,
 				avatar: user.picture,
 				email: user.email,
+				id: user.sub,
 			},
+			login_at: new Date(),
 		});
 		const dbUser: InsertUser = {
-			id: Number(user.sub),
-			name: String(user.name),
-			givenName: String(user.given_name),
-			familyName: String(user.family_name),
-			email: String(user.email),
-			avatar: String(user.picture),
+			id: user.sub,
+			name: user.name,
+			givenName: user.given_name,
+			familyName: user.family_name,
+			email: user.email,
+			avatar: user.picture,
 			lastLogin: new Date(),
 			createdAt: new Date(),
 		};
-		await useDrizzle().insert(tables.users).values(dbUser);
+		await useDrizzle().insert(tables.users).values(dbUser).onConflictDoUpdate({ target: tables.users.id, set: { lastLogin: dbUser.lastLogin } });
 		return sendRedirect(event, '/dashboard');
 	},
 });
