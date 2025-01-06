@@ -15,17 +15,15 @@
 				</AutoForm>
 			</CardContent>
 		</Card>
-		<pre class="flex-1">{{ allProducts }}</pre>
 		<div
 			v-if="parsedAllProducts.data"
-			class="container py-10 mx-auto"
+			class="flex-1 container py-10 mx-auto"
 		>
 			<ProductsDataTable
 				:columns="columns"
 				:data="parsedAllProducts.data"
 			/>
 		</div>
-		<pre>{{ parsedAllProducts.data }}</pre>
 	</div>
 </template>
 
