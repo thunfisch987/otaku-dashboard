@@ -27,38 +27,38 @@ export type InsertProductSchema = z.infer<typeof insertProductSchema>;
 export const columns: ColumnDef<ProductSchema>[] = [
 	{
 		accessorKey: 'name',
-		header: () => h('div', { class: 'text-right' }, 'Name'),
+		header: () => h('div', { class: 'text-left' }, 'Name'),
 		cell: ({ row }) => {
 			const name = String(row.getValue('name'));
-			return h('div', { class: 'text-right font-medium' }, name);
+			return h('div', { class: 'text-left font-medium' }, name);
 		},
 	},
 	{
 		accessorKey: 'price',
-		header: () => h('div', { class: 'text-right' }, 'Price'),
+		header: () => h('div', { class: 'text-left' }, 'Price'),
 		cell: ({ row }) => {
 			const price = Number.parseInt(row.getValue('price'));
 			const formatted = new Intl.NumberFormat('de-DE', {
 				style: 'currency',
 				currency: 'EUR',
 			}).format(price / 100);
-			return h('div', { class: 'text-right font-medium' }, formatted);
+			return h('div', { class: 'text-left font-medium' }, formatted);
 		},
 	},
 	{
 		accessorKey: 'supplier',
-		header: () => h('div', { class: 'text-right' }, 'Supplier'),
+		header: () => h('div', { class: 'text-left' }, 'Supplier'),
 		cell: ({ row }) => {
 			const supplier = String(row.getValue('supplier'));
-			return h('div', { class: 'text-right font-medium' }, supplier);
+			return h('div', { class: 'text-left font-medium' }, supplier);
 		},
 	},
 	{
 		accessorKey: 'picture',
-		header: () => h('div', { class: 'text-right' }, 'Picture'),
+		header: () => h('div', { class: 'text-left' }, 'Picture'),
 		cell: ({ row }) => {
 			const picture = String(row.getValue('picture'));
-			return h('div', { class: 'text-right font-medium' }, picture);
+			return h('div', { class: 'text-left font-medium' }, picture);
 		},
 	},
 ];
