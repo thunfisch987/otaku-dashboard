@@ -1,6 +1,8 @@
 import { h } from 'vue';
 import type { ColumnDef } from '@tanstack/vue-table';
 import { z } from 'zod';
+// @ts-expect-error ignore import type problems
+import DropdownAction from '@/components/products/DataTableDropdown';
 
 export const insertProductSchema = z.object({
 	name: z.string(),
@@ -59,6 +61,14 @@ export const columns: ColumnDef<ProductSchema>[] = [
 		cell: ({ row }) => {
 			const picture = String(row.getValue('picture'));
 			return h('div', { class: 'text-left font-medium' }, picture);
+		},
+	},
+	{
+		id: 'actions',
+		enableHiding: false,
+		cell: ({ row }) => {
+			const product = row.original;
+			return h('div', { class: 'relative' }, h(DropdownAction, { product }));
 		},
 	},
 ];
