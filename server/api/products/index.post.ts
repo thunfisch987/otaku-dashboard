@@ -8,7 +8,12 @@ export default defineEventHandler(async (event) => {
 		picture: picture,
 		updatedAt: new Date(),
 		createdAt: new Date(),
-	}).returning().get();
-
+	}).onConflictDoNothing().returning().get();
+	if (!product) {
+		throw createError({
+			statusCode: 409,
+			message: 'Product already exists',
+		});
+	}
 	return product;
 });
