@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 export const insertProductSchema = z.object({
 	name: z.string(),
-	price: z.number().nonnegative().finite().safe(),
+	price: z.number().nonnegative().finite().safe().default(0),
 	supplier: z.enum(['HDJ', 'Otaku']),
 	picture: z
 		.string()

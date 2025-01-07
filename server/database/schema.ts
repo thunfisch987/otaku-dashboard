@@ -23,5 +23,5 @@ export const products = sqliteTable('products', {
 },
 (table) => [
 	check('supplier_check', sql`${table.supplier} IN ("HDJ", "Otaku")`),
-	check('price_check', sql`${table.price} > 0`),
+	check('price_check', sql`${table.price} >= 0`),
 ]);
