@@ -30,19 +30,19 @@ type MaguroNavLink = {
 const navLinks: MaguroNavLink[] = [
 	{
 		name: 'Dashboard',
-		to: '/dashboard',
+		to: '/dash/dashboard',
 	},
 	{
 		name: 'Forms',
-		to: '/forms',
+		to: '/dash/forms',
 	},
 	{
 		name: 'Inventory',
-		to: '/inventory',
+		to: '/dash/inventory',
 	},
 	{
 		name: 'Point of Sale',
-		to: '/pointofsale',
+		to: '/dash/pointofsale',
 	},
 ];
 </script>
