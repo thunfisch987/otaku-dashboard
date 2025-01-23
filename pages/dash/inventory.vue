@@ -9,7 +9,7 @@
 					<CardTitle>Products</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<ProductsDataTable
+					<DataTable
 						:columns="columns"
 						:data="parsedAllProducts.data"
 						toolbar
