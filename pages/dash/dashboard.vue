@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { productArraySchema, columns } from '~/components/products/columns';
+import { productArraySchema, columns } from '~/components/DataTable/columns';
 
 const { data: allProducts } = await useFetch('/api/products', {
 	key: 'productFetching',

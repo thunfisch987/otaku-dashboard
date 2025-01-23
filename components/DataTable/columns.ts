@@ -8,7 +8,7 @@ import type { Ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 // @ts-expect-error ignore import type problems
-import DropdownAction from '@/components/products/DataTableDropdown';
+import DropdownAction from '@/components/DataTable/Dropdown';
 
 export const suppliers = [
 	{

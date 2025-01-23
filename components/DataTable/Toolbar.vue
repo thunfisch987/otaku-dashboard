@@ -3,8 +3,8 @@ import type { Table } from '@tanstack/vue-table';
 import { toast as sonn } from 'vue-sonner';
 import type { z } from 'zod';
 import { CirclePlus, Trash2, CircleX } from 'lucide-vue-next';
-import { insertProductSchema, suppliers } from '~/components/products/columns';
-import type { ProductSchema } from '~/components/products/columns';
+import { insertProductSchema, suppliers } from './columns';
+import type { ProductSchema } from './columns';
 import { useToast } from '@/components/ui/toast/use-toast';
 import { Toaster } from '@/components/ui/toast';
 
@@ -64,7 +64,7 @@ const isFiltered = computed(() => props.table.getState().columnFilters.length > 
 				:model-value="table.getColumn('name')?.getFilterValue() as string"
 				@update:model-value=" table.getColumn('name')?.setFilterValue($event)"
 			/>
-			<ProductsDataTableFacetedFilter
+			<DataTableFacetedFilter
 				v-if="table.getColumn('supplier')"
 				:column="table.getColumn('supplier')"
 				title="Supplier"

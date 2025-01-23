@@ -12,7 +12,7 @@ import {
 
 import { valueUpdater } from './columns';
 
-import type { ProductSchema, ProductArraySchema } from '~/components/products/columns';
+import type { ProductSchema, ProductArraySchema } from './columns';
 
 const sorting = useState<SortingState>('sorting', () => []);
 const columnFilters = useState<ColumnFiltersState>('columnFilters', () => []);
@@ -51,7 +51,7 @@ if (props.selection === false) {
 
 <template>
 	<div class="space-y-4">
-		<ProductsDataTableToolbar
+		<DataTableToolbar
 			v-if="toolbar"
 			:table="table"
 		/>
@@ -104,7 +104,7 @@ if (props.selection === false) {
 					</template>
 				</TableBody>
 			</Table>
-			<ProductsDataTablePagination :table="table" />
+			<DataTablePagination :table="table" />
 		</div>
 	</div>
 </template>
