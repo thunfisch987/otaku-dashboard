@@ -80,6 +80,7 @@
 				</Button>
 			</template>
 		</AuthState>
+		<ColorModeSwitcher />
 		<Sheet
 			v-model:open="open"
 		>

@@ -21,11 +21,31 @@
 			<CardHeader>
 				<CardTitle>Inventory </CardTitle>
 			</CardHeader>
-			<Separator />
-			<CardContent />
+			<!-- <Separator /> -->
+			<CardContent>
+				<!-- <ProductsDataTable
+					v-if="parsedAllProducts.data"
+					:columns="columns"
+					:data="parsedAllProducts.data"
+				/>
+				<span v-else>
+					yeet: {{ parsedAllProducts.data }}
+				</span> -->
+			</CardContent>
 		</Card>
 	</main>
 </template>
+
+<script setup lang="ts">
+import { productArraySchema, columns } from '~/components/products/columns';
+
+const { data: allProducts } = await useFetch('/api/products', {
+	key: 'productFetching',
+	lazy: true,
+});
+
+const parsedAllProducts = computed(() => productArraySchema.safeParse(allProducts.value));
+</script>
 
 <style>
 #maingrid {

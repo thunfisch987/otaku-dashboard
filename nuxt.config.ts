@@ -20,14 +20,14 @@ export default defineNuxtConfig({
 				lang: 'en',
 			},
 			meta: [
-				{ name: 'color-scheme', content: 'dark' },
+				// { name: 'color-scheme', content: 'dark' },
 				{ name: 'theme-color', content: '#E11D48' },
 			],
 		},
 	},
 	colorMode: {
-		preference: 'dark',
-		fallback: 'dark',
+		preference: 'system',
+		fallback: 'light',
 		classSuffix: '',
 	},
 	routeRules: {
@@ -59,7 +59,7 @@ export default defineNuxtConfig({
 		database: true,
 	},
 	typescript: {
-		shim: false,
+		shim: true,
 		strict: true,
 	},
 	eslint: {

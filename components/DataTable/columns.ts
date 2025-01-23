@@ -1,15 +1,27 @@
 import { h } from 'vue';
 import type { ColumnDef, Updater, Column } from '@tanstack/vue-table';
-import { ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-vue-next';
+import { ArrowUpDown, ChevronDown, ChevronUp, House, Bird } from 'lucide-vue-next';
 import { z } from 'zod';
 
 import type { Ref } from 'vue';
 
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage as _AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 // @ts-expect-error ignore import type problems
 import DropdownAction from '@/components/products/DataTableDropdown';
+
+export const suppliers = [
+	{
+		value: 'HDJ',
+		label: 'HDJ',
+		icon: h(House),
+	},
+	{
+		value: 'Otaku',
+		label: 'Otaku',
+		icon: h(Bird),
+	},
+];
 
 export function valueUpdater<T extends Updater<unknown>>(updaterOrValue: T, reff: Ref) {
 	reff.value = typeof updaterOrValue === 'function'
@@ -64,7 +76,7 @@ export const columns: ColumnDef<ProductSchema>[] = [
 			ariaLabel: 'Select row',
 		}),
 		enableSorting: false,
-		enableHiding: false,
+		enableHiding: true,
 	},
 	{
 		accessorKey: 'name',
@@ -124,7 +136,7 @@ export const columns: ColumnDef<ProductSchema>[] = [
 		accessorKey: 'picture',
 		header: () => h('div', { class: 'text-left' }, 'Picture'),
 		cell: ({ row }) => {
-			const picture = String(row.getValue('picture') ?? '');
+			const _picture = String(row.getValue('picture') ?? '');
 			// if (picture) return h(Avatar, () => [
 			// 	// h(AvatarImage, { src: picture }),
 			// 	h(AvatarFallback, 'X'),

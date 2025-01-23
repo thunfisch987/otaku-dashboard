@@ -4,10 +4,19 @@
 			v-if="parsedAllProducts.data"
 			class="flex-auto container py-10 mx-auto"
 		>
-			<ProductsDataTable
-				:columns="columns"
-				:data="parsedAllProducts.data"
-			/>
+			<Card>
+				<CardHeader>
+					<CardTitle>Products</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<ProductsDataTable
+						:columns="columns"
+						:data="parsedAllProducts.data"
+						toolbar
+						selection
+					/>
+				</CardContent>
+			</Card>
 		</div>
 	</div>
 </template>
