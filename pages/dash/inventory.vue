@@ -29,5 +29,7 @@ const { data: allProducts } = await useFetch('/api/products', {
 	lazy: true,
 });
 
-const parsedAllProducts = computed(() => productArraySchema.safeParse(allProducts.value));
+const parsedAllProducts = computed(() =>
+	productArraySchema.safeParse(allProducts.value),
+);
 </script>

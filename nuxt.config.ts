@@ -62,16 +62,16 @@ export default defineNuxtConfig({
 		shim: true,
 		strict: true,
 	},
-	eslint: {
-		config: {
-			stylistic: {
-				indent: 'tab',
-				semi: true,
-				quotes: 'single',
-				braceStyle: '1tbs',
-				quoteProps: 'as-needed',
-				arrowParens: true,
-			},
-		},
-	},
+	// eslint: {
+	// 	config: {
+	// 		stylistic: {
+	// 			indent: 'tab',
+	// 			semi: true,
+	// 			quotes: 'single',
+	// 			braceStyle: '1tbs',
+	// 			quoteProps: 'as-needed',
+	// 			arrowParens: true,
+	// 		},
+	// 	},
+	// },
 });

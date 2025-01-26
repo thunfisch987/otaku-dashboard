@@ -23,9 +23,9 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.38.4",
     "drizzle-zod": "^0.6.1",
-    "eslint": "9.18.0",
-    "lucide-vue-next": "^0.473.0",
-    "nuxt": "3.15.2",
+    "eslint": "9.19.0",
+    "lucide-vue-next": "^0.474.0",
+    "nuxt": "3.15.3",
     "nuxt-auth-utils": "0.5.9",
     "nuxt-typed-router": "3.7.3",
     "nuxthub": "^0.8.6",
@@ -44,10 +44,10 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@stylistic/eslint-plugin-plus": "^2.13.0",
+    "@stylistic/eslint-plugin-plus": "^3.0.0",
     "drizzle-kit": "^0.30.2",
     "typescript": "^5.7.3",
-    "wrangler": "^3.105.0"
+    "wrangler": "^3.105.1"
   },
   "trustedDependencies": [
     "@parcel/watcher",
