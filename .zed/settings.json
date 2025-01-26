@@ -11,8 +11,8 @@
 		"**/.DS_Store",
 		"**/Thumbs.db",
 		"**/.classpath",
-		"**/.settings",
-		"components/ui"
+		"**/.settings"
+		// "components/ui",
 	],
 
 

@@ -1,10 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
 	modules: [
-		'@nuxtjs/tailwindcss',
-		'shadcn-nuxt',
 		'@nuxt/eslint',
-		'@nuxtjs/color-mode',
 		'@nuxt/image',
 		'@nuxthub/core',
 		'nuxt-auth-utils',
@@ -20,15 +17,8 @@ export default defineNuxtConfig({
 				lang: 'en',
 			},
 			meta: [
-				// { name: 'color-scheme', content: 'dark' },
-				{ name: 'theme-color', content: '#E11D48' },
 			],
 		},
-	},
-	colorMode: {
-		preference: 'system',
-		fallback: 'light',
-		classSuffix: '',
 	},
 	routeRules: {
 		'/': { prerender: true },
@@ -39,16 +29,13 @@ export default defineNuxtConfig({
 	},
 	devServer: { port: 3001 },
 	future: {
-		typescriptBundlerResolution: true,
+		compatibilityVersion: 4
 	},
 	experimental: {
-		appManifest: true,
-		headNext: true,
 		writeEarlyHints: true,
 		asyncContext: true,
-		payloadExtraction: true,
 	},
-	compatibilityDate: '2025-01-05',
+	compatibilityDate: '2025-01-26',
 	nitro: {
 		experimental: {
 			tasks: true,
@@ -58,20 +45,4 @@ export default defineNuxtConfig({
 	hub: {
 		database: true,
 	},
-	typescript: {
-		shim: true,
-		strict: true,
-	},
-	// eslint: {
-	// 	config: {
-	// 		stylistic: {
-	// 			indent: 'tab',
-	// 			semi: true,
-	// 			quotes: 'single',
-	// 			braceStyle: '1tbs',
-	// 			quoteProps: 'as-needed',
-	// 			arrowParens: true,
-	// 		},
-	// 	},
-	// },
 });
