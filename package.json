@@ -13,7 +13,7 @@
   "dependencies": {
     "@nuxt/eslint": "^1.0.1",
     "@nuxt/image": "^1.9.0",
-    "@nuxt/ui": "https://pkg.pr.new/@nuxt/ui@bef3675",
+    "@nuxt/ui": "next",
     "@nuxthub/core": "^0.8.17",
     "drizzle-orm": "^0.39.2",
     "drizzle-zod": "^0.7.0",
