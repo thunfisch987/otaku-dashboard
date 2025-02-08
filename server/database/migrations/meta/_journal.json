@@ -43,6 +43,13 @@
       "when": 1736290786586,
       "tag": "0005_workable_ultragirl",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1738962243913,
+      "tag": "0006_robust_grandmaster",
+      "breakpoints": true
     }
   ]
 }

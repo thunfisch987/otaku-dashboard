@@ -12,17 +12,20 @@ export const users = sqliteTable('users', {
 	lastLogin: integer({ mode: 'timestamp' }).notNull(),
 });
 
-export const products = sqliteTable('products', {
-	id: integer('id').primaryKey({ autoIncrement: true }),
-	name: text('name').unique().notNull(),
-	picture: text(),
-	price: integer().notNull().default(0),
-	supplier: text().notNull(),
-	amount: integer().notNull().default(0),
-	createdAt: integer({ mode: 'timestamp' }).notNull(),
-	updatedAt: integer({ mode: 'timestamp' }).notNull(),
-},
-(table) => [
-	check('supplier_check', sql`${table.supplier} IN ("HDJ", "Otaku")`),
-	check('price_check', sql`${table.price} >= 0`),
-]);
+export const products = sqliteTable(
+	'products',
+	{
+		id: integer().primaryKey({ autoIncrement: true }),
+		productname: text().unique().notNull(),
+		picture: text(),
+		price: integer().notNull().default(0),
+		supplier: text().notNull(),
+		amount: integer().notNull().default(0),
+		createdAt: integer({ mode: 'timestamp' }).notNull(),
+		updatedAt: integer({ mode: 'timestamp' }).notNull(),
+	},
+	(table) => [
+		check('supplier_check', sql`${table.supplier} IN ("HDJ", "Otaku")`),
+		check('price_check', sql`${table.price} >= 0`),
+	],
+);

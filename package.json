@@ -11,18 +11,19 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
-    "@nuxt/eslint": "^0.7.5",
+    "@nuxt/eslint": "^1.0.1",
     "@nuxt/image": "^1.9.0",
-    "@nuxt/ui": "^3.0.0-alpha.11",
-    "@nuxthub/core": "^0.8.14",
-    "drizzle-orm": "^0.38.4",
-    "drizzle-zod": "^0.6.1",
-    "eslint": "9.19.0",
-    "lucide-vue-next": "^0.474.0",
-    "nuxt": "3.15.3",
-    "nuxt-auth-utils": "0.5.9",
-    "nuxt-typed-router": "3.7.3",
-    "nuxthub": "^0.8.6",
+    "@nuxt/ui": "https://pkg.pr.new/@nuxt/ui@bef3675",
+    "@nuxthub/core": "^0.8.17",
+    "drizzle-orm": "^0.39.2",
+    "drizzle-zod": "^0.7.0",
+    "eslint": "^9.20.0",
+    "lucide-vue-next": "^0.475.0",
+    "maska": "^3.1.0",
+    "nuxt": "^3.15.4",
+    "nuxt-auth-utils": "^0.5.14",
+    "nuxt-typed-router": "^3.7.3",
+    "nuxthub": "^0.8.7",
     "prettier": "^3.4.2",
     "sharp": "^0.33.5",
     "vue": "^3.5.13",
@@ -30,9 +31,10 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.30.2",
+    "@iconify-json/lucide": "^1.2.25",
+    "drizzle-kit": "^0.30.4",
     "typescript": "^5.7.3",
-    "wrangler": "^3.105.1"
+    "wrangler": "^3.107.3"
   },
   "trustedDependencies": [
     "@parcel/watcher",

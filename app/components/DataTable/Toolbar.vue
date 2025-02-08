@@ -1,145 +1,235 @@
+<template>
+	<div class="flex space-x-2">
+		<UModal
+			v-model:open="deleteProductOpen"
+			title="Delete selected Product(s)"
+			description="This will delete the selected products"
+			:ui="{ footer: 'justify-end' }"
+		>
+			<UButton
+				label="Delete selected Product(s)"
+				color="neutral"
+				variant="subtle"
+				:disabled="table.getFilteredSelectedRowModel().rows.length < 1"
+			/>
+
+			<template #footer>
+				<div class="flex gap-2">
+					<UButton
+						color="neutral"
+						label="Cancel"
+						@click="deleteProductOpen = false"
+					/>
+					<UButton
+						label="Confirm"
+						color="primary"
+						@click="deleteSelected"
+					/>
+				</div>
+			</template>
+		</UModal>
+		<UModal
+			v-model:open="createProductOpen"
+			title="Create Product"
+			description="Create a new product"
+			:ui="{ footer: 'justify-end' }"
+			@update:open="(isOpen) => isOpen && resetFormState()"
+		>
+			<UButton
+				label="Create Product"
+				color="neutral"
+				variant="subtle"
+			/>
+
+			<template #body>
+				<UForm
+					ref="form"
+					:schema="insertProductSchema"
+					:state="state"
+					class="space-y-4"
+					@submit="createProduct"
+				>
+					<UFormField
+						label="ProduktName"
+						name="productname"
+						required
+					>
+						<UInput
+							v-model="state.productname"
+							placeholder="Name des Produkts"
+							autocomplete="off"
+							autofocus
+						/>
+					</UFormField>
+					<UFormField
+						label="Price"
+						name="price"
+						required
+						class=""
+					>
+						<UInput
+							v-model="state.price"
+							v-maska:unmaskedValue.unmasked="maskOptions"
+							inputmode="numeric"
+							trailing-icon="i-lucide-euro"
+						/>
+					</UFormField>
+					<UFormField
+						label="Supplier"
+						name="supplier"
+						required
+					>
+						<USelect
+							v-model="state.supplier"
+							:items="items"
+						/>
+					</UFormField>
+					<UFormField
+						label="Amount"
+						name="amount"
+						required
+					>
+						<UInputNumber
+							v-model="state.amount"
+							placeholder="Amount"
+						/>
+					</UFormField>
+					<UButton
+						label="Confirm"
+						color="primary"
+						type="submit"
+						:disabled="form?.getErrors().length !== 0"
+					/>
+				</UForm>
+			</template>
+		</UModal>
+	</div>
+</template>
 <script setup lang="ts">
 import type { Table } from '@tanstack/vue-table';
-import { toast as sonn } from 'vue-sonner';
-import type { z } from 'zod';
-import { CirclePlus, Trash2, CircleX } from 'lucide-vue-next';
-import { insertProductSchema, suppliers } from './columns';
-import type { ProductSchema } from './columns';
-import { useToast } from '@/components/ui/toast/use-toast';
-import { Toaster } from '@/components/ui/toast';
+import type { InsertProductSchema, ProductSchema } from './types';
+import { insertProductSchema } from './types';
+import type { FormSubmitEvent } from '@nuxt/ui';
+import { vMaska } from 'maska/vue';
+import type { MaskInputOptions } from 'maska';
+import { FetchError } from 'ofetch';
 
-import { Sonner } from '@/components/ui/sonner';
+const unmaskedValue = ref('');
+defineExpose({ unmaskedValue });
+
+const maskOptions: MaskInputOptions = {
+	eager: true,
+	number: {
+		unsigned: true,
+		fraction: 2,
+		locale: 'de-DE',
+	},
+};
 
 interface DataTableToolbarProps {
 	table: Table<ProductSchema>;
 }
 
 const props = defineProps<DataTableToolbarProps>();
+const toast = useToast();
 
-const createProductDialogOpen = useState<boolean>('createProductDialogState', () => false);
+const createProductOpen = ref<boolean>(false);
+const deleteProductOpen = ref<boolean>(false);
+const DEFAULT_STATE = {
+	productname: '',
+	price: '',
+	supplier: 'Otaku',
+	amount: 0,
+	picture: '',
+} as const;
+// eslint-disable-next-line prefer-const
+let state = reactive<InsertProductSchema>(DEFAULT_STATE);
 
-const { toast } = useToast();
-
-async function submit(formData: z.infer<typeof insertProductSchema>) {
-	createProductDialogOpen.value = false;
-	const { error, status } = await useFetch('/api/products', {
-		method: 'post',
-		body: formData,
-	});
-	if (status.value === 'error' && error.value && error.value.statusCode === 409) {
-		toast({
-			title: `Ein Produkt mit dem Namen "${formData.name}" existiert bereits schon!`,
-			description: 'Bitte wähle einen anderen Namen.',
-			variant: 'destructive',
-		});
-		return;
-	}
-	props.table.toggleAllRowsSelected(false);
-	await refreshNuxtData('productFetching');
-}
-
+const form = useTemplateRef('form');
+const items = [
+	{ label: 'HDJ', value: 'HDJ' },
+	{ label: 'Otaku', value: 'Otaku' },
+];
 async function deleteSelected() {
 	for (const row of props.table.getFilteredSelectedRowModel().rows) {
-		const { status } = await useFetch(`/api/products/${row.original.id}`, { method: 'delete' });
-		if (status.value === 'success') {
-			sonn.error(`Produkt namens ${row.original.name} gelöscht!`, {
+		const data = await useRequestFetch()(
+			`/api/products/${row.original.id}`,
+			{
+				method: 'delete',
+			},
+		);
+		if (data) {
+			toast.add({
+				title: `Produkt namens ${row.original.productname} gelöscht!`,
 				description: 'GELÖSCHT.',
+				color: 'error',
 			});
 		}
 	}
 	props.table.toggleAllRowsSelected(false);
+	deleteProductOpen.value = false;
 	await refreshNuxtData('productFetching');
 }
-const isFiltered = computed(() => props.table.getState().columnFilters.length > 0);
-</script>
 
-<template>
-	<div class="flex items-center justify-between">
-		<Toaster />
-		<Sonner :visible-toasts="9" />
-		<div class="flex flex-1 items-center space-x-2">
-			<Input
-				class="max-w-sm"
-				placeholder="Filter by name"
-				:model-value="table.getColumn('name')?.getFilterValue() as string"
-				@update:model-value=" table.getColumn('name')?.setFilterValue($event)"
-			/>
-			<DataTableFacetedFilter
-				v-if="table.getColumn('supplier')"
-				:column="table.getColumn('supplier')"
-				title="Supplier"
-				:options="suppliers"
-			/>
-			<Button
-				v-if="isFiltered"
-				variant="ghost"
-				class="h-8 px-2 lg:px-3"
-				@click="table.resetColumnFilters()"
-			>
-				Reset
-				<CircleX class="ml-2 h-4 w-4" />
-			</Button>
-		</div>
-		<div class="flex flex-none justify-end space-x-2">
-			<AlertDialog>
-				<AlertDialogTrigger as-child>
-					<Button :disabled="table.getFilteredSelectedRowModel().rows.length < 1">
-						<Trash2 />
-						Delete selected
-					</Button>
-				</AlertDialogTrigger>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>Are you absolutely sure you want to delete these products?</AlertDialogTitle>
-						<AlertDialogDescription>
-							This will delete:
-							<br>
-							<template
-								v-for="row of table.getFilteredSelectedRowModel().rows"
-								:key="row"
-							>
-								<span v-if="row.original.name">{{ row.original?.name }}</span>
-								<br>
-							</template>
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel> Cancel </AlertDialogCancel>
-						<AlertDialogAction @click="deleteSelected">
-							Confirm
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
-			<AlertDialog>
-				<Dialog
-					v-model:open="createProductDialogOpen"
-				>
-					<DialogTrigger as-child>
-						<Button>
-							<CirclePlus />
-							Create Product
-						</Button>
-					</DialogTrigger>
-					<DialogContent>
-						<DialogHeader>
-							<DialogTitle>Create Product</DialogTitle>
-							<DialogDescription>Create a new product</DialogDescription>
-						</DialogHeader>
-						<AutoForm
-							:schema="insertProductSchema"
-							@submit="(data) => submit(data)"
-						>
-							<Button
-								type="submit"
-								class="mt-2"
-							>
-								Create Product
-							</Button>
-						</AutoForm>
-					</DialogContent>
-				</Dialog>
-			</AlertDialog>
-		</div>
-	</div>
-</template>
+async function createProduct(
+	formSubmitEvent: FormSubmitEvent<InsertProductSchema>,
+) {
+	props.table.toggleAllRowsSelected(false);
+	try {
+		const data = await useRequestFetch()('/api/products', {
+			method: 'post',
+			body: {
+				productname: formSubmitEvent.data.productname,
+				price: Number.parseFloat(unmaskedValue.value),
+				supplier: formSubmitEvent.data.supplier,
+				amount: formSubmitEvent.data.amount,
+				picture: formSubmitEvent.data.picture,
+			},
+		});
+
+		toast.add({
+			title: `Produkt namens ${data.productname} erstellt!`,
+			color: 'success',
+			id: 'modal-success',
+		});
+
+		// resetFormState();
+
+		createProductOpen.value = false;
+		await refreshNuxtData('productFetching');
+	} catch (error) {
+		if (error instanceof FetchError) {
+			if (
+				error.data.statusCode === 409 &&
+				error.data.statusMessage === 'Conflict' &&
+				error.data.message === 'Product already exists'
+			) {
+				toast.add({
+					title: `Ein Produkt mit dem Namen "${error.data.data.productname}" existiert bereits!`,
+					description: 'Bitte wähle einen anderen Namen.',
+					color: 'error',
+					duration: 0,
+					close: { color: 'error', variant: 'outline' },
+				});
+			}
+			form.value?.setErrors([
+				{
+					name: 'productname',
+					message: 'Dieses Produkt existiert bereits',
+				},
+			]);
+		} else {
+			console.error(error);
+		}
+	}
+}
+
+function resetFormState() {
+	state.productname = '';
+	state.price = '';
+	state.supplier = 'Otaku';
+	state.amount = 0;
+	state.picture = '';
+	unmaskedValue.value = '';
+}
+</script>

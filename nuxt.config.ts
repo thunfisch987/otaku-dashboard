@@ -6,7 +6,9 @@ export default defineNuxtConfig({
 		'@nuxthub/core',
 		'nuxt-auth-utils',
 		'nuxt-typed-router',
+		'@nuxt/ui',
 	],
+	css: ['~/assets/css/main.css'],
 	devtools: { enabled: true },
 	app: {
 		head: {
@@ -16,8 +18,7 @@ export default defineNuxtConfig({
 			htmlAttrs: {
 				lang: 'en',
 			},
-			meta: [
-			],
+			meta: [],
 		},
 	},
 	routeRules: {
@@ -29,7 +30,7 @@ export default defineNuxtConfig({
 	},
 	devServer: { port: 3001 },
 	future: {
-		compatibilityVersion: 4
+		compatibilityVersion: 4,
 	},
 	experimental: {
 		writeEarlyHints: true,

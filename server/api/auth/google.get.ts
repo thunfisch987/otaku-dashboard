@@ -1,4 +1,4 @@
-import { type InsertUser, tables, useDrizzle } from '~/server/utils/drizzle';
+import { type InsertUser, tables, useDrizzle } from '../../utils/drizzle';
 
 export default defineOAuthGoogleEventHandler({
 	config: {

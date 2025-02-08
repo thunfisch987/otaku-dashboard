@@ -1,4 +1,4 @@
-import { productInsertSchema } from '~/server/utils/drizzle';
+import { productInsertSchema } from '../../utils/drizzle';
 
 export default defineEventHandler(async (event) => {
 	await requireUserSession(event);
