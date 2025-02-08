@@ -13,6 +13,10 @@ export const productSchema = insertProductSchema.extend({
 	price: z.number(),
 });
 
+export const patchProductSchema = insertProductSchema.extend({
+	id: z.string(),
+});
+
 export type ProductSchema = z.infer<typeof productSchema>;
 
 export const productArraySchema = z.array(productSchema);
@@ -20,3 +24,5 @@ export const productArraySchema = z.array(productSchema);
 export type ProductArraySchema = z.infer<typeof productArraySchema>;
 
 export type InsertProductSchema = z.input<typeof insertProductSchema>;
+
+export type PatchProductSchema = z.infer<typeof patchProductSchema>;
