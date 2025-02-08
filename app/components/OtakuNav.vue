@@ -7,67 +7,69 @@
 			/>
 		</NuxtLink>
 		<AuthState>
-			<template #default="{ loggedIn, clear, user }">
-				<NuxtLink
-					v-if="loggedIn"
-					class="text-lg text-gray-400 hidden md:inline"
-					to="/dash/dashboard"
-				>
-					Overview
-				</NuxtLink>
-				<NuxtLink
-					v-if="loggedIn"
-					class="text-lg text-gray-400 hidden md:inline"
-					to="/dash/forms"
-				>
-					Forms
-				</NuxtLink>
-				<NuxtLink
-					v-if="loggedIn"
-					class="text-lg text-gray-400 hidden md:inline"
-					to="/dash/inventory"
-				>
-					Inventory
-				</NuxtLink>
-				<NuxtLink
-					v-if="loggedIn"
-					class="text-lg text-gray-400 hidden md:inline"
-					to="/dash/pointofsale"
-				>
-					Point of Sale
-				</NuxtLink>
-				<UAvatar
-					v-if="loggedIn"
-					class="ml-auto"
-					:src="user.avatar"
-					crossorigin="anonymous"
-					:title="`Logged in as: ${user.name}`"
-					:text="`${user.given_name[0]}${user.family_name[0]}`"
-				/>
-				<UButton
-					v-if="loggedIn"
-					@click="clear"
-				>
-					<LogOut class="w-4 h-4 mr-2" />
-					Logout
-				</UButton>
+			<template #default="{ loggedIn, user }">
+				<template v-if="loggedIn">
+					<NuxtLink
+						v-for="item in navLinks"
+						:key="item.name"
+						class="text-lg text-gray-400 hidden md:inline"
+						:to="item.to"
+					>
+						{{ item.name }}
+					</NuxtLink>
+					<UDropdownMenu :items="items">
+						<UButton
+							class="ml-auto"
+							:title="`Logged in as: ${user.name}`"
+							variant="ghost"
+						>
+							<template #leading>
+								<UAvatar
+									:src="user.avatar"
+									:alt="`Profilbild von ${user.given_name} ${user.family_name}`"
+									:text="`${user.given_name[0]}${user.family_name[0]}`"
+									size="xl"
+									crossorigin="anonymous"
+									class="shrink-0"
+								/>
+							</template>
+						</UButton>
+						<!-- <UAvatar
+							class="ml-auto"
+							:src="user.avatar"
+							crossorigin="anonymous"
+							:title="`Logged in as: ${user.name}`"
+							:text="`${user.given_name[0]}${user.family_name[0]}`"
+						/> -->
+					</UDropdownMenu>
+				</template>
 				<UButton
 					v-else
 					class="ml-auto"
 					to="/api/auth/google"
 					external
-					variant="outline"
+					variant="solid"
+					icon="i-lucide-log-in"
 				>
-					<LogIn class="w-4 h-4 mr-2" />
 					Login
 				</UButton>
+				<!--as of nuxt auth utils v0.5.14-->
+				<!-- <UButton
+					v-else
+					class="ml-auto"
+					variant="solid"
+					icon="i-lucide-log-in"
+					@click="openInPopup('/api/auth/google')"
+				>
+					Login
+				</UButton> -->
 			</template>
 			<template #placeholder>
 				<UButton
-					disabled
 					class="ml-auto"
+					loading
+					loading-icon="i-lucide-loader-circle"
 				>
-					<Loader2 class="w-4 h-4 mr-2 animate-spin" />
 					Please wait
 				</UButton>
 			</template>
@@ -77,9 +79,10 @@
 			<UButton
 				variant="ghost"
 				aria-label="Open Navigation Menu"
-			>
-				<Menu class="md:hidden" />
-			</UButton>
+				icon="i-lucide-menu"
+				class="md:hidden"
+				size="md"
+			/>
 			<template #body>
 				<NuxtLink
 					v-for="item in navLinks"
@@ -95,8 +98,7 @@
 </template>
 
 <script setup lang="ts">
-import { Loader2, LogIn, LogOut, Menu } from 'lucide-vue-next';
-
+import type { DropdownMenuItem } from '@nuxt/ui';
 import type { RoutePathSchema } from '@typed-router';
 
 type MaguroNavLink = {
@@ -105,9 +107,26 @@ type MaguroNavLink = {
 	original?: string;
 };
 
+const { clear } = useUserSession();
+
+async function clearSession() {
+	await clear();
+	navigateTo('/');
+}
+
+const items: DropdownMenuItem[] = [
+	{
+		label: 'Logout',
+		icon: 'i-lucide-log-out',
+		onSelect: () => {
+			clearSession();
+		},
+	},
+];
+
 const navLinks: MaguroNavLink[] = [
 	{
-		name: 'Dashboard',
+		name: 'Übersicht',
 		to: '/dash/dashboard',
 	},
 	{
@@ -115,12 +134,16 @@ const navLinks: MaguroNavLink[] = [
 		to: '/dash/forms',
 	},
 	{
-		name: 'Inventory',
+		name: 'Inventar',
 		to: '/dash/inventory',
 	},
 	{
 		name: 'Point of Sale',
 		to: '/dash/pointofsale',
+	},
+	{
+		name: 'Transaktionen',
+		to: '/dash/transactions',
 	},
 ];
 </script>

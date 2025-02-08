@@ -27,10 +27,18 @@ export default defineOAuthGoogleEventHandler({
 			lastLogin: new Date(),
 			createdAt: new Date(),
 		};
-		await useDrizzle().insert(tables.users).values(dbUser).onConflictDoUpdate({
-			target: tables.users.id,
-			set: { lastLogin: dbUser.lastLogin },
-		});
+		await useDrizzle()
+			.insert(tables.users)
+			.values(dbUser)
+			.onConflictDoUpdate({
+				target: tables.users.id,
+				set: { lastLogin: dbUser.lastLogin },
+			});
 		return sendRedirect(event, '/dash/dashboard');
+	},
+	onError(event, error) {
+		console.error('Google OAuth error:', error);
+		// You can choose to send an error response instead of redirecting
+		return sendRedirect(event, '/');
 	},
 });
