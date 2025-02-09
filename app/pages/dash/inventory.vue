@@ -1,7 +1,7 @@
 <template>
 	<div class="container py-10 mx-auto">
 		<UCard>
-			<template #header> Products </template>
+			<template #header> Produkte </template>
 			<DataTable />
 		</UCard>
 	</div>

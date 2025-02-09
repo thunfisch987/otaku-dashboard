@@ -6,5 +6,5 @@ export const googleUserSchema = z.object({
 	family_name: z.string().min(1),
 	picture: z.string().url().min(1),
 	email: z.string().email().min(1),
-	sub: z.number().transform((value) => String(value)),
+	sub: z.string(),
 });

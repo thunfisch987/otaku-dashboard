@@ -7,6 +7,7 @@
 			ref="table"
 			v-model:pagination="pagination"
 			v-model:column-visibility="columnVisibility"
+			v-model:global-filter="globalFilter"
 			:data="parsedAllProducts.data"
 			:columns="columns"
 			:loading="status === 'pending'"
@@ -37,6 +38,7 @@ const pagination = ref({
 const columnVisibility = ref({
 	id: false,
 });
+const globalFilter = useState<string>('globalFilter');
 
 // -------------------fetch Products and parse them with zod-------------------
 const { data: allProducts, status } = await useFetch('/api/products', {
