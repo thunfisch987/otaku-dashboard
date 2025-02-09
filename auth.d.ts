@@ -6,6 +6,7 @@ declare module '#auth-utils' {
 		avatar: string;
 		email: string;
 		id: string;
+		webAuthn?: string;
 	}
 	interface UserSession {
 		user: User;

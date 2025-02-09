@@ -22,6 +22,13 @@ export type SelectProduct = typeof schema.products.$inferSelect;
 export type InsertProduct = typeof schema.products.$inferInsert;
 export type UpdateProduct = typeof schema.products.$inferInsert;
 
+export type SelectPasskey = typeof schema.passkeys.$inferSelect;
+export type InsertPasskey = typeof schema.passkeys.$inferInsert;
+
+export const passkeySelectSchema = createSelectSchema(tables.passkeys);
+export const passkeyInsertSchema = createInsertSchema(tables.passkeys);
+export const passkeyUpdateSchema = createUpdateSchema(tables.passkeys);
+
 export const productSelectSchema = createSelectSchema(tables.products);
 export const productInsertSchema = createInsertSchema(tables.products);
 export const productUpdateSchema = createUpdateSchema(tables.products);

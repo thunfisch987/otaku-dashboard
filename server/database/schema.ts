@@ -12,6 +12,22 @@ export const users = sqliteTable('users', {
 	lastLogin: integer({ mode: 'timestamp' }).notNull(),
 });
 
+export const passkeys = sqliteTable('passkeys', {
+	userId: text()
+		.notNull()
+
+		.references(() => users.id, {
+			onDelete: 'cascade',
+			onUpdate: 'cascade',
+		})
+		.primaryKey(),
+	id: text().unique().notNull(),
+	publicKey: text().notNull(),
+	counter: integer().notNull(),
+	backedUp: integer().notNull(),
+	transports: text().notNull(),
+});
+
 export const products = sqliteTable(
 	'products',
 	{

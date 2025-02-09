@@ -15,6 +15,8 @@
     "@nuxt/image": "^1.9.0",
     "@nuxt/ui": "https://pkg.pr.new/@nuxt/ui@bef3675",
     "@nuxthub/core": "^0.8.17",
+    "@simplewebauthn/browser": "11",
+    "@simplewebauthn/server": "11",
     "drizzle-orm": "^0.39.2",
     "drizzle-zod": "^0.7.0",
     "eslint": "^9.20.0",
