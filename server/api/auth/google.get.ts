@@ -1,29 +1,31 @@
+import type { H3Event, H3Error } from 'h3';
 import { type InsertUser, tables, useDrizzle } from '../../utils/drizzle';
+import { googleUserSchema } from './googleUserSchema';
 
 export default defineOAuthGoogleEventHandler({
 	config: {
 		scope: ['email', 'profile'],
 	},
-	// @ts-expect-error ignore these anys
-	async onSuccess(event, { user }) {
+	async onSuccess(event: H3Event, { user }: { user: unknown }) {
+		const parsedUser = googleUserSchema.parse(user);
 		await setUserSession(event, {
 			user: {
-				name: user.name,
-				given_name: user.given_name,
-				family_name: user.family_name,
-				avatar: user.picture,
-				email: user.email,
-				id: user.sub,
+				name: parsedUser.name,
+				given_name: parsedUser.given_name,
+				family_name: parsedUser.family_name,
+				avatar: parsedUser.picture,
+				email: parsedUser.email,
+				id: parsedUser.sub,
 			},
 			login_at: new Date(),
 		});
 		const dbUser: InsertUser = {
-			id: user.sub,
-			name: user.name,
-			givenName: user.given_name,
-			familyName: user.family_name,
-			email: user.email,
-			avatar: user.picture,
+			id: parsedUser.sub,
+			name: parsedUser.name,
+			givenName: parsedUser.given_name,
+			familyName: parsedUser.family_name,
+			email: parsedUser.email,
+			avatar: parsedUser.picture,
 			lastLogin: new Date(),
 			createdAt: new Date(),
 		};
@@ -36,7 +38,7 @@ export default defineOAuthGoogleEventHandler({
 			});
 		return sendRedirect(event, '/dash/dashboard');
 	},
-	onError(event, error) {
+	onError(event: H3Event, error: H3Error) {
 		console.error('Google OAuth error:', error);
 		// You can choose to send an error response instead of redirecting
 		return sendRedirect(event, '/');
