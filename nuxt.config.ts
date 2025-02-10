@@ -27,6 +27,7 @@ export default defineNuxtConfig({
 		'/dash/forms.vue': { prerender: true },
 		'/dash/inventory.vue': { prerender: true },
 		'/dash/pointofsale.vue': { prerender: true },
+		'/dash/transactions.vue': { prerender: true },
 	},
 	devServer: { port: 3001 },
 	future: {
@@ -45,5 +46,8 @@ export default defineNuxtConfig({
 	},
 	hub: {
 		database: true,
+	},
+	ui: {
+		colorMode: true,
 	},
 });

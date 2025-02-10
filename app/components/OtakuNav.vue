@@ -43,16 +43,20 @@
 						/> -->
 					</UDropdownMenu>
 				</template>
-				<UButton
+				<!-- <UButton
+				v-else
+				class="ml-auto"
+				to="/api/auth/google"
+				external
+				variant="solid"
+				icon="i-lucide-log-in"
+				>
+				Login
+			</UButton> -->
+				<GoogleSignIn
 					v-else
 					class="ml-auto"
-					to="/api/auth/google"
-					external
-					variant="solid"
-					icon="i-lucide-log-in"
-				>
-					Login
-				</UButton>
+				/>
 				<!--as of nuxt auth utils v0.5.14-->
 				<!-- <UButton
 					v-else
