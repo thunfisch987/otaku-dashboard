@@ -2,12 +2,15 @@
 	<div class="flex space-x-2">
 		<UInput
 			v-model="globalFilter"
-			class="max-w-sm mr-auto"
+			class="max-w-sm"
 			placeholder="Filter..."
+		/>
+		<ColumnVisibilityDropdown
+			:table="table"
+			class="mr-auto"
 		/>
 		<DeleteProductModal :table="table" />
 		<CreateProductModal :table="table" />
-		<ColumnVisibilityDropdown :table="table" />
 	</div>
 </template>
 <script setup lang="ts">
