@@ -20,6 +20,7 @@ export default defineNuxtConfig({
 			},
 			meta: [],
 		},
+		keepalive: true,
 	},
 	routeRules: {
 		'/': { prerender: true },

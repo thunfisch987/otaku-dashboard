@@ -4,11 +4,3 @@
 		<GoogleSignIn class="mx-auto" />
 	</div>
 </template>
-
-<script setup lang="ts">
-definePageMeta({
-	middleware: ['logged'],
-});
-</script>
-
-<style></style>

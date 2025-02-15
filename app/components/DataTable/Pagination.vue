@@ -1,5 +1,5 @@
 <template>
-	<div class="flex justify-center border-t border-(--ui-border) pt-4">
+	<div class="flex justify-center pt-4">
 		<UPagination
 			:default-page="(table.getState().pagination.pageIndex || 0) + 1"
 			:items-per-page="table.getState().pagination.pageSize"
