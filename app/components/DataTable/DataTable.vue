@@ -21,45 +21,79 @@
 				<LazyDataTableSelectedCount :table="table?.tableApi!" />
 				<LazyDataTablePagination :table="table?.tableApi!" />
 				<LazyDataTableEditProductModal :table="table?.tableApi!" />
-				<UDropdownMenu
-					v-model:open="openAll"
-					:items="itemsAll"
-				>
-					<UButton
-						variant="outline"
-						leading
-						:disabled="
-							table?.tableApi.getCoreRowModel().rows.length === 0
-						"
-						:icon="
-							openAll
-								? 'i-lucide-chevron-up'
-								: 'i-lucide-chevron-down'
-						"
-						>Export all</UButton
+				<div class="flex space-x-4">
+					<UDropdownMenu
+						v-model:open="openAll"
+						:items="itemsAll"
 					>
-				</UDropdownMenu>
-				<UDropdownMenu
-					v-model:open="openFiltered"
-					:items="itemsFiltered"
-				>
-					<UButton
-						variant="outline"
-						leading
-						:disabled="
-							table?.tableApi.getCoreRowModel().rows.length ===
-								0 && globalFilter === ''
-						"
-						:icon="
-							globalFilter === 'i-lucide-x'
-								? 'i-lucide-'
-								: openFiltered
+						<UButton
+							variant="outline"
+							leading
+							:disabled="
+								table?.tableApi.getCoreRowModel().rows
+									.length === 0
+							"
+							:icon="
+								openAll
 									? 'i-lucide-chevron-up'
 									: 'i-lucide-chevron-down'
-						"
-						>Export filtered</UButton
+							"
+							class=""
+						>
+							Export all
+						</UButton>
+					</UDropdownMenu>
+					<UDropdownMenu
+						v-model:open="openFiltered"
+						:items="itemsFiltered"
 					>
-				</UDropdownMenu>
+						<UButton
+							variant="outline"
+							leading
+							:disabled="
+								globalFilter === '' ||
+								table?.tableApi.getCoreRowModel().rows
+									.length === 0
+							"
+							:icon="
+								globalFilter === ''
+									? 'i-lucide-x'
+									: openFiltered
+										? 'i-lucide-chevron-up'
+										: 'i-lucide-chevron-down'
+							"
+							class=""
+						>
+							Export filtered
+						</UButton>
+					</UDropdownMenu>
+					<UDropdownMenu
+						v-model:open="openSelected"
+						:items="itemsSelected"
+					>
+						<UButton
+							variant="outline"
+							leading
+							:disabled="
+								table?.tableApi.getFilteredSelectedRowModel()
+									.rows.length === 0 ||
+								table?.tableApi.getCoreRowModel().rows
+									.length === 0
+							"
+							:icon="
+								table?.tableApi.getFilteredSelectedRowModel()
+									.rows.length === 0
+									? 'i-lucide-x'
+									: openSelected
+										? 'i-lucide-chevron-up'
+										: 'i-lucide-chevron-down'
+							"
+							class=""
+						>
+							Export selected
+						</UButton>
+					</UDropdownMenu>
+				</div>
 			</template>
 		</div>
 	</div>
@@ -68,21 +102,23 @@
 <script setup lang="ts">
 import {
 	productArraySchema,
-	type ProductArraySchema,
+	type ProductSchema,
 } from '~/components/DataTable/types';
 import { getPaginationRowModel } from '@tanstack/vue-table';
 import { columns } from './columns';
 import type { DropdownMenuItem } from '@nuxt/ui';
 import { json2csv } from 'json-2-csv';
+import type { Table } from '@tanstack/vue-table';
 
 const openAll = useState('openAll', () => false);
 const openFiltered = useState('openFiltered', () => false);
+const openSelected = useState('openSelected', () => false);
 
 const itemsAll: DropdownMenuItem[] = [
 	{
 		label: 'csv',
 		onSelect() {
-			downloadFile();
+			downloadFile('all');
 		},
 		icon: 'i-lucide-download',
 	},
@@ -92,35 +128,55 @@ const itemsFiltered: DropdownMenuItem[] = [
 	{
 		label: 'csv',
 		onSelect() {
-			downloadFile(true);
+			downloadFile('filtered');
 		},
 		icon: 'i-lucide-download',
 	},
 ];
 
-async function downloadFile(filtered: false | true = false) {
-	const rows = json2csv(
-		filtered
-			? table.value?.tableApi
-					?.getFilteredRowModel()
-					.rows.map((row) => row.original)
-			: table.value?.tableApi
-					?.getCoreRowModel()
-					.rows.map((row) => row.original),
-	);
-	const filename = `export${filtered ? `_${globalFilter.value}` : ''}.csv`;
-	const element = document.createElement('a');
-	element.setAttribute(
-		'href',
-		'data:text/csv;charset=utf-8,' + encodeURIComponent(rows),
-	);
-	element.setAttribute('download', filename);
+const itemsSelected: DropdownMenuItem[] = [
+	{
+		label: 'csv',
+		onSelect() {
+			downloadFile('selected');
+		},
+		icon: 'i-lucide-download',
+	},
+];
 
-	element.style.display = 'none';
-	document.body.appendChild(element);
+function getRowModel(
+	option: 'all' | 'filtered' | 'selected',
+	table: Table<ProductSchema>,
+) {
+	switch (option) {
+		case 'all':
+			return table.getCoreRowModel().rows.map((row) => row.original);
+		case 'filtered':
+			return table.getFilteredRowModel().rows.map((row) => row.original);
+		case 'selected':
+			return table
+				.getFilteredSelectedRowModel()
+				.rows.map((row) => row.original);
+	}
+}
 
-	element.click();
-	document.body.removeChild(element);
+async function downloadFile(option: 'all' | 'filtered' | 'selected') {
+	if (table.value) {
+		const rows = json2csv(getRowModel(option, table.value.tableApi));
+		const filename = `export${option === 'filtered' ? `_${globalFilter.value}` : ''}.csv`;
+		const element = document.createElement('a');
+		element.setAttribute(
+			'href',
+			'data:text/csv;charset=utf-8,' + encodeURIComponent(rows),
+		);
+		element.setAttribute('download', filename);
+
+		element.style.display = 'none';
+		document.body.appendChild(element);
+
+		element.click();
+		document.body.removeChild(element);
+	}
 }
 
 // table stuff
