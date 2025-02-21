@@ -11,7 +11,7 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
-    "@nuxt/eslint": "^1.0.1",
+    "@nuxt/eslint": "^1.1.0",
     "@nuxt/image": "^1.9.0",
     "@nuxt/ui": "^3.0.0-alpha.13",
     "@nuxthub/core": "^0.8.17",
@@ -23,7 +23,7 @@
     "json-2-csv": "^5.5.8",
     "maska": "^3.1.0",
     "nuxt": "^3.15.4",
-    "nuxt-auth-utils": "^0.5.15",
+    "nuxt-auth-utils": "^0.5.16",
     "nuxt-typed-router": "^3.7.3",
     "nuxthub": "^0.8.9",
     "prettier": "^3.5.1",
@@ -31,13 +31,14 @@
     "unenv": "^1.10.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
+    "z-vue-scan-nuxt-module": "^0.0.33",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.26",
     "drizzle-kit": "^0.30.4",
     "typescript": "^5.7.3",
-    "wrangler": "^3.109.1"
+    "wrangler": "^3.109.2"
   },
   "trustedDependencies": [
     "@parcel/watcher",

@@ -15,11 +15,21 @@
 				:pagination-options="{
 					getPaginationRowModel: getPaginationRowModel(),
 				}"
+				:faceted-options="{
+					getFacetedRowModel: getFacetedRowModel(),
+					getFacetedUniqueValues: getFacetedUniqueValues(),
+				}"
 				class="flex-1"
 			/>
 			<template v-if="table && table?.tableApi !== undefined">
 				<LazyDataTableSelectedCount :table="table?.tableApi!" />
-				<LazyDataTablePagination :table="table?.tableApi!" />
+				<LazyDataTablePagination
+					v-if="
+						table?.tableApi!.getFilteredRowModel()!.rows!.length! >=
+						5
+					"
+					:table="table?.tableApi!"
+				/>
 				<LazyDataTableEditProductModal :table="table?.tableApi!" />
 				<div class="flex space-x-4">
 					<UDropdownMenu
@@ -29,10 +39,6 @@
 						<UButton
 							variant="outline"
 							leading
-							:disabled="
-								table?.tableApi.getCoreRowModel().rows
-									.length === 0
-							"
 							:icon="
 								openAll
 									? 'i-lucide-chevron-up'
@@ -50,18 +56,15 @@
 						<UButton
 							variant="outline"
 							leading
-							:disabled="
-								globalFilter === '' ||
+							:disabled="!exportFilteredEnabled"
+							:title="
+								!exportFilteredEnabled ||
 								table?.tableApi.getCoreRowModel().rows
 									.length === 0
+									? 'Bitte Filtern!'
+									: ''
 							"
-							:icon="
-								globalFilter === ''
-									? 'i-lucide-x'
-									: openFiltered
-										? 'i-lucide-chevron-up'
-										: 'i-lucide-chevron-down'
-							"
+							:icon="exportFilteredEnabledIcon"
 							class=""
 						>
 							Export filtered
@@ -80,6 +83,14 @@
 								table?.tableApi.getCoreRowModel().rows
 									.length === 0
 							"
+							:title="
+								table?.tableApi.getFilteredSelectedRowModel()
+									.rows.length === 0 ||
+								table?.tableApi.getCoreRowModel().rows
+									.length === 0
+									? 'Mindestens ein Produkt muss ausgewählt sein!'
+									: ''
+							"
 							:icon="
 								table?.tableApi.getFilteredSelectedRowModel()
 									.rows.length === 0
@@ -96,6 +107,8 @@
 				</div>
 			</template>
 		</div>
+		{{ !exportFilteredEnabled }}
+		{{ exportFilteredEnabledIcon }}
 	</div>
 </template>
 
@@ -104,15 +117,44 @@ import {
 	productArraySchema,
 	type ProductSchema,
 } from '~/components/DataTable/types';
-import { getPaginationRowModel } from '@tanstack/vue-table';
+import {
+	getPaginationRowModel,
+	getFacetedRowModel,
+	getFacetedUniqueValues,
+} from '@tanstack/vue-table';
 import { columns } from './columns';
 import type { DropdownMenuItem } from '@nuxt/ui';
 import { json2csv } from 'json-2-csv';
 import type { Table } from '@tanstack/vue-table';
 
+const toast = useToast();
+
 const openAll = useState('openAll', () => false);
 const openFiltered = useState('openFiltered', () => false);
 const openSelected = useState('openSelected', () => false);
+
+const exportFilteredEnabled = computed((): boolean => {
+	if (table.value?.tableApi.getCoreRowModel().rows.length === 0) {
+		return false;
+	} else {
+		if (
+			globalFilter.value !== '' ||
+			table.value?.tableApi.getColumn('supplier')?.getFilterValue() !==
+				undefined
+		) {
+			return true;
+		}
+	}
+	return false;
+});
+
+const exportFilteredEnabledIcon = computed((): string => {
+	return !exportFilteredEnabled.value
+		? 'i-lucide-x'
+		: openFiltered.value
+			? 'i-lucide-chevron-up'
+			: 'i-lucide-chevron-down';
+});
 
 const itemsAll: DropdownMenuItem[] = [
 	{
@@ -144,7 +186,7 @@ const itemsSelected: DropdownMenuItem[] = [
 	},
 ];
 
-function getRowModel(
+function getMyRowModel(
 	option: 'all' | 'filtered' | 'selected',
 	table: Table<ProductSchema>,
 ) {
@@ -162,20 +204,34 @@ function getRowModel(
 
 async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 	if (table.value) {
-		const rows = json2csv(getRowModel(option, table.value.tableApi));
-		const filename = `export${option === 'filtered' ? `_${globalFilter.value}` : ''}.csv`;
-		const element = document.createElement('a');
-		element.setAttribute(
-			'href',
-			'data:text/csv;charset=utf-8,' + encodeURIComponent(rows),
-		);
-		element.setAttribute('download', filename);
+		if (table.value.tableApi.getCoreRowModel().rows.length > 0) {
+			const rows = json2csv(getMyRowModel(option, table.value.tableApi));
+			const filename = `export${option === 'filtered' ? `_${globalFilter.value}` : ''}.csv`;
+			const element = document.createElement('a');
+			element.setAttribute(
+				'href',
+				'data:text/csv;charset=utf-8,' + encodeURIComponent(rows),
+			);
+			element.setAttribute('download', filename);
 
-		element.style.display = 'none';
-		document.body.appendChild(element);
+			element.style.display = 'none';
+			document.body.appendChild(element);
 
-		element.click();
-		document.body.removeChild(element);
+			element.click();
+			document.body.removeChild(element);
+		} else {
+			toast.add({
+				title: 'Keine Produkte zum exportieren vorhanden!',
+				description:
+					'Bitte kreiere oder importiere Produkte um diese zu exportieren.',
+				color: 'error',
+				duration: 0,
+				close: { color: 'error', variant: 'outline' },
+				ui: {
+					root: 'ring-(--ui-error)',
+				},
+			});
+		}
 	}
 }
 
