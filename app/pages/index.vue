@@ -7,8 +7,6 @@
 
 <script setup lang="ts">
 const { loggedIn, ready } = useUserSession();
-console.log(ready.value);
-console.log(loggedIn.value);
 if (ready.value) {
 	if (loggedIn.value) {
 		navigateTo('/dash/dashboard');

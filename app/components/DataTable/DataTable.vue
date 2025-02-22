@@ -1,7 +1,16 @@
 <template>
 	<div>
-		<div class="w-full space-y-4 pb-4 flex flex-col">
-			<template v-if="table && table?.tableApi !== undefined">
+		<div class="lg:hidden">
+			<h1 class="text-2xl text-center">pls use desktop</h1>
+		</div>
+		<div class="w-full space-y-4 pb-4 flex-col hidden lg:flex">
+			<template
+				v-if="
+					table &&
+					table?.tableApi !== undefined &&
+					parsedAllProducts.data
+				"
+			>
 				<LazyDataTableToolbar :table="table?.tableApi!" />
 			</template>
 			<UTable
@@ -21,7 +30,13 @@
 				}"
 				class="flex-1"
 			/>
-			<template v-if="table && table?.tableApi !== undefined">
+			<template
+				v-if="
+					table &&
+					table?.tableApi !== undefined &&
+					parsedAllProducts.data
+				"
+			>
 				<LazyDataTableSelectedCount :table="table?.tableApi!" />
 				<LazyDataTablePagination
 					v-if="
@@ -54,18 +69,14 @@
 						:items="itemsFiltered"
 					>
 						<UButton
+							:key="parsedAllProducts.data"
 							variant="outline"
 							leading
 							:disabled="!exportFilteredEnabled"
 							:title="
-								!exportFilteredEnabled ||
-								table?.tableApi.getCoreRowModel().rows
-									.length === 0
-									? 'Bitte Filtern!'
-									: ''
+								!exportFilteredEnabled ? 'Bitte Filtern!' : ''
 							"
 							:icon="exportFilteredEnabledIcon"
-							class=""
 						>
 							Export filtered
 						</UButton>
@@ -107,8 +118,6 @@
 				</div>
 			</template>
 		</div>
-		{{ !exportFilteredEnabled }}
-		{{ exportFilteredEnabledIcon }}
 	</div>
 </template>
 
@@ -202,11 +211,13 @@ function getMyRowModel(
 	}
 }
 
+const facetedSelectValue = useState('facetedSelectValue');
+
 async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 	if (table.value) {
 		if (table.value.tableApi.getCoreRowModel().rows.length > 0) {
 			const rows = json2csv(getMyRowModel(option, table.value.tableApi));
-			const filename = `export${option === 'filtered' ? `_${globalFilter.value}` : ''}.csv`;
+			const filename = `export${option === 'filtered' ? `_${globalFilter.value || facetedSelectValue.value}` : ''}.csv`;
 			const element = document.createElement('a');
 			element.setAttribute(
 				'href',
