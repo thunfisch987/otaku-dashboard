@@ -2,7 +2,6 @@
 	"editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" },
 	"editor.formatOnSave": true,
 	"vue.autoInsert.bracketSpacing": true,
-	"vue.autoInsert.dotValue": true,
 	"vue.doctor.status": true,
 	"vue.inlayHints.inlineHandlerLeading": true,
 	"vue.inlayHints.missingProps": true,
@@ -13,5 +12,11 @@
 	"typescript.inlayHints.parameterNames.enabled": "all",
 	"typescript.inlayHints.parameterNames.suppressWhenArgumentMatchesName": false,
 	"typescript.inlayHints.parameterTypes.enabled": true,
-	"typescript.inlayHints.propertyDeclarationTypes.enabled": true
+	"typescript.inlayHints.propertyDeclarationTypes.enabled": true,
+	"files.associations": {
+		"*.css": "tailwindcss"
+	},
+	"editor.quickSuggestions": {
+		"strings": "on"
+	}
 }

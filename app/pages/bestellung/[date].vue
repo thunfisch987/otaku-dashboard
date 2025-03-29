@@ -42,6 +42,7 @@
 				</div>
 			</template>
 		</UCard> -->
+
 		<UForm
 			:state="state"
 			@submit="
@@ -49,10 +50,6 @@
 					console.log(submitEvent.data)
 			"
 		>
-			<UCard class="m-4">
-				<DatePicker v-model="state.date" />
-				<USwitch />
-			</UCard>
 			<UStepper
 				ref="foodstepper"
 				:items="items"
@@ -82,16 +79,11 @@
 				<template #namestep>
 					<div class="flex flex-col space-y-2">
 						<UCard>
-							<UFormField
-								label="Hier beliebigen Text hinschreiben / einfügen"
-								required
-							>
-								<UTextarea
-									v-model="state.text"
-									autoresize
-									class="mx-0 min-w-full"
-								/>
-							</UFormField>
+							<UTextarea
+								v-model="state.text"
+								autoresize
+								class="mx-0 min-w-full"
+							/>
 						</UCard>
 						<UCard>
 							<UFormField
@@ -213,11 +205,13 @@
 </template>
 
 <script setup lang="ts">
+import { UInput } from '#components';
 import type { FormSubmitEvent, InputProps, StepperItem } from '@nuxt/ui';
 
-// type MyFormField = { component: Component; props: InputProps; value: string }[];
+type MyFormField = { component: Component; props: InputProps; value: string }[];
 
-const toext = `Heyo, diesmal gibt es wieder Donburi, genauer Gyudon.
+const toext = `
+Heyo, diesmal gibt es wieder Donburi, genauer Gyudon.
 Aufgrund des Helfermangels und der Besonderheit das diemal das Treffen Samstags ist, mit einer kleineren Karte und keiner vegetarischen Auswahl.
 
 Bitte beachtet das die Küche nur von 16:30-18:00 Uhr geöffnet hat.
@@ -239,13 +233,13 @@ Die Umfrage läuft bis Donnerstag 20.06.24 18 Uhr
 
 const foodStepperRef = useTemplateRef('foodstepper');
 
-// const fields = shallowRef<MyFormField>([
-// 	{
-// 		component: UInput,
-// 		props: { placeholder: 'Enter text' },
-// 		value: '',
-// 	},
-// ]);
+const fields = shallowRef<MyFormField>([
+	{
+		component: UInput,
+		props: { placeholder: 'Enter text' },
+		value: '',
+	},
+]);
 
 type MyStepperItem = StepperItem & {
 	formData?: { component: Component; props: InputProps; value: string }[];
@@ -262,7 +256,7 @@ const items: MyStepperItem[] = [
 		title: 'Essen',
 		description: '',
 		slot: 'foodstep',
-		// formData: fields.value,
+		formData: fields.value,
 		icon: 'i-ph-bowl-steam',
 	},
 	{
@@ -292,7 +286,6 @@ const state = reactive({
 	confirmbox: false,
 	amount: 0,
 	text: toext,
-	date: undefined,
 });
 
 // function addField(type: 'text' | 'textarea') {

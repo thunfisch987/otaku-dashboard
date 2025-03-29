@@ -7,6 +7,7 @@ export default defineNuxtConfig({
 		'nuxt-auth-utils',
 		'nuxt-typed-router',
 		'@nuxt/ui',
+		'compodium',
 	],
 	css: ['~/assets/css/main.css'],
 	devtools: { enabled: true },
@@ -20,10 +21,8 @@ export default defineNuxtConfig({
 			},
 			meta: [],
 		},
-		keepalive: true,
 	},
 	routeRules: {
-		'/': { prerender: true },
 		'/dash/dashboard.vue': { prerender: true },
 		'/dash/forms.vue': { prerender: true },
 		'/dash/inventory.vue': { prerender: true },

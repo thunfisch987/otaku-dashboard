@@ -69,7 +69,7 @@
 						:items="itemsFiltered"
 					>
 						<UButton
-							:key="parsedAllProducts.data"
+							:key="parsedAllProducts.data[0]?.productname"
 							variant="outline"
 							leading
 							:disabled="!exportFilteredEnabled"
@@ -142,6 +142,27 @@ const openAll = useState('openAll', () => false);
 const openFiltered = useState('openFiltered', () => false);
 const openSelected = useState('openSelected', () => false);
 
+const table = useTemplateRef('table');
+const pagination = ref({
+	pageIndex: 0,
+	pageSize: 5,
+});
+const columnVisibility = ref({
+	id: false,
+});
+const globalFilter = useState<string>('globalFilter');
+
+// -------------------fetch Products and parse them with zod-------------------
+const { data: allProducts, status } = await useFetch('/api/products', {
+	key: 'productFetching',
+	lazy: true,
+});
+const parsedAllProducts = computed(() =>
+	productArraySchema.safeParse(allProducts.value),
+);
+
+const facetedSelectValue = useState('facetedSelectValue');
+
 const exportFilteredEnabled = computed((): boolean => {
 	if (table.value?.tableApi.getCoreRowModel().rows.length === 0) {
 		return false;
@@ -211,8 +232,6 @@ function getMyRowModel(
 	}
 }
 
-const facetedSelectValue = useState('facetedSelectValue');
-
 async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 	if (table.value) {
 		if (table.value.tableApi.getCoreRowModel().rows.length > 0) {
@@ -247,22 +266,4 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 }
 
 // table stuff
-const table = useTemplateRef('table');
-const pagination = ref({
-	pageIndex: 0,
-	pageSize: 5,
-});
-const columnVisibility = ref({
-	id: false,
-});
-const globalFilter = useState<string>('globalFilter');
-
-// -------------------fetch Products and parse them with zod-------------------
-const { data: allProducts, status } = await useFetch('/api/products', {
-	key: 'productFetching',
-	lazy: true,
-});
-const parsedAllProducts = computed(() =>
-	productArraySchema.safeParse(allProducts.value),
-);
 </script>

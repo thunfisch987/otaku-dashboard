@@ -29,3 +29,11 @@ export const products = sqliteTable(
 		check('price_check', sql`${table.price} >= 0`),
 	],
 );
+
+export const orders = sqliteTable('orders', {
+	id: integer().primaryKey({ autoIncrement: true }),
+	orderName: text().notNull(),
+	productsId: integer().notNull(),
+	amount: integer().notNull(),
+	date: integer({ mode: 'timestamp' }).notNull(),
+});
