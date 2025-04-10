@@ -86,6 +86,7 @@ import type { Table } from '@tanstack/vue-table';
 import { vMaska } from 'maska/vue';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import { createProductFetch } from '../fetchcalls';
+import type { MaskInputOptions } from 'maska';
 
 const maskOptions: MaskInputOptions = {
 	eager: true,
