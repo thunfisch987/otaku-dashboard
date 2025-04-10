@@ -1,8 +1,8 @@
 <template>
 	<div class="h-screen flex flex-col">
 		<NuxtLoadingIndicator color="#E11D48" />
-		<OtakuNav />
 		<UApp>
+			<OtakuNav />
 			<USeparator />
 			<NuxtPage />
 		</UApp>
