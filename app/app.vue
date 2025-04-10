@@ -1,12 +1,12 @@
 <template>
 	<div class="h-screen flex flex-col">
-		<NuxtLoadingIndicator color="#E11D48" />
 		<UApp>
+			<NuxtLoadingIndicator color="#E11D48" />
 			<OtakuNav />
 			<USeparator />
 			<NuxtPage />
+			<USeparator class="mt-auto" />
+			<OtakuFooter />
 		</UApp>
-		<USeparator class="mt-auto" />
-		<OtakuFooter />
 	</div>
 </template>
