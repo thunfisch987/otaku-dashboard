@@ -22,13 +22,6 @@ export default defineNuxtConfig({
 			meta: [],
 		},
 	},
-	routeRules: {
-		'/dash/dashboard.vue': { prerender: true },
-		'/dash/forms.vue': { prerender: true },
-		'/dash/inventory.vue': { prerender: true },
-		'/dash/pointofsale.vue': { prerender: true },
-		'/dash/transactions.vue': { prerender: true },
-	},
 	devServer: { port: 3001 },
 	future: {
 		compatibilityVersion: 4,
