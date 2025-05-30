@@ -119,6 +119,9 @@
 			</template>
 		</div>
 	</div>
+	{{ statuss }}
+	{{ dataa }}
+	{{ errorr }}
 </template>
 
 <script setup lang="ts">
@@ -265,5 +268,24 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 	}
 }
 
-// table stuff
+const {
+	status: statuss,
+	data: dataa,
+	error: errorr,
+	close: closee,
+	open: openeventstream,
+	eventSource: eventSourcee,
+} = useEventSource('/api/products/stream', [], { immediate: false });
+
+onMounted(() => {
+	openeventstream();
+	eventSourcee.value.onmessage = (event) => {
+		if (event.data === 'plzrefetch') {
+			refreshNuxtData('productFetching');
+		}
+	};
+});
+onUnmounted(() => {
+	closee();
+});
 </script>

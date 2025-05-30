@@ -1,3 +1,5 @@
+import { updateLatestBackendData } from './stream';
+
 export default defineEventHandler(async (event) => {
 	await requireUserSession(event);
 	const { id } = getRouterParams(event);
@@ -16,6 +18,6 @@ export default defineEventHandler(async (event) => {
 			data: { productId: id },
 		});
 	}
-
+	updateLatestBackendData();
 	return deletedProduct;
 });

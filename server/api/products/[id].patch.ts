@@ -1,6 +1,7 @@
 // import { productUpdateSchema } from '../../utils/drizzle';
 
 import type { UpdateProduct } from '~~/server/utils/drizzle';
+import { updateLatestBackendData } from './stream';
 
 export default defineEventHandler<{ body: UpdateProduct }>(async (event) => {
 	await requireUserSession(event);
@@ -8,7 +9,8 @@ export default defineEventHandler<{ body: UpdateProduct }>(async (event) => {
 	// const result = await readValidatedBody(event, (body) =>
 	// 	productIUpdateSchema.safeParse(body),
 	// );
-	const { productname, price, supplier, picture } = await readBody(event);
+	const { productname, price, supplier, picture, amount } =
+		await readBody(event);
 	// console.log(result);
 	// if (!result.success) {
 	// 	throw result.error.issues;
@@ -25,10 +27,12 @@ export default defineEventHandler<{ body: UpdateProduct }>(async (event) => {
 				picture: picture,
 				updatedAt: new Date(),
 				createdAt: new Date(),
+				amount: amount,
 			})
 			.where(eq(tables.products.id, Number(id)))
 			.returning()
 			.get();
+		updateLatestBackendData();
 		return product;
 	} catch (dbError) {
 		if (dbError instanceof Error) {
