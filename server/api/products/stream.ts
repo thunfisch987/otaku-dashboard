@@ -6,6 +6,7 @@ export default defineEventHandler(async (event) => {
 
 	// Add the client to the list of connected clients
 	clients.push(stream);
+	stream.push('listen up folks');
 
 	// Handle client disconnection
 	stream.onClosed(() => {
