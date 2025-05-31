@@ -119,11 +119,11 @@
 			</template>
 		</div>
 	</div>
-	{{ statuss }}
+	Status: {{ statuss }}
 	<hr />
-	{{ JSON.parse(dataa) }}
+	Data: {{ JSON.parse(dataa) }} Data not parsed: {{ dataa }}
 	<hr />
-	{{ errorr }}
+	Error: {{ errorr }} Error: {{ errorr?.type }}
 </template>
 
 <script setup lang="ts">
