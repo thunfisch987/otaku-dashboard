@@ -281,15 +281,22 @@ onMounted(() => {
 	console.log('mounted');
 	openeventstream();
 	console.log('openeventstream');
+	console.log('statuss.value:');
 	console.log(statuss.value);
+	console.log('dataa.value:');
 	console.log(dataa.value);
+	console.log('errorr.value:');
 	console.log(errorr.value);
+	console.log('typeof eventSourcee.value:');
+	console.log(typeof eventSourcee.value);
+	console.log('start of onmessage:');
 	eventSourcee.value.onmessage = (event) => {
 		if (event.data === 'plzrefetch') {
 			console.log('plzrefetch');
 			refreshNuxtData('productFetching');
 		}
 	};
+	console.log('end of onmessage');
 });
 onUnmounted(() => {
 	console.log('unmounted');
