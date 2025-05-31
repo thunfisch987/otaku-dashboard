@@ -120,7 +120,9 @@
 		</div>
 	</div>
 	{{ statuss }}
-	{{ dataa }}
+	<hr />
+	{{ JSON.parse(dataa) }}
+	<hr />
 	{{ errorr }}
 </template>
 
