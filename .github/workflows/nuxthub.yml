@@ -18,10 +18,13 @@ jobs:
       - name: Install bun
         uses: oven-sh/setup-bun@v2
         with:
-            bun-version: latest
+          bun-version: latest
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Ensure NuxtHub module is installed
+        run: bunx nuxthub@latest ensure
 
       - name: Build application
         run: bun run build
@@ -30,4 +33,4 @@ jobs:
         uses: nuxt-hub/action@v1
         id: deploy
         with:
-          project-key: otaku-dashboard-5689
+          project-key: otaku-dashboard-53kh
