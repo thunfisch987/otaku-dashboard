@@ -30,9 +30,7 @@ jobs:
               id: cache-build-cache-restore
               uses: actions/cache/restore@v4
               with:
-                  path: |
-                      path/to/dependencies
-                      some/other/dependencies
+                  path: node_modules/.cache
                   key: ${{ runner.os }}-${{ hashFiles('node_modules/.cache') }}
 
             - name: Build application
