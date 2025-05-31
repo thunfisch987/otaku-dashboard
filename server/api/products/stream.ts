@@ -2,6 +2,9 @@ let clients = [];
 // let latestBackendData = 'Waiting for backend check...';
 
 export default defineEventHandler(async (event) => {
+	setResponseHeader(event, 'Content-Type', 'text/event-stream');
+	setResponseHeader(event, 'Cache-Control', 'no-cache');
+	setResponseHeader(event, 'Connection', 'keep-alive');
 	const stream = createEventStream(event);
 
 	// Add the client to the list of connected clients
