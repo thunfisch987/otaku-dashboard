@@ -26,7 +26,7 @@ jobs:
             - name: Ensure NuxtHub module is installed
               run: bunx nuxthub@latest ensure
 
-            - name: Restore cached Primes
+            - name: Restore cached Build files
               id: cache-build-cache-restore
               uses: actions/cache/restore@v4
               with:
