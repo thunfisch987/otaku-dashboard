@@ -26,14 +26,14 @@ jobs:
             - name: Ensure NuxtHub module is installed
               run: bunx nuxthub@latest ensure
 
+            - name: Build application
+              run: bun run build
+
             - name: Cache node_modules/.cache
               uses: actions/cache/@v4
               with:
                   path: node_modules/.cache
                   key: ${{ runner.os }}-${{ hashFiles('node_modules/.cache') }}
-
-            - name: Build application
-              run: bun run build
 
             - name: Deploy to NuxtHub
               uses: nuxt-hub/action@v1

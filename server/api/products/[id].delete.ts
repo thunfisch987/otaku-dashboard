@@ -1,4 +1,4 @@
-import { updateLatestBackendData } from './stream';
+import { updateLatestBackendData } from '~~/server/routes/ws/liveproducts';
 
 export default defineEventHandler(async (event) => {
 	await requireUserSession(event);

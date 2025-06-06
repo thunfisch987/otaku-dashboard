@@ -1,5 +1,5 @@
 import type { InsertProduct } from '~~/server/utils/drizzle';
-import { updateLatestBackendData } from './stream';
+import { updateLatestBackendData } from '~~/server/routes/ws/liveproducts';
 
 export default defineEventHandler<{ body: InsertProduct }>(async (event) => {
 	await requireUserSession(event);

@@ -1,7 +1,7 @@
 // import { productUpdateSchema } from '../../utils/drizzle';
 
 import type { UpdateProduct } from '~~/server/utils/drizzle';
-import { updateLatestBackendData } from './stream';
+import { updateLatestBackendData } from '~~/server/routes/ws/liveproducts';
 
 export default defineEventHandler<{ body: UpdateProduct }>(async (event) => {
 	await requireUserSession(event);

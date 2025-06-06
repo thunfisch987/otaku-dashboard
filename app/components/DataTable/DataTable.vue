@@ -119,11 +119,6 @@
 			</template>
 		</div>
 	</div>
-	Status: {{ statuss }}
-	<hr />
-	Data: {{ JSON.parse(dataa) }} Data not parsed: {{ dataa }}
-	<hr />
-	Error: {{ errorr }} Error: {{ errorr?.type }}
 </template>
 
 <script setup lang="ts">
@@ -270,38 +265,28 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 	}
 }
 
-const {
-	status: statuss,
-	data: dataa,
-	error: errorr,
-	close: closee,
-	open: openeventstream,
-	eventSource: eventSourcee,
-} = useEventSource('/api/products/stream', [], { immediate: false });
-
-onMounted(() => {
-	console.log('mounted');
-	openeventstream();
-	console.log('openeventstream');
-	console.log('statuss.value:');
-	console.log(statuss.value);
-	console.log('dataa.value:');
-	console.log(dataa.value);
-	console.log('errorr.value:');
-	console.log(errorr.value);
-	console.log('typeof eventSourcee.value:');
-	console.log(typeof eventSourcee.value);
-	console.log('start of onmessage:');
-	eventSourcee.value.onmessage = (event) => {
+const { open } = useWebSocket('/ws/liveproducts', {
+	immediate: false,
+	async onMessage(ws, event) {
+		console.log('websocket message');
+		console.log(
+			typeof event.data === 'string'
+				? event.data
+				: await event.data.text(),
+		);
+		// The message might be a string or a Blob
+		if (typeof event.data !== 'string') {
+			if ((await event.data.text()) === 'plzrefetch') {
+				refreshNuxtData('productFetching');
+			}
+		}
 		if (event.data === 'plzrefetch') {
-			console.log('plzrefetch');
 			refreshNuxtData('productFetching');
 		}
-	};
-	console.log('end of onmessage');
+	},
 });
-onUnmounted(() => {
-	console.log('unmounted');
-	closee();
+
+onMounted(() => {
+	open();
 });
 </script>
