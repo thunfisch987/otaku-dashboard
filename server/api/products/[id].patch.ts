@@ -1,7 +1,6 @@
 // import { productUpdateSchema } from '../../utils/drizzle';
 
 import type { UpdateProduct } from '~~/server/utils/drizzle';
-import { updateLatestBackendData } from '~~/server/routes/ws/liveproducts';
 
 export default defineEventHandler<{ body: UpdateProduct }>(async (event) => {
 	await requireUserSession(event);
@@ -32,7 +31,6 @@ export default defineEventHandler<{ body: UpdateProduct }>(async (event) => {
 			.where(eq(tables.products.id, Number(id)))
 			.returning()
 			.get();
-		updateLatestBackendData();
 		return product;
 	} catch (dbError) {
 		if (dbError instanceof Error) {

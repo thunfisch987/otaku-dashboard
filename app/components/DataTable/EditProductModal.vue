@@ -83,7 +83,14 @@ import type { Table } from '@tanstack/vue-table';
 import { editProductFetch } from './fetchcalls';
 import { vMaska } from 'maska/vue';
 
-const props = defineProps<{ table: Table<ProductSchema> }>();
+const props = defineProps<{
+	table: Table<ProductSchema>;
+	sendWebsocket: (
+		data: string | ArrayBuffer | Blob,
+		useBuffer?: boolean,
+	) => boolean;
+}>();
+
 const form = useTemplateRef('form');
 const items: {
 	label: ProductSchema['supplier'];
@@ -127,6 +134,7 @@ async function editProduct(
 	);
 	if (result === 200) {
 		editProductOpen.value = false;
+		props.sendWebsocket('plzrefetchclient');
 	}
 	if (result === 409) {
 		form.value?.setErrors([
@@ -136,6 +144,5 @@ async function editProduct(
 			},
 		]);
 	}
-	await refreshNuxtData('productFetching');
 }
 </script>

@@ -1,5 +1,4 @@
 import type { InsertProduct } from '~~/server/utils/drizzle';
-import { updateLatestBackendData } from '~~/server/routes/ws/liveproducts';
 
 export default defineEventHandler<{ body: InsertProduct }>(async (event) => {
 	await requireUserSession(event);
@@ -28,6 +27,5 @@ export default defineEventHandler<{ body: InsertProduct }>(async (event) => {
 			data: { productname, price, supplier, picture },
 		});
 	}
-	updateLatestBackendData();
 	return product;
 });

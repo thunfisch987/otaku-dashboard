@@ -1,5 +1,3 @@
-import { updateLatestBackendData } from '~~/server/routes/ws/liveproducts';
-
 export default defineEventHandler(async (event) => {
 	await requireUserSession(event);
 	const { id } = getRouterParams(event);
@@ -18,6 +16,5 @@ export default defineEventHandler(async (event) => {
 			data: { productId: id },
 		});
 	}
-	updateLatestBackendData();
 	return deletedProduct;
 });

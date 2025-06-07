@@ -107,7 +107,13 @@ function resetFormState() {
 }
 
 const form = useTemplateRef('form');
-const props = defineProps<{ table: Table<ProductSchema> }>();
+const props = defineProps<{
+	table: Table<ProductSchema>;
+	sendWebsocket: (
+		data: string | ArrayBuffer | Blob,
+		useBuffer?: boolean,
+	) => boolean;
+}>();
 const unmaskedCreatePriceValue = useState(
 	'unmaskedCreateProductValue',
 	() => '',
@@ -143,6 +149,7 @@ async function createProduct(
 	);
 	if (result === 200) {
 		createProductOpen.value = false;
+		props.sendWebsocket('plzrefetchclient');
 	}
 	if (result === 409) {
 		form.value?.setErrors([
@@ -152,6 +159,5 @@ async function createProduct(
 			},
 		]);
 	}
-	await refreshNuxtData('productFetching');
 }
 </script>

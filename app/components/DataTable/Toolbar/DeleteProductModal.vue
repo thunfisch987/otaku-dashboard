@@ -28,18 +28,34 @@
 		</template>
 	</UModal>
 </template>
+
 <script setup lang="ts">
 import { deleteProductFetch } from '../fetchcalls';
 import type { ProductSchema } from '../types';
 import type { Table } from '@tanstack/vue-table';
 
-const props = defineProps<{ table: Table<ProductSchema> }>();
+const props = defineProps<{
+	table: Table<ProductSchema>;
+	sendWebsocket: (
+		data: string | ArrayBuffer | Blob,
+		useBuffer?: boolean,
+	) => boolean;
+}>();
 
 const deleteProductOpen = ref<boolean>(false);
 
 async function deleteSelected() {
-	for (const row of props.table.getFilteredSelectedRowModel().rows) {
-		await deleteProductFetch(row);
+	const result = await deleteProductFetch(
+		props.table.getFilteredSelectedRowModel().rows,
+	);
+	switch (result) {
+		case 200:
+			props.sendWebsocket('plzrefetchclient');
+			break;
+		case 409:
+			break;
+		default:
+			break;
 	}
 	props.table.toggleAllRowsSelected(false);
 	deleteProductOpen.value = false;

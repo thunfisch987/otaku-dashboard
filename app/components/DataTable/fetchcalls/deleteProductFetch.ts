@@ -4,22 +4,23 @@ import { FetchError } from 'ofetch';
 
 const toast = useToast();
 
-export async function deleteProductFetch(row: Row<ProductSchema>) {
+export async function deleteProductFetch(rows: Row<ProductSchema>[]) {
 	try {
-		const data = await useRequestFetch()(
-			`/api/products/${row.original.id}`,
-			{
-				method: 'delete',
-			},
-		);
-
-		toast.add({
-			title: `Produkt namens ${data.productname} gelöscht!`,
-			description: 'GELÖSCHT.',
-			color: 'error',
-			close: { color: 'success' },
-		});
-		refreshNuxtData('productFetching');
+		for (const row of rows) {
+			const data = await useRequestFetch()(
+				`/api/products/${row.original.id}`,
+				{
+					method: 'delete',
+				},
+			);
+			toast.add({
+				title: `Produkt namens ${data.productname} gelöscht!`,
+				description: 'GELÖSCHT.',
+				color: 'error',
+				close: { color: 'success' },
+			});
+		}
+		return 200;
 	} catch (error) {
 		if (error instanceof FetchError) {
 			if (
@@ -34,10 +35,11 @@ export async function deleteProductFetch(row: Row<ProductSchema>) {
 					duration: 0,
 					close: { color: 'error', variant: 'outline' },
 				});
+				return 409;
 			}
+			return 500;
 		} else {
 			console.error(error);
 		}
 	}
-	refreshNuxtData('productFetching');
 }

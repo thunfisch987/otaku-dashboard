@@ -11,7 +11,10 @@
 					parsedAllProducts.data
 				"
 			>
-				<LazyDataTableToolbar :table="table?.tableApi!" />
+				<LazyDataTableToolbar
+					:send-websocket="sendWebsocket"
+					:table="table?.tableApi!"
+				/>
 			</template>
 			<UTable
 				ref="table"
@@ -45,7 +48,10 @@
 					"
 					:table="table?.tableApi!"
 				/>
-				<LazyDataTableEditProductModal :table="table?.tableApi!" />
+				<LazyDataTableEditProductModal
+					:send-websocket="sendWebsocket"
+					:table="table?.tableApi!"
+				/>
 				<div class="flex space-x-4">
 					<UDropdownMenu
 						v-model:open="openAll"
@@ -118,7 +124,7 @@
 				</div>
 			</template>
 		</div>
-		webSocketStatus: {{ webSocketStatus }}
+		webSocketStatus: {{ websocketStatus }}
 	</div>
 </template>
 
@@ -270,11 +276,16 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 }
 
 const {
-	open,
-	close,
-	status: webSocketStatus,
+	open: openWebsocket,
+	close: closeWebsocket,
+	status: websocketStatus,
+	send: sendWebsocket,
 } = useWebSocket('/ws/liveproducts', {
 	immediate: false,
+	heartbeat: {
+		interval: 90000,
+		pongTimeout: 2000,
+	},
 	async onMessage(ws, event) {
 		console.log('websocket message');
 		console.log(
@@ -283,22 +294,21 @@ const {
 				: await event.data.text(),
 		);
 		// The message might be a string or a Blob
-		if (typeof event.data !== 'string') {
-			if ((await event.data.text()) === 'plzrefetch') {
-				refreshNuxtData('productFetching');
-			}
-		}
-		if (event.data === 'plzrefetch') {
+		if (
+			typeof event.data === 'string'
+				? event.data
+				: (await event.data.text()) === 'plzrefetch'
+		) {
 			refreshNuxtData('productFetching');
 		}
 	},
 });
 
 onMounted(() => {
-	open();
+	openWebsocket();
 });
 
 onUnmounted(() => {
-	close();
+	closeWebsocket();
 });
 </script>

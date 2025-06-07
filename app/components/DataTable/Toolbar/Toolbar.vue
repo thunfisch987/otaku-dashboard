@@ -17,8 +17,14 @@
 			@click="refreshStuff"
 			>Refresh</UButton
 		>
-		<DeleteProductModal :table="table" />
-		<CreateProductModal :table="table" />
+		<DeleteProductModal
+			:send-websocket="sendWebsocket"
+			:table="table"
+		/>
+		<CreateProductModal
+			:send-websocket="sendWebsocket"
+			:table="table"
+		/>
 	</div>
 </template>
 <script setup lang="ts">
@@ -31,6 +37,10 @@ import type { SelectItem } from '@nuxt/ui';
 
 const props = defineProps<{
 	table: Table<ProductSchema>;
+	sendWebsocket: (
+		data: string | ArrayBuffer | Blob,
+		useBuffer?: boolean,
+	) => boolean;
 }>();
 
 const facets = computed(() =>
