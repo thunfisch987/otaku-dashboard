@@ -6,12 +6,12 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({
-	middleware() {
-		const { loggedIn } = useUserSession();
-		if (loggedIn.value) {
-			return navigateTo('/dash/dashboard');
-		}
-	},
-});
+// definePageMeta({
+// 	middleware() {
+// 		const { loggedIn } = useUserSession();
+// 		// if (loggedIn.value) {
+// 		// 	return navigateTo('/dash/dashboard');
+// 		// }
+// 	},
+// });
 </script>

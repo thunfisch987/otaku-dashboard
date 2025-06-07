@@ -265,7 +265,7 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 	}
 }
 
-const { open } = useWebSocket('/ws/liveproducts', {
+const { open, close } = useWebSocket('/ws/liveproducts', {
 	immediate: false,
 	async onMessage(ws, event) {
 		console.log('websocket message');
@@ -288,5 +288,9 @@ const { open } = useWebSocket('/ws/liveproducts', {
 
 onMounted(() => {
 	open();
+});
+
+onUnmounted(() => {
+	close();
 });
 </script>

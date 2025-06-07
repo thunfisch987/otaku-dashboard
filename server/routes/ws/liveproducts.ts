@@ -7,12 +7,13 @@ export default defineWebSocketHandler({
 		peer.subscribe('liveproducts');
 		peer.publish('liveproducts', 'listenup');
 		peer.send('listenup');
-		console.log('open');
+		console.log('opening liveproducts');
 		console.log(peer);
 	},
 	close(peer) {
 		clients.delete(peer);
 		peer.unsubscribe('liveproducts');
+		console.log('closing liveproducts');
 		console.log(peer);
 	},
 });
