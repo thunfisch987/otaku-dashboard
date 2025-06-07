@@ -20,7 +20,7 @@
 				v-model:global-filter="globalFilter"
 				:data="parsedAllProducts.data"
 				:columns="columns"
-				:loading="status === 'pending'"
+				:loading="productFetchStatus === 'pending'"
 				:pagination-options="{
 					getPaginationRowModel: getPaginationRowModel(),
 				}"
@@ -118,8 +118,8 @@
 				</div>
 			</template>
 		</div>
+		webSocketStatus: {{ webSocketStatus }}
 	</div>
-	WEBSOCKET Status: {{ status }}
 </template>
 
 <script setup lang="ts">
@@ -154,10 +154,13 @@ const columnVisibility = ref({
 const globalFilter = useState<string>('globalFilter');
 
 // -------------------fetch Products and parse them with zod-------------------
-const { data: allProducts, status } = await useFetch('/api/products', {
-	key: 'productFetching',
-	lazy: true,
-});
+const { data: allProducts, status: productFetchStatus } = await useFetch(
+	'/api/products',
+	{
+		key: 'productFetching',
+		lazy: true,
+	},
+);
 const parsedAllProducts = computed(() =>
 	productArraySchema.safeParse(allProducts.value),
 );
@@ -266,7 +269,11 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 	}
 }
 
-const { open, close, status } = useWebSocket('/ws/liveproducts', {
+const {
+	open,
+	close,
+	status: webSocketStatus,
+} = useWebSocket('/ws/liveproducts', {
 	immediate: false,
 	async onMessage(ws, event) {
 		console.log('websocket message');
