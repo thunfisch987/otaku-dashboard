@@ -119,6 +119,7 @@
 			</template>
 		</div>
 	</div>
+	WEBSOCKET Status: {{ status }}
 </template>
 
 <script setup lang="ts">
@@ -265,7 +266,7 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 	}
 }
 
-const { open, close } = useWebSocket('/ws/liveproducts', {
+const { open, close, status } = useWebSocket('/ws/liveproducts', {
 	immediate: false,
 	async onMessage(ws, event) {
 		console.log('websocket message');
