@@ -23,6 +23,7 @@ export function updateLatestBackendData() {
 	// latestBackendData = data;
 	// Notify all connected clients about the new data
 	const peer = clients.entries().next();
+	console.log(clients);
 	if (!peer.done) {
 		const firstPeer = peer.value[0];
 		console.log('firstPeer');
