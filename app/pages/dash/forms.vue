@@ -46,7 +46,7 @@
 			:state="state"
 			@submit="
 				(submitEvent: FormSubmitEvent<object>) =>
-					console.log(submitEvent.data)
+					console.dir(submitEvent.data)
 			"
 		>
 			<UCard class="m-4">
