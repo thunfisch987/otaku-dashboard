@@ -53,6 +53,41 @@
 				<DatePicker v-model="state.date" />
 				<USwitch />
 			</UCard>
+<DevOnly>
+				<div class="flex justify-around my-4">
+					<div>
+						<UButton
+							v-if="foodStepperRef?.hasPrev"
+							trailing-icon="i-lucide-arrow-left"
+							size="xl"
+							variant="subtle"
+							@click="foodStepperRef?.prev()"
+						>
+							Zurück
+						</UButton>
+					</div>
+					<div>
+						<UButton
+							v-if="foodStepperRef?.hasNext"
+							trailing-icon="i-lucide-arrow-right"
+							size="xl"
+							variant="subtle"
+							@click="foodStepperRef?.next()"
+						>
+							Weiter
+						</UButton>
+						<UButton
+							v-if="!foodStepperRef?.hasNext"
+							trailing-icon="i-lucide-send-horizontal"
+							size="xl"
+							variant="solid"
+							type="submit"
+						>
+							Abschicken
+						</UButton>
+					</div>
+				</div>
+			</DevOnly>
 			<UStepper
 				ref="foodstepper"
 				:items="items"
