@@ -12,8 +12,6 @@ export default defineEventHandler<{ body: InsertProduct }>(async (event) => {
 			price: price,
 			supplier: supplier,
 			picture: picture,
-			updatedAt: new Date(),
-			createdAt: new Date(),
 			amount: amount,
 		})
 		.onConflictDoNothing()

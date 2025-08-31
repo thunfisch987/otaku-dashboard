@@ -24,8 +24,7 @@ export default defineEventHandler<{ body: UpdateProduct }>(async (event) => {
 				price: price,
 				supplier: supplier,
 				picture: picture,
-				updatedAt: new Date(),
-				createdAt: new Date(),
+				updatedAt: sql`(unixepoch())`,
 				amount: amount,
 			})
 			.where(eq(tables.products.id, Number(id)))

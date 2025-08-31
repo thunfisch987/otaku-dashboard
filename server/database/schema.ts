@@ -21,8 +21,12 @@ export const products = sqliteTable(
 		price: integer().notNull().default(0),
 		supplier: text().notNull(),
 		amount: integer().notNull().default(0),
-		createdAt: integer({ mode: 'timestamp' }).notNull(),
-		updatedAt: integer({ mode: 'timestamp' }).notNull(),
+		createdAt: integer({ mode: 'timestamp' })
+			.notNull()
+			.default(sql`(unixepoch())`),
+		updatedAt: integer({ mode: 'timestamp' })
+			.notNull()
+			.default(sql`(unixepoch())`),
 	},
 	(table) => [
 		check('supplier_check', sql`${table.supplier} IN ("HDJ", "Otaku")`),
