@@ -106,6 +106,7 @@
 				class="mt-4 p-4"
 				size="xl"
 				disabled
+				:model-value="currentStep"
 			>
 				<!-- <template #content="{ item }">
 					<UForm
@@ -287,6 +288,8 @@ Die Umfrage läuft bis Donnerstag 20.06.24 18 Uhr
 
 const foodStepperRef = useTemplateRef('foodstepper');
 
+const currentStep = useState<number>('currentStep');
+
 // const fields = shallowRef<MyFormField>([
 // 	{
 // 		component: UInput,
@@ -305,6 +308,7 @@ const items: MyStepperItem[] = [
 		description: '',
 		slot: 'namestep',
 		icon: 'i-ph-hash',
+value: 0,
 	},
 	{
 		title: 'Essen',
@@ -312,24 +316,28 @@ const items: MyStepperItem[] = [
 		slot: 'foodstep',
 		// formData: fields.value,
 		icon: 'i-ph-bowl-steam',
+value: 1,
 	},
 	{
 		title: 'Snacks',
 		description: '',
 		slot: 'snacksstep',
 		icon: 'i-ph-cookie',
+value: 2,
 	},
 	{
 		title: 'Onigiri',
 		description: '',
 		slot: 'onigiristep',
 		icon: 'i-ph-onigiri',
+value: 3,
 	},
 	{
 		title: 'Bestellung bestätigen',
 		slot: 'confirmstep',
 		description: '',
 		icon: 'i-ph-check-fat',
+value: 4,
 	},
 ];
 
