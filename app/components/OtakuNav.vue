@@ -26,7 +26,6 @@
 							<template #leading>
 								<UAvatar
 									:src="user.avatar"
-									:alt="`Profilbild von ${user.given_name} ${user.family_name}`"
 									:text="`${user.given_name[0]}${user.family_name[0]}`"
 									size="xl"
 									crossorigin="anonymous"
