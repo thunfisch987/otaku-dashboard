@@ -1,19 +1,19 @@
-import * as z from 'zod';
+import * as z from 'zod/mini';
 
 export const insertProductSchema = z.object({
-	productname: z.string().min(1, 'Please enter a Name'),
-	price: z.string().min(1, 'Please enter a price'),
-	supplier: z.enum(['HDJ', 'Otaku']).default('Otaku'),
-	amount: z.number().nonnegative().finite().safe().default(0),
-	picture: z.string().optional().nullable(),
+	productname: z.string().check(z.minLength(1, 'Please enter a Name')),
+	price: z.string().check(z.minLength(1, 'Please enter a price')),
+	supplier: z._default(z.enum(['HDJ', 'Otaku']), 'Otaku'),
+	amount: z._default(z.int().check(z.nonnegative()), 0),
+	picture: z.nullable(z.optional(z.string().check())),
 });
 
-export const productSchema = insertProductSchema.extend({
+export const productSchema = z.extend(insertProductSchema, {
 	id: z.number(),
 	price: z.number(),
 });
 
-export const patchProductSchema = insertProductSchema.extend({
+export const patchProductSchema = z.extend(insertProductSchema, {
 	id: z.string(),
 });
 
