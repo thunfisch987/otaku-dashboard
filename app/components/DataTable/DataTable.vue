@@ -167,6 +167,7 @@ const { data: allProducts, status: productFetchStatus } = await useFetch(
 		lazy: true,
 	},
 );
+
 const parsedAllProducts = computed(() =>
 	productArraySchema.safeParse(allProducts.value),
 );
