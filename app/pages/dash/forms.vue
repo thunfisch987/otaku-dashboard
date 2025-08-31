@@ -212,7 +212,7 @@
 					<UCard>
 						<p>Zahlung ist nur vor Ort in Bar möglich.</p>
 						<br />
-						<UFormField name="confirmbox#">
+						<UFormField name="confirmbox">
 							<UCheckbox
 								required
 								label="Ich bestätige hiermit, dass ich mich mit der Bestellung auch zur Zahlung verantworte."
