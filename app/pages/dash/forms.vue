@@ -65,7 +65,7 @@
 					type="time"
 				/>
 			</UCard>
-<DevOnly>
+			<DevOnly>
 				<div class="flex justify-around my-4">
 					<div>
 						<UButton
@@ -203,10 +203,19 @@
 				</template>
 				<template #onigiristep>
 					<UCard>
-						<p class="text-center">
-							Bilder sind beispielhaft und können von der Realität
-							abweichen
-						</p>
+						<UFormField>
+							<UCheckboxGroup
+								v-model="state.onigiriSorten"
+								:items="onigiriSorten"
+								:ui="{ label: 'bg-disabled' }"
+							>
+								<template #label="{ item }">
+									//
+									{{ item.label }}
+								</template>
+							</UCheckboxGroup>
+						</UFormField>
+						{{ state.onigiriSorten }}
 					</UCard>
 				</template>
 				<template #confirmstep>
@@ -282,8 +291,6 @@ Edamame groß: 2€
 
 Wie immer kann man auch Onigiri vom Reiseck bestellen
 Onigiri: 3€
-
-Die Umfrage läuft bis Donnerstag 20.06.24 18 Uhr
 `;
 
 const foodStepperRef = useTemplateRef('foodstepper');
@@ -308,7 +315,7 @@ const items: MyStepperItem[] = [
 		description: '',
 		slot: 'namestep',
 		icon: 'i-ph-hash',
-value: 0,
+		value: 0,
 	},
 	{
 		title: 'Essen',
@@ -316,32 +323,69 @@ value: 0,
 		slot: 'foodstep',
 		// formData: fields.value,
 		icon: 'i-ph-bowl-steam',
-value: 1,
+		value: 1,
 	},
 	{
 		title: 'Snacks',
 		description: '',
 		slot: 'snacksstep',
 		icon: 'i-ph-cookie',
-value: 2,
+		value: 2,
 	},
 	{
 		title: 'Onigiri',
 		description: '',
 		slot: 'onigiristep',
 		icon: 'i-ph-onigiri',
-value: 3,
+		value: 3,
 	},
 	{
 		title: 'Bestellung bestätigen',
 		slot: 'confirmstep',
 		description: '',
 		icon: 'i-ph-check-fat',
-value: 4,
+		value: 4,
 	},
 ];
 
-const state = reactive({
+type onigiriSortenTypes = [
+	'Avocado (Vegan)',
+	'Erdnuss Sesam',
+	'Garnelen',
+	'Hähnchen Teriyaki',
+	'Inari (Vegan)',
+	'Lachs Teriyaki',
+	'Shiitake (Vegan)',
+	'Thunfisch Mayo',
+	'Thunfisch Scharf',
+];
+
+const onigiriSorten = ref<onigiriSortenTypes>([
+	'Avocado (Vegan)',
+	'Erdnuss Sesam',
+	'Garnelen',
+	'Hähnchen Teriyaki',
+	'Inari (Vegan)',
+	'Lachs Teriyaki',
+	'Shiitake (Vegan)',
+	'Thunfisch Mayo',
+	'Thunfisch Scharf',
+]);
+
+type stateTypes = {
+	nameinput: string;
+	helfer: boolean;
+	overwrite: boolean;
+	confirmbox: boolean;
+	amount: number;
+	text: string;
+	eventDate: undefined;
+	activeUntil: undefined;
+	activeUntilTime: string;
+	onigiriSorten: onigiriSortenTypes;
+};
+
+const state = reactive<stateTypes>({
 	nameinput: '',
 	helfer: false,
 	overwrite: false,
@@ -351,6 +395,19 @@ const state = reactive({
 	eventDate: undefined,
 	activeUntil: undefined,
 	activeUntilTime: '12:00',
+	onigiriSorten: [
+		'Avocado (Vegan)',
+		'Erdnuss Sesam',
+		'Garnelen',
+		'Hähnchen Teriyaki',
+		'Inari (Vegan)',
+		'Lachs Teriyaki',
+		'Shiitake (Vegan)',
+		'Thunfisch Mayo',
+		'Thunfisch Scharf',
+	],
+});
+
 watch(
 	() => state.eventDate as unknown as CalendarDate,
 	(eventDate: CalendarDate) =>
