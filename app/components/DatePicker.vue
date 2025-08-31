@@ -6,19 +6,19 @@
 			icon="i-lucide-calendar"
 		>
 			{{
-				model
-					? df.format(model.toDate(getLocalTimeZone()))
+				calendarModel
+					? df.format(calendarModel.toDate('Europe/Berlin'))
 					: 'Select a date'
 			}}
 		</UButton>
 
 		<template #content>
 			<UCalendar
-				v-model="model"
+				v-model="calendarModel"
 				class="p-2"
 				:week-starts-on="1"
 				initial-focus
-				:min-value="today(getLocalTimeZone())"
+				:min-value="today('Europe/Berlin')"
 			/>
 		</template>
 	</UPopover>
@@ -26,17 +26,37 @@
 
 <script setup lang="ts">
 import {
-	type CalendarDate,
 	DateFormatter,
-	getLocalTimeZone,
 	today,
+	getDayOfWeek,
+	type DateValue,
 } from '@internationalized/date';
 
-const model = defineModel<CalendarDate>({
-	default: today(getLocalTimeZone()),
+defineProps<{
+	activeUntil?: boolean;
+}>();
+
+const calendarModel = defineModel<DateValue>('calendarModel', {
+	default(props) {
+		return props.activeUntil
+			? defaultDate.subtract({ days: 2 })
+			: defaultDate;
+	},
 });
 
 const df = new DateFormatter('de-DE', {
 	dateStyle: 'medium',
 });
+</script>
+
+<script lang="ts">
+let todaysDate = today('Europe/Berlin');
+
+const delta = getDayOfWeek(todaysDate, 'de-DE') - 5;
+
+if (delta) {
+	todaysDate = todaysDate.add({ days: (7 - delta) % 7 });
+}
+
+const defaultDate = todaysDate.add({ weeks: 2 });
 </script>

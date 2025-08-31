@@ -50,8 +50,20 @@
 			"
 		>
 			<UCard class="m-4">
-				<DatePicker v-model="state.date" />
-				<USwitch />
+				<UFormField label="Datum des Treffens:">
+					<DatePicker v-model:calendar-model="state.eventDate" />
+				</UFormField>
+				<br />
+				<UFormField label="Aktiv bis:">
+					<DatePicker
+						v-model:calendar-model="state.activeUntil"
+						active-until
+					/>
+				</UFormField>
+				<UInput
+					v-model="state.activeUntilTime"
+					type="time"
+				/>
 			</UCard>
 <DevOnly>
 				<div class="flex justify-around my-4">
@@ -249,6 +261,7 @@
 
 <script setup lang="ts">
 import type { FormSubmitEvent, InputProps, StepperItem } from '@nuxt/ui';
+import type { CalendarDate } from '@internationalized/date';
 
 // type MyFormField = { component: Component; props: InputProps; value: string }[];
 
@@ -327,8 +340,15 @@ const state = reactive({
 	confirmbox: false,
 	amount: 0,
 	text: toext,
-	date: undefined,
-});
+	eventDate: undefined,
+	activeUntil: undefined,
+	activeUntilTime: '12:00',
+watch(
+	() => state.eventDate as unknown as CalendarDate,
+	(eventDate: CalendarDate) =>
+		//@ts-expect-error state.activeUntil is type undefined
+		(state.activeUntil = eventDate.subtract({ days: 3 })),
+);
 
 // function addField(type: 'text' | 'textarea') {
 // 	const field = createField(type);
