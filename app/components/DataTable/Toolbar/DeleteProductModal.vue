@@ -10,6 +10,7 @@
 			color="neutral"
 			variant="subtle"
 			:disabled="table.getFilteredSelectedRowModel().rows.length < 1"
+			:loading="isPendingMany"
 		/>
 
 		<template #footer>
@@ -30,33 +31,37 @@
 </template>
 
 <script setup lang="ts">
-import { deleteProductFetch } from '../fetchcalls';
+import type { Id } from '~~/convex/_generated/dataModel';
 import type { ProductSchema } from '../types';
 import type { Table } from '@tanstack/vue-table';
+import { api } from '~~/convex/_generated/api';
 
 const props = defineProps<{
 	table: Table<ProductSchema>;
-	sendWebsocket: (
-		data: string | ArrayBuffer | Blob,
-		useBuffer?: boolean,
-	) => boolean;
+	// sendWebsocket: (
+	// 	data: string | ArrayBuffer | Blob,
+	// 	useBuffer?: boolean,
+	// ) => boolean;
 }>();
 
 const deleteProductOpen = ref<boolean>(false);
 
-async function deleteSelected() {
-	const result = await deleteProductFetch(
-		props.table.getFilteredSelectedRowModel().rows,
-	);
-	switch (result) {
-		case 200:
-			props.sendWebsocket('plzrefetchclient');
-			break;
-		case 409:
-			break;
-		default:
-			break;
-	}
+const { mutate, isPending, error } = useConvexMutation(api.products.remove);
+const {
+	mutate: mutateMany,
+	isPending: isPendingMany,
+	error: errorMany,
+} = useConvexMutation(api.products.removeMany);
+function deleteSelected() {
+	// for (const row of props.table.getFilteredSelectedRowModel().rows) {
+	// 	mutate({ id: row.original._id as Id<'products'> });
+	// }
+	mutateMany({
+		ids: props.table
+			.getFilteredSelectedRowModel()
+			.rows.map((row) => row.original._id as Id<'products'>),
+	});
+	// deleteProductFetch(props.table.getFilteredSelectedRowModel().rows);
 	props.table.toggleAllRowsSelected(false);
 	deleteProductOpen.value = false;
 }

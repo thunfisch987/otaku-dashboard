@@ -4,7 +4,7 @@
 		title="Produkt bearbeiten"
 		description="Bearbeite ein bestehendes Produkt"
 		:ui="{ footer: 'justify-end' }"
-		@update:open="(isOpen) => isOpen && resetFormState()"
+		@update:open="(isOpen: boolean) => isOpen && resetFormState()"
 	>
 		<template #body>
 			<UForm
@@ -80,15 +80,16 @@ import {
 } from './types';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { Table } from '@tanstack/vue-table';
-import { editProductFetch } from './fetchcalls';
 import { vMaska } from 'maska/vue';
+import { api } from '~~/convex/_generated/api';
+import type { Id } from '~~/convex/_generated/dataModel';
 
 const props = defineProps<{
 	table: Table<ProductSchema>;
-	sendWebsocket: (
-		data: string | ArrayBuffer | Blob,
-		useBuffer?: boolean,
-	) => boolean;
+	// sendWebsocket: (
+	// 	data: string | ArrayBuffer | Blob,
+	// 	useBuffer?: boolean,
+	// ) => boolean;
 }>();
 
 const form = useTemplateRef('form');
@@ -116,7 +117,7 @@ const DEFAULT_STATE = {
 	supplier: 'Otaku',
 	amount: 0,
 	picture: '',
-	id: '',
+	_id: '',
 } as const;
 const editProductOpen = useState('editProductOpen', () => false);
 const editProductState = useState<PatchProductSchema>(
@@ -124,25 +125,33 @@ const editProductState = useState<PatchProductSchema>(
 	() => DEFAULT_STATE,
 );
 
-async function editProduct(
-	formSubmitEvent: FormSubmitEvent<PatchProductSchema>,
-) {
+const { mutate } = useConvexMutation(api.products.update);
+
+function editProduct(formSubmitEvent: FormSubmitEvent<PatchProductSchema>) {
 	props.table.toggleAllRowsSelected(false);
-	const result = await editProductFetch(
-		formSubmitEvent,
-		unmaskedEditPriceValue.value,
-	);
-	if (result === 200) {
-		editProductOpen.value = false;
-		props.sendWebsocket('plzrefetchclient');
-	}
-	if (result === 409) {
-		form.value?.setErrors([
-			{
-				name: 'productname',
-				message: 'Dieses Produkt existiert bereits',
-			},
-		]);
-	}
+	// const result = await editProductFetch(
+	// 	formSubmitEvent,
+	// 	unmaskedEditPriceValue.value,
+	// );
+	mutate({
+		id: formSubmitEvent.data._id as Id<'products'>,
+		productname: formSubmitEvent.data.productname,
+		supplier: formSubmitEvent.data.supplier,
+		price: Number.parseFloat(unmaskedEditPriceValue.value),
+		amount: formSubmitEvent.data.amount,
+		picture: formSubmitEvent.data.picture,
+	});
+	// if (result === 200) {
+	// 	editProductOpen.value = false;
+	// 	// props.sendWebsocket('plzrefetchclient');
+	// }
+	// if (result === 409) {
+	// 	form.value?.setErrors([
+	// 		{
+	// 			name: 'productname',
+	// 			message: 'Dieses Produkt existiert bereits',
+	// 		},
+	// 	]);
+	// }
 }
 </script>

@@ -3,7 +3,10 @@
 		<div class="lg:hidden">
 			<h1 class="text-2xl text-center">pls use desktop</h1>
 		</div>
-		<div class="w-full space-y-4 pb-4 flex-col hidden lg:flex">
+		<div
+			v-if="parsedAllProducts"
+			class="w-full space-y-4 pb-4 flex-col hidden lg:flex"
+		>
 			<template
 				v-if="
 					table &&
@@ -11,10 +14,7 @@
 					parsedAllProducts.data
 				"
 			>
-				<LazyDataTableToolbar
-					:send-websocket="sendWebsocket"
-					:table="table?.tableApi!"
-				/>
+				<LazyDataTableToolbar :table="table?.tableApi!" />
 			</template>
 			<UTable
 				ref="table"
@@ -23,7 +23,7 @@
 				v-model:global-filter="globalFilter"
 				:data="parsedAllProducts.data"
 				:columns="columns"
-				:loading="productFetchStatus === 'pending'"
+				:loading="pendingos"
 				:pagination-options="{
 					getPaginationRowModel: getPaginationRowModel(),
 				}"
@@ -48,10 +48,7 @@
 					"
 					:table="table?.tableApi!"
 				/>
-				<LazyDataTableEditProductModal
-					:send-websocket="sendWebsocket"
-					:table="table?.tableApi!"
-				/>
+				<LazyDataTableEditProductModal :table="table?.tableApi!" />
 				<div class="flex space-x-4">
 					<UDropdownMenu
 						v-model:open="openAll"
@@ -124,7 +121,6 @@
 				</div>
 			</template>
 		</div>
-		webSocketStatus: {{ websocketStatus }}
 	</div>
 </template>
 
@@ -143,6 +139,8 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 import { json2csv } from 'json-2-csv';
 import type { Table } from '@tanstack/vue-table';
 
+import { api } from '~~/convex/_generated/api';
+
 const toast = useToast();
 
 const openAll = useState('openAll', () => false);
@@ -150,27 +148,27 @@ const openFiltered = useState('openFiltered', () => false);
 const openSelected = useState('openSelected', () => false);
 
 const table = useTemplateRef('table');
-const pagination = ref({
+const pagination = useState('pagination', () => ({
 	pageIndex: 0,
-	pageSize: 5,
-});
+	pageSize: 200,
+}));
 const columnVisibility = ref({
-	id: false,
+	_id: false,
 });
 const globalFilter = useState<string>('globalFilter');
 
 // -------------------fetch Products and parse them with zod-------------------
-const { data: allProducts, status: productFetchStatus } = await useFetch(
-	'/api/products',
-	{
-		key: 'productFetching',
-		lazy: true,
-	},
-);
+// const { data: allProducts, status: productFetchStatus } = await useFetch(
+// 	'/api/products',
+// 	{
+// 		key: 'productFetching',
+// 		lazy: true,
+// 	},
+// );
 
-const parsedAllProducts = computed(() =>
-	productArraySchema.safeParse(allProducts.value),
-);
+// const parsedAllProductsv1 = computed(() =>
+// 	productArraySchema.safeParse(allProducts.value),
+// );
 
 const facetedSelectValue = useState('facetedSelectValue');
 
@@ -277,39 +275,28 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 }
 
 const {
-	open: openWebsocket,
-	close: closeWebsocket,
-	status: websocketStatus,
-	send: sendWebsocket,
-} = useWebSocket('/ws/liveproducts', {
-	immediate: false,
-	heartbeat: {
-		interval: 90000,
-		pongTimeout: 2000,
-	},
-	async onMessage(ws, event) {
-		console.log('websocket message');
-		console.log(
-			typeof event.data === 'string'
-				? event.data
-				: await event.data.text(),
-		);
-		// The message might be a string or a Blob
-		if (
-			typeof event.data === 'string'
-				? event.data
-				: (await event.data.text()) === 'plzrefetch'
-		) {
-			refreshNuxtData('productFetching');
-		}
-	},
-});
+	data: productos,
+	isPending: pendingos,
+	error: erroros,
+	suspense: suspensos,
+} = useConvexQuery(api.products.list);
 
-onMounted(() => {
-	openWebsocket();
-});
+await suspensos();
 
-onUnmounted(() => {
-	closeWebsocket();
-});
+const parsedAllProducts = computed(() =>
+	productArraySchema.safeParse(productos.value),
+);
+
+// const {
+// 	mutate: mutatos,
+// 	isPending: pendingosmutos,
+// 	error: errorosmutos,
+// } = useConvexMutation(api.products.create);
+
+// mutatos({
+// 	productname: 'test',
+// 	price: 10,
+// 	supplier: 'HDJ',
+// 	amount: 1,
+// });
 </script>

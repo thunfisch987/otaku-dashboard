@@ -9,8 +9,12 @@ export default defineNuxtConfig({
 		'@nuxt/ui',
 		'compodium',
 		'@vueuse/nuxt',
+		'convex-nuxt',
 	],
 	css: ['~/assets/css/main.css'],
+	convex: {
+		url: process.env.CONVEX_URL,
+	},
 	devtools: { enabled: true },
 	app: {
 		head: {
@@ -36,11 +40,9 @@ export default defineNuxtConfig({
 		experimental: {
 			tasks: true,
 			openAPI: true,
-			websocket: true,
 		},
 	},
 	hub: {
-		database: true,
 		workers: true,
 	},
 	ui: {

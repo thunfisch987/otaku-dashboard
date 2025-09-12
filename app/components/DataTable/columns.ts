@@ -1,6 +1,5 @@
 import type { TableColumn, DropdownMenuItem } from '@nuxt/ui';
 import type { Column, Row } from '@tanstack/vue-table';
-import { deleteProductFetch } from './fetchcalls';
 import type { ProductSchema } from './types';
 import { UButton, UDropdownMenu, UCheckbox } from '#components';
 import { prepareEditForm } from './forms';
@@ -28,7 +27,7 @@ function getRowItems(row: Row<ProductSchema>): DropdownMenuItem[] {
 			label: 'Produkt löschen',
 			icon: 'i-lucide-trash',
 			onSelect() {
-				deleteProductFetch(row);
+				deleteProduct(row);
 			},
 		},
 		{
@@ -46,9 +45,9 @@ function getRowItems(row: Row<ProductSchema>): DropdownMenuItem[] {
 
 export const columns: TableColumn<ProductSchema>[] = [
 	{
-		accessorKey: 'id',
+		accessorKey: '_id',
 		header: ({ column }) => getSortHeader(column, 'ID'),
-		cell: ({ row }) => `#${row.getValue('id')}`,
+		cell: ({ row }) => `#${row.getValue('_id')}`,
 		enableHiding: true,
 	},
 	{

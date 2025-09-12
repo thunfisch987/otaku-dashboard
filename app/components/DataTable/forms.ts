@@ -16,7 +16,7 @@ export function prepareEditForm(row: Row<ProductSchema>) {
 	);
 	editProductState.value.productname = row.original.productname;
 	editProductState.value.supplier = row.original.supplier;
-	editProductState.value.id = String(row.original.id);
+	editProductState.value._id = String(row.original._id);
 	unmaskedProductEditValue.value = String(row.original.price);
 }
 
@@ -30,6 +30,6 @@ export function resetFormState() {
 	editProductState.value.supplier = 'Otaku';
 	editProductState.value.amount = 0;
 	editProductState.value.picture = '';
-	editProductState.value.id = '';
+	editProductState.value._id = '';
 	unmaskedProductEditValue.value = '';
 }

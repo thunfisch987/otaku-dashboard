@@ -4,9 +4,10 @@
 		title="Create Product"
 		description="Create a new product"
 		:ui="{ footer: 'justify-end' }"
-		@update:open="(isOpen) => isOpen && resetFormState()"
+		@update:open="(isOpen: boolean) => isOpen && resetFormState()"
 	>
 		<UButton
+			id="createProductButton"
 			label="Create Product"
 			color="neutral"
 			variant="subtle"
@@ -85,8 +86,9 @@ import {
 import type { Table } from '@tanstack/vue-table';
 import { vMaska } from 'maska/vue';
 import type { FormSubmitEvent } from '@nuxt/ui';
-import { createProductFetch } from '../fetchcalls';
 import type { MaskInputOptions } from 'maska';
+import { api } from '~~/convex/_generated/api';
+import { useConvexMutation } from 'convex-vue';
 
 const maskOptions: MaskInputOptions = {
 	eager: true,
@@ -109,10 +111,10 @@ function resetFormState() {
 const form = useTemplateRef('form');
 const props = defineProps<{
 	table: Table<ProductSchema>;
-	sendWebsocket: (
-		data: string | ArrayBuffer | Blob,
-		useBuffer?: boolean,
-	) => boolean;
+	// sendWebsocket: (
+	// 	data: string | ArrayBuffer | Blob,
+	// 	useBuffer?: boolean,
+	// ) => boolean;
 }>();
 const unmaskedCreatePriceValue = useState(
 	'unmaskedCreateProductValue',
@@ -138,26 +140,26 @@ const items: {
 	{ label: 'HDJ', value: 'HDJ' },
 	{ label: 'Otaku', value: 'Otaku' },
 ];
-
-async function createProduct(
-	formSubmitEvent: FormSubmitEvent<InsertProductSchema>,
-) {
+const toast = useToast();
+const { mutate, isPending, error } = useConvexMutation(api.products.create);
+function createProduct(formSubmitEvent: FormSubmitEvent<InsertProductSchema>) {
 	props.table.toggleAllRowsSelected(false);
-	const result = await createProductFetch(
-		formSubmitEvent,
-		unmaskedCreatePriceValue.value,
-	);
-	if (result === 200) {
-		createProductOpen.value = false;
-		props.sendWebsocket('plzrefetchclient');
-	}
-	if (result === 409) {
-		form.value?.setErrors([
-			{
-				name: 'productname',
-				message: 'Dieses Produkt existiert bereits',
-			},
-		]);
-	}
+	// const result = await createProductFetch(
+	// 	formSubmitEvent,
+	// 	unmaskedCreatePriceValue.value,
+	// );
+	mutate({
+		productname: formSubmitEvent.data.productname,
+		price: Number.parseFloat(unmaskedCreatePriceValue.value),
+		supplier: formSubmitEvent.data.supplier,
+		amount: formSubmitEvent.data.amount,
+		picture: formSubmitEvent.data.picture,
+	});
+	createProductOpen.value = false;
+	toast.add({
+		title: `Produkt namens ${formSubmitEvent.data.productname} erstellt!`,
+		color: 'success',
+		id: 'modal-success',
+	});
 }
 </script>

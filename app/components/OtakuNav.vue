@@ -17,16 +17,25 @@
 					>
 						{{ item.name }}
 					</NuxtLink>
+					<ClientOnly>
+						<span class="ml-auto">
+							Token expires in {{ expiresIn }} minutes
+						</span>
+						<template #fallback>
+							<span class="ml-auto">
+								Token expires in - minutes
+							</span>
+						</template>
+					</ClientOnly>
 					<UDropdownMenu :items="items">
 						<UButton
-							class="ml-auto"
-							:title="`Logged in as: ${user.name}`"
+							:title="`Logged in as: ${user!.name}`"
 							variant="ghost"
 						>
 							<template #leading>
 								<UAvatar
-									:src="user.avatar"
-									:text="`${user.given_name[0]}${user.family_name[0]}`"
+									:src="user!.avatar"
+									:text="`${user!.given_name[0]}${user!.family_name[0]}`"
 									size="xl"
 									crossorigin="anonymous"
 									class="shrink-0"
@@ -112,13 +121,25 @@
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { RoutePathSchema } from '@typed-router';
 
+const expiresIn = ref(0);
+
 type MaguroNavLink = {
 	name: string;
 	to: RoutePathSchema;
 	original?: string;
 };
 
-const { clear } = useUserSession();
+const { clear, user: userSession } = useUserSession();
+
+onNuxtReady(() =>
+	setInterval(() => {
+		if (userSession.value) {
+			expiresIn.value = Math.floor(
+				(userSession.value.tokens.expires_at - Date.now()) / 1000 / 60,
+			);
+		}
+	}, 10000),
+);
 
 async function clearSession() {
 	await clear();

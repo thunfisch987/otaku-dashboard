@@ -11,20 +11,9 @@
 			:items="items"
 			class="w-36 mr-auto"
 		/>
-		<UButton
-			icon="i-lucide-refresh-ccw"
-			:loading="isFetching"
-			@click="refreshStuff"
-			>Refresh</UButton
-		>
-		<DeleteProductModal
-			:send-websocket="sendWebsocket"
-			:table="table"
-		/>
-		<CreateProductModal
-			:send-websocket="sendWebsocket"
-			:table="table"
-		/>
+		<DeleteProductModal :table="table" />
+		<CreateProductModal :table="table" />
+		<UKbd>C</UKbd>
 	</div>
 </template>
 <script setup lang="ts">
@@ -37,10 +26,6 @@ import type { SelectItem } from '@nuxt/ui';
 
 const props = defineProps<{
 	table: Table<ProductSchema>;
-	sendWebsocket: (
-		data: string | ArrayBuffer | Blob,
-		useBuffer?: boolean,
-	) => boolean;
 }>();
 
 const facets = computed(() =>
@@ -48,8 +33,6 @@ const facets = computed(() =>
 );
 
 const globalFilter = useState('globalFilter', () => '');
-
-const isFetching = useState('isFetching', () => false);
 
 const items = ref<SelectItem[]>([
 	{ label: 'Alle Supplier', value: 'Alle' },
@@ -67,20 +50,9 @@ const items = ref<SelectItem[]>([
 
 const facetedSelectValue = useState('facetedSelectValue', () => 'Alle');
 
-function timeout(ms: number) {
-	return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 watch(facetedSelectValue, (value) => {
 	props.table
 		.getColumn('supplier')
 		?.setFilterValue(value === 'Alle' ? undefined : value);
 });
-
-async function refreshStuff() {
-	isFetching.value = true;
-	await refreshNuxtData('productFetching');
-	await timeout(3000);
-	isFetching.value = false;
-}
 </script>

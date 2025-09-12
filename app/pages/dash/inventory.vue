@@ -6,3 +6,12 @@
 		</UCard>
 	</div>
 </template>
+
+<script setup lang="ts">
+const createProductOpen = useState('createProductOpen', () => false);
+defineShortcuts({
+	c: () => {
+		document.getElementById('createProductButton')?.click();
+	},
+});
+</script>

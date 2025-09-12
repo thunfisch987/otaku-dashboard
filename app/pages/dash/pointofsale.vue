@@ -2,7 +2,7 @@
 	<div>
 		<h1 class="text-4xl">Point of Sale</h1>
 		<div class="container py-10 mx-auto flex flex-col lg:flex-row">
-			<div
+			<!-- <div
 				v-if="parsedAllProducts.success"
 				class="grid grid-cols-2 gap-4 p-4 lg:max-w-1/2 lg:w-1/2"
 			>
@@ -31,19 +31,11 @@
 				<ul>
 					<li>pp</li>
 				</ul>
-			</div>
+			</div> -->
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { productArraySchema } from '~/components/DataTable/types';
-
-const { data: allProducts } = await useFetch('/api/products', {
-	key: 'productFetching',
-	lazy: true,
-});
-const parsedAllProducts = computed(() =>
-	productArraySchema.safeParse(allProducts.value),
-);
 </script>

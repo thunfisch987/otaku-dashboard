@@ -1,59 +1,59 @@
 {
-  "name": "nuxt-app",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "db:generate": "drizzle-kit generate"
-  },
-  "dependencies": {
-    "@iconify-json/ph": "^1.2.2",
-    "@nuxt/eslint": "^1.9.0",
-    "@nuxt/image": "^1.11.0",
-    "@nuxt/rspack-builder": "^4.0.3",
-    "@nuxt/ui": "^4.0.0-alpha.0",
-    "@nuxthub/core": "^0.9.0",
-    "@nuxtjs/color-mode": "3.5.2",
-    "@rspack/cli": "^1.5.1",
-    "@tanstack/vue-table": "^8.21.3",
-    "@vueuse/nuxt": "^13.8.0",
-    "compodium": "0.1.0-beta.5",
-    "drizzle-orm": "^0.44.5",
-    "drizzle-zod": "^0.8.3",
-    "eslint": "^9.34.0",
-    "json-2-csv": "^5.5.9",
-    "json-to-csv-export": "^3.1.2",
-    "maska": "^3.2.0",
-    "nuxt": "^4.0.3",
-    "nuxt-auth-utils": "^0.5.23",
-    "nuxt-typed-router": "^4.0.2",
-    "nuxthub": "^0.9.3",
-    "prettier": "^3.6.2",
-    "sharp": "^0.34.3",
-    "unenv": "^1.10.0",
-    "vue": "^3.5.20",
-    "vue-router": "^4.5.1",
-    "z-vue-scan-nuxt-module": "^0.0.35",
-    "zod": "^4.1.5"
-  },
-  "devDependencies": {
-    "@iconify-json/lucide": "^1.2.66",
-    "drizzle-kit": "^0.31.4",
-    "typescript": "^5.9.2",
-    "wrangler": "^4.33.1"
-  },
-  "trustedDependencies": [
-    "@parcel/watcher",
-    "@tailwindcss/oxide",
-    "core-js",
-    "esbuild",
-    "sharp",
-    "unrs-resolver",
-    "vue-demi",
-    "workerd"
-  ]
+	"name": "nuxt-app",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "nuxt build",
+		"dev": "nuxt dev --dotenv .env.local",
+		"generate": "nuxt generate",
+		"preview": "nuxt preview",
+		"postinstall": "nuxt prepare",
+		"db:generate": "drizzle-kit generate"
+	},
+	"dependencies": {
+		"@iconify-json/ph": "^1.2.2",
+		"@nuxt/eslint": "^1.9.0",
+		"@nuxt/image": "^2.0.0-alpha.1",
+		"@nuxt/ui": "^4.0.0-alpha.1",
+		"@nuxthub/core": "^0.9.0",
+		"@nuxtjs/color-mode": "3.5.2",
+		"@tanstack/vue-table": "^8.21.3",
+		"@types/node": "^24.3.1",
+		"@vueuse/nuxt": "^13.9.0",
+		"compodium": "0.1.0-beta.5",
+		"convex": "^1.27.0",
+		"convex-nuxt": "^0.1.5",
+		"convex-vue": "^0.1.5",
+		"eslint": "^9.35.0",
+		"json-2-csv": "^5.5.9",
+		"json-to-csv-export": "^3.1.2",
+		"maska": "^3.2.0",
+		"nuxt": "^4.1.1",
+		"nuxt-auth-utils": "^0.5.24",
+		"nuxt-typed-router": "^4.0.2",
+		"nuxthub": "^0.9.3",
+		"prettier": "^3.6.2",
+		"unenv": "^1.10.0",
+		"vue": "^3.5.21",
+		"vue-router": "^4.5.1",
+		"zod": "^4.1.5"
+	},
+	"devDependencies": {
+		"@iconify-json/lucide": "^1.2.66",
+		"typescript": "^5.9.2",
+		"wrangler": "^4.35.0"
+	},
+	"trustedDependencies": [
+		"@parcel/watcher",
+		"@tailwindcss/oxide",
+		"core-js",
+		"esbuild",
+		"sharp",
+		"unrs-resolver",
+		"vue-demi",
+		"workerd"
+	],
+	"overrides": {
+		"vite": "npm:rolldown-vite@latest"
+	}
 }
