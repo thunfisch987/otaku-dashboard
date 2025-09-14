@@ -12,7 +12,7 @@ export default defineNuxtConfig({
 	],
 	css: ['~/assets/css/main.css'],
 	convex: {
-		url: 'https://accomplished-horse-719.convex.cloud',
+		url: process.env.CONVEX_URL,
 	},
 	devtools: { enabled: true },
 	app: {
