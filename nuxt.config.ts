@@ -3,7 +3,6 @@ export default defineNuxtConfig({
 	modules: [
 		'@nuxt/eslint',
 		'@nuxt/image',
-		'@nuxthub/core',
 		'nuxt-auth-utils',
 		'nuxt-typed-router',
 		'@nuxt/ui',
@@ -41,9 +40,6 @@ export default defineNuxtConfig({
 			tasks: true,
 			openAPI: true,
 		},
-	},
-	hub: {
-		workers: true,
 	},
 	ui: {
 		colorMode: true,
