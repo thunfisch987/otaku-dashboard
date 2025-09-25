@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as order from "../order.js";
 import type * as products from "../products.js";
+import type * as profilepics from "../profilepics.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -27,6 +28,7 @@ import type * as products from "../products.js";
 declare const fullApi: ApiFromModules<{
   order: typeof order;
   products: typeof products;
+  profilepics: typeof profilepics;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

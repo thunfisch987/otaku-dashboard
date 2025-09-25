@@ -21,6 +21,11 @@ const applicationTables = {
 	})
 		.index('by_product', ['productsId'])
 		.index('by_date', ['date']),
+
+	images: defineTable({
+		storageId: v.id('_storage'),
+		url: v.string(),
+	}).index('by_url', ['url']),
 };
 
 export default defineSchema({
