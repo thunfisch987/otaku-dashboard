@@ -9,7 +9,7 @@
 		<template #body>
 			<UForm
 				ref="form"
-				:schema="insertProductSchema"
+				:schema="patchProductSchema"
 				:state="editProductState"
 				class="space-y-4"
 				@submit="editProduct"
@@ -74,7 +74,7 @@
 import type { MaskInputOptions } from 'maska';
 import { resetFormState } from './forms';
 import {
-	insertProductSchema,
+	patchProductSchema,
 	type PatchProductSchema,
 	type ProductSchema,
 } from './types';
