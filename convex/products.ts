@@ -92,8 +92,25 @@ export const removeMany = mutation({
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
-		for (const id of args.ids) {
-			await ctx.db.delete(id);
+		await Promise.all(args.ids.map((id) => ctx.db.delete(id)));
+	},
+});
+
+export const decreaseAmount = mutation({
+	args: { id: v.id('products') },
+	handler: async (ctx, args) => {
+		const userId = await ctx.auth.getUserIdentity();
+		if (!userId) {
+			throw new Error('Not authenticated');
 		}
+		const previousAmount = await ctx.db.get(args.id);
+		if (!previousAmount) {
+			throw new Error('Product not found');
+		}
+		const newAmount = previousAmount.amount - 1;
+		if (newAmount < 0) {
+			throw new Error('Amount cannot be negative');
+		}
+		return await ctx.db.patch(args.id, { amount: newAmount });
 	},
 });
