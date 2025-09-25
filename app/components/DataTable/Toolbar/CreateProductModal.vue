@@ -111,10 +111,6 @@ function resetFormState() {
 const form = useTemplateRef('form');
 const props = defineProps<{
 	table: Table<ProductSchema>;
-	// sendWebsocket: (
-	// 	data: string | ArrayBuffer | Blob,
-	// 	useBuffer?: boolean,
-	// ) => boolean;
 }>();
 const unmaskedCreatePriceValue = useState(
 	'unmaskedCreateProductValue',
@@ -144,10 +140,6 @@ const toast = useToast();
 const { mutate, isPending, error } = useConvexMutation(api.products.create);
 function createProduct(formSubmitEvent: FormSubmitEvent<InsertProductSchema>) {
 	props.table.toggleAllRowsSelected(false);
-	// const result = await createProductFetch(
-	// 	formSubmitEvent,
-	// 	unmaskedCreatePriceValue.value,
-	// );
 	mutate({
 		productname: formSubmitEvent.data.productname,
 		price: Number.parseFloat(unmaskedCreatePriceValue.value),

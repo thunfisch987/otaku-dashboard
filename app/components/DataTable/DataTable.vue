@@ -157,19 +157,6 @@ const columnVisibility = ref({
 });
 const globalFilter = useState<string>('globalFilter');
 
-// -------------------fetch Products and parse them with zod-------------------
-// const { data: allProducts, status: productFetchStatus } = await useFetch(
-// 	'/api/products',
-// 	{
-// 		key: 'productFetching',
-// 		lazy: true,
-// 	},
-// );
-
-// const parsedAllProductsv1 = computed(() =>
-// 	productArraySchema.safeParse(allProducts.value),
-// );
-
 const facetedSelectValue = useState('facetedSelectValue');
 
 const exportFilteredEnabled = computed((): boolean => {
@@ -286,17 +273,4 @@ await suspensos();
 const parsedAllProducts = computed(() =>
 	productArraySchema.safeParse(productos.value),
 );
-
-// const {
-// 	mutate: mutatos,
-// 	isPending: pendingosmutos,
-// 	error: errorosmutos,
-// } = useConvexMutation(api.products.create);
-
-// mutatos({
-// 	productname: 'test',
-// 	price: 10,
-// 	supplier: 'HDJ',
-// 	amount: 1,
-// });
 </script>

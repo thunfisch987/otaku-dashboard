@@ -108,25 +108,6 @@
 				disabled
 				:model-value="currentStep"
 			>
-				<!-- <template #content="{ item }">
-					<UForm
-						:state="state"
-						class="flex flex-col space-y-2"
-					>
-						<div
-							v-for="(field, index) in item.formData"
-							:key="index"
-							class="flex space-x-2"
-						>
-							<component
-								:is="field.component"
-								v-bind="field.props"
-								v-model="field.value"
-							/>
-							<span>{{ index }}</span>
-							<span>{{ field.value }}</span>
-						</div>
-				</template> -->
 				<template #namestep>
 					<div class="flex flex-col space-y-2">
 						<UCard>
@@ -297,14 +278,6 @@ const foodStepperRef = useTemplateRef('foodstepper');
 
 const currentStep = useState<number>('currentStep');
 
-// const fields = shallowRef<MyFormField>([
-// 	{
-// 		component: UInput,
-// 		props: { placeholder: 'Enter text' },
-// 		value: '',
-// 	},
-// ]);
-
 type MyStepperItem = StepperItem & {
 	formData?: { component: Component; props: InputProps; value: string }[];
 };
@@ -414,41 +387,4 @@ watch(
 		//@ts-expect-error state.activeUntil is type undefined
 		(state.activeUntil = eventDate.subtract({ days: 3 })),
 );
-
-// function addField(type: 'text' | 'textarea') {
-// 	const field = createField(type);
-// 	if (field) fields.value.push(field);
-// 	triggerRef(fields);
-// }
-
-// function createField(type: 'text' | 'textarea') {
-// 	switch (type) {
-// 		case 'text':
-// 			return {
-// 				component: UInput,
-// 				props: { placeholder: 'Enter text' },
-// 				value: '',
-// 			};
-// 		case 'textarea':
-// 			return {
-// 				component: UInput,
-// 				props: { placeholder: 'Enter more text' },
-// 				value: '',
-// 			};
-// 		// Add more field types as needed
-// 		default:
-// 			return null;
-// 	}
-// }
-
-// function updateFieldValue(index: number, value: string) {
-// 	if (fields.value[index]) {fields.value[index].props}
-// }
-// function removeField(index: number) {
-// 	fields.value.splice(index, 1);
-// }
 </script>
-
-<style scoped>
-/* Add styles as necessary */
-</style>

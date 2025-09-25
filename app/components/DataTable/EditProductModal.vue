@@ -129,10 +129,6 @@ const { mutate } = useConvexMutation(api.products.update);
 
 function editProduct(formSubmitEvent: FormSubmitEvent<PatchProductSchema>) {
 	props.table.toggleAllRowsSelected(false);
-	// const result = await editProductFetch(
-	// 	formSubmitEvent,
-	// 	unmaskedEditPriceValue.value,
-	// );
 	mutate({
 		id: formSubmitEvent.data._id as Id<'products'>,
 		productname: formSubmitEvent.data.productname,
@@ -141,17 +137,6 @@ function editProduct(formSubmitEvent: FormSubmitEvent<PatchProductSchema>) {
 		amount: formSubmitEvent.data.amount,
 		picture: formSubmitEvent.data.picture,
 	});
-	// if (result === 200) {
-	// 	editProductOpen.value = false;
-	// 	// props.sendWebsocket('plzrefetchclient');
-	// }
-	// if (result === 409) {
-	// 	form.value?.setErrors([
-	// 		{
-	// 			name: 'productname',
-	// 			message: 'Dieses Produkt existiert bereits',
-	// 		},
-	// 	]);
-	// }
+	editProductOpen.value = false;
 }
 </script>

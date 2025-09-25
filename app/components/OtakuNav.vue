@@ -42,25 +42,8 @@
 								/>
 							</template>
 						</UButton>
-						<!-- <UAvatar
-							class="ml-auto"
-							:src="user.avatar"
-							crossorigin="anonymous"
-							:title="`Logged in as: ${user.name}`"
-							:text="`${user.given_name[0]}${user.family_name[0]}`"
-						/> -->
 					</UDropdownMenu>
 				</template>
-				<!-- <UButton
-				v-else
-				class="ml-auto"
-				to="/api/auth/google"
-				external
-				variant="solid"
-				icon="i-lucide-log-in"
-				>
-				Login
-			</UButton> -->
 				<GoogleSignIn
 					v-else
 					class="ml-auto"

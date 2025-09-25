@@ -38,24 +38,17 @@ import { api } from '~~/convex/_generated/api';
 
 const props = defineProps<{
 	table: Table<ProductSchema>;
-	// sendWebsocket: (
-	// 	data: string | ArrayBuffer | Blob,
-	// 	useBuffer?: boolean,
-	// ) => boolean;
 }>();
 
 const deleteProductOpen = ref<boolean>(false);
 
-const { mutate, isPending, error } = useConvexMutation(api.products.remove);
 const {
 	mutate: mutateMany,
 	isPending: isPendingMany,
 	error: errorMany,
 } = useConvexMutation(api.products.removeMany);
+
 function deleteSelected() {
-	// for (const row of props.table.getFilteredSelectedRowModel().rows) {
-	// 	mutate({ id: row.original._id as Id<'products'> });
-	// }
 	mutateMany({
 		ids: props.table
 			.getFilteredSelectedRowModel()

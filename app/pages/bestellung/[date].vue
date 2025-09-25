@@ -235,6 +235,7 @@ const foodStepperRef = useTemplateRef('foodstepper');
 
 const fields = shallowRef<MyFormField>([
 	{
+		// @ts-expect-error UInput is a component
 		component: UInput,
 		props: { placeholder: 'Enter text' },
 		value: '',
