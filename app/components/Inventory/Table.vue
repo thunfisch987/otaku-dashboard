@@ -14,7 +14,7 @@
 					parsedAllProducts.data
 				"
 			>
-				<LazyInventoryToolbar :table="table?.tableApi!" />
+				<LazyInventoryToolbar />
 			</template>
 			<UTable
 				ref="table"
@@ -40,15 +40,14 @@
 					parsedAllProducts.data
 				"
 			>
-				<LazyInventorySelectedCount :table="table?.tableApi!" />
+				<LazyInventorySelectedCount />
 				<LazyInventoryPagination
 					v-if="
 						table?.tableApi!.getFilteredRowModel()!.rows!.length! >=
 						5
 					"
-					:table="table?.tableApi!"
 				/>
-				<LazyInventoryEditProductModal :table="table?.tableApi!" />
+				<LazyInventoryEditProductModal />
 				<div class="flex space-x-4">
 					<UDropdownMenu
 						v-model:open="openAll"
@@ -133,10 +132,16 @@ import {
 } from '@tanstack/vue-table';
 import { columns } from './columns';
 import type { DropdownMenuItem } from '@nuxt/ui';
-import { json2csv } from 'json-2-csv';
 import type { Table } from '@tanstack/vue-table';
-
 import { api } from '~~/convex/_generated/api';
+
+const json2csv = (data: ProductSchema[]) => {
+	const csv = [
+		Object.keys(data[0] ?? {}),
+		data.map((item) => Object.values(item).join(',')).join('\n'),
+	].join('\n');
+	return csv;
+};
 
 const toast = useToast();
 
@@ -144,11 +149,16 @@ const openAll = useState('openAll', () => false);
 const openFiltered = useState('openFiltered', () => false);
 const openSelected = useState('openSelected', () => false);
 
-const table = useTemplateRef('table');
+const table = useState<{
+	tableApi: Table<ProductSchema>;
+	tableRef: Ref<HTMLTableElement | null>;
+} | null>('table');
+
 const pagination = useState('pagination', () => ({
 	pageIndex: 0,
 	pageSize: 200,
 }));
+
 const columnVisibility = ref({
 	_id: false,
 });
@@ -261,11 +271,10 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 const {
 	data: productos,
 	isPending: pendingos,
-	error: erroros,
-	suspense: suspensos,
+	suspense: sus,
 } = useConvexQuery(api.products.list);
 
-await suspensos();
+sus();
 
 const parsedAllProducts = computed(() =>
 	productArraySchema.safeParse(productos.value),

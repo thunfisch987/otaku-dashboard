@@ -1,9 +1,11 @@
 <template>
 	<div class="px-4 py-3.5 border-t border-accented text-sm text-muted">
-		{{ table?.tableApi.getFilteredSelectedRowModel().rows.length || 0 }}
+		{{
+			table?.tableApi.getFilteredSelectedRowModel().rows.length ?? 'Error'
+		}}
 		of
-		{{ table?.tableApi.getFilteredRowModel().rows.length || 0 }} row(s)
-		selected.
+		{{ table?.tableApi.getFilteredRowModel().rows.length ?? 'Error' }}
+		row(s) selected.
 	</div>
 </template>
 
