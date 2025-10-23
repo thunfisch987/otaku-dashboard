@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { api } from '~~/convex/_generated/api';
 import { useConvexQuery, useConvexMutation } from 'convex-vue';
-import { productArraySchema } from '~/components/DataTable/types';
+import { productArraySchema } from '~/components/Inventory/types';
 import type { Id } from '~~/convex/_generated/dataModel';
 const {
 	data: productos,

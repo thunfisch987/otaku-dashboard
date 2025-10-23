@@ -14,7 +14,7 @@
 					parsedAllProducts.data
 				"
 			>
-				<LazyDataTableToolbar :table="table?.tableApi!" />
+				<LazyInventoryToolbar :table="table?.tableApi!" />
 			</template>
 			<UTable
 				ref="table"
@@ -40,15 +40,15 @@
 					parsedAllProducts.data
 				"
 			>
-				<LazyDataTableSelectedCount :table="table?.tableApi!" />
-				<LazyDataTablePagination
+				<LazyInventorySelectedCount :table="table?.tableApi!" />
+				<LazyInventoryPagination
 					v-if="
 						table?.tableApi!.getFilteredRowModel()!.rows!.length! >=
 						5
 					"
 					:table="table?.tableApi!"
 				/>
-				<LazyDataTableEditProductModal :table="table?.tableApi!" />
+				<LazyInventoryEditProductModal :table="table?.tableApi!" />
 				<div class="flex space-x-4">
 					<UDropdownMenu
 						v-model:open="openAll"
@@ -125,10 +125,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-	productArraySchema,
-	type ProductSchema,
-} from '~/components/DataTable/types';
+import { productArraySchema, type ProductSchema } from './types';
 import {
 	getPaginationRowModel,
 	getFacetedRowModel,

@@ -1,7 +1,5 @@
 <template>
-	<div
-		class="px-4 py-3.5 border-t border-(--ui-border-accented) text-sm text-(--ui-text-muted)"
-	>
+	<div class="px-4 py-3.5 border-t border-accented text-sm text-muted">
 		{{ table?.tableApi.getFilteredSelectedRowModel().rows.length || 0 }}
 		of
 		{{ table?.tableApi.getFilteredRowModel().rows.length || 0 }} row(s)

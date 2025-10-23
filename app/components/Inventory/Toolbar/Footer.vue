@@ -72,7 +72,6 @@
 import type { Table } from '@tanstack/vue-table';
 import type { ProductSchema } from '../types';
 import type { DropdownMenuItem } from '@nuxt/ui';
-import type { ZodSafeParseResult } from 'zod';
 
 const toast = useToast();
 
