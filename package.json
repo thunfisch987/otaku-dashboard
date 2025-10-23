@@ -11,7 +11,6 @@
 		"db:generate": "drizzle-kit generate"
 	},
 	"dependencies": {
-		"@convex-dev/sharded-counter": "^0.1.8",
 		"@iconify-json/ph": "^1.2.2",
 		"@nuxt/eslint": "^1.9.0",
 		"@nuxt/image": "^1.11.0",
@@ -24,8 +23,6 @@
 		"convex-nuxt": "^0.1.5",
 		"convex-vue": "^0.1.5",
 		"eslint": "^9.38.0",
-		"json-2-csv": "^5.5.9",
-		"json-to-csv-export": "^3.1.3",
 		"maska": "^3.2.0",
 		"nuxt": "^4.1.3",
 		"nuxt-auth-utils": "^0.5.25",
@@ -40,8 +37,7 @@
 		"@compodium/nuxt": "0.1.0-beta.12",
 		"@iconify-json/lucide": "^1.2.70",
 		"@nuxt/kit": "^4.1.3",
-		"typescript": "^5.9.3",
-		"wrangler": "^4.44.0"
+		"typescript": "^5.9.3"
 	},
 	"trustedDependencies": [
 		"@parcel/watcher",
