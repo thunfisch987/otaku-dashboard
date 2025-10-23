@@ -18,9 +18,21 @@
 						{{ item.name }}
 					</NuxtLink>
 					<ClientOnly>
-						<span class="ml-auto">
+						<span
+							v-if="expiresIn > 0"
+							class="ml-auto"
+						>
 							Token expires in {{ expiresIn }} minutes
 						</span>
+						<template v-else>
+							<span class="ml-auto"> Token expired </span>
+							<UButton
+								class="ml-auto"
+								icon="i-lucide-rotate-ccw-key"
+								external
+								to="/api/auth/google"
+							/>
+						</template>
 						<template #fallback>
 							<span class="ml-auto">
 								Token expires in - minutes
@@ -114,15 +126,20 @@ type MaguroNavLink = {
 
 const { clear, user: userSession } = useUserSession();
 
-onNuxtReady(() =>
+onNuxtReady(() => {
+	if (userSession.value) {
+		expiresIn.value = Math.floor(
+			(userSession.value.tokens.expires_at - Date.now()) / 1000 / 60,
+		);
+	}
 	setInterval(() => {
 		if (userSession.value) {
 			expiresIn.value = Math.floor(
 				(userSession.value.tokens.expires_at - Date.now()) / 1000 / 60,
 			);
 		}
-	}, 10000),
-);
+	}, 10000);
+});
 
 async function clearSession() {
 	await clear();

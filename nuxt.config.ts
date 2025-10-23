@@ -6,9 +6,9 @@ export default defineNuxtConfig({
 		'nuxt-auth-utils',
 		'nuxt-typed-router',
 		'@nuxt/ui',
-		'compodium',
 		'@vueuse/nuxt',
 		'convex-nuxt',
+		'@compodium/nuxt',
 	],
 	css: ['~/assets/css/main.css'],
 	convex: {
@@ -43,5 +43,8 @@ export default defineNuxtConfig({
 	},
 	ui: {
 		colorMode: true,
+		experimental: {
+			componentDetection: true,
+		},
 	},
 });

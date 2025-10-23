@@ -6,10 +6,13 @@
 		:ui="{ footer: 'justify-end' }"
 	>
 		<UButton
+			v-if="table"
 			label="Delete selected Product(s)"
 			color="neutral"
 			variant="subtle"
-			:disabled="table.getFilteredSelectedRowModel().rows.length < 1"
+			:disabled="
+				table?.tableApi?.getFilteredSelectedRowModel().rows.length < 1
+			"
 			:loading="isPendingMany"
 		/>
 
@@ -36,9 +39,10 @@ import type { ProductSchema } from '../types';
 import type { Table } from '@tanstack/vue-table';
 import { api } from '~~/convex/_generated/api';
 
-const props = defineProps<{
-	table: Table<ProductSchema>;
-}>();
+const table = useState<{
+	tableApi: Table<ProductSchema>;
+	tableRef: Ref<HTMLTableElement | null>;
+} | null>('table');
 
 const deleteProductOpen = ref<boolean>(false);
 
@@ -50,12 +54,13 @@ const {
 
 function deleteSelected() {
 	mutateMany({
-		ids: props.table
-			.getFilteredSelectedRowModel()
-			.rows.map((row) => row.original._id as Id<'products'>),
+		ids:
+			table.value?.tableApi
+				.getFilteredSelectedRowModel()
+				.rows.map((row) => row.original._id as Id<'products'>) ?? [],
 	});
 	// deleteProductFetch(props.table.getFilteredSelectedRowModel().rows);
-	props.table.toggleAllRowsSelected(false);
+	table.value?.tableApi.toggleAllRowsSelected(false);
 	deleteProductOpen.value = false;
 }
 </script>

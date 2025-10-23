@@ -80,17 +80,15 @@ import {
 } from './types';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { Table } from '@tanstack/vue-table';
+import type { Ref } from 'vue';
 import { vMaska } from 'maska/vue';
 import { api } from '~~/convex/_generated/api';
 import type { Id } from '~~/convex/_generated/dataModel';
 
-const props = defineProps<{
-	table: Table<ProductSchema>;
-	// sendWebsocket: (
-	// 	data: string | ArrayBuffer | Blob,
-	// 	useBuffer?: boolean,
-	// ) => boolean;
-}>();
+const table = useState<{
+	tableApi: Table<ProductSchema>;
+	tableRef: Ref<HTMLTableElement | null>;
+} | null>('table');
 
 const form = useTemplateRef('form');
 const items: {
@@ -128,7 +126,7 @@ const editProductState = useState<PatchProductSchema>(
 const { mutate } = useConvexMutation(api.products.update);
 
 function editProduct(formSubmitEvent: FormSubmitEvent<PatchProductSchema>) {
-	props.table.toggleAllRowsSelected(false);
+	table.value?.tableApi.toggleAllRowsSelected(false);
 	mutate({
 		id: formSubmitEvent.data._id as Id<'products'>,
 		productname: formSubmitEvent.data.productname,

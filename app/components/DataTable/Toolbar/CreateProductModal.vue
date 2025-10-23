@@ -109,9 +109,12 @@ function resetFormState() {
 }
 
 const form = useTemplateRef('form');
-const props = defineProps<{
-	table: Table<ProductSchema>;
-}>();
+
+const table = useState<{
+	tableApi: Table<ProductSchema>;
+	tableRef: Ref<HTMLTableElement | null>;
+} | null>('table');
+
 const unmaskedCreatePriceValue = useState(
 	'unmaskedCreateProductValue',
 	() => '',
@@ -139,7 +142,7 @@ const items: {
 const toast = useToast();
 const { mutate, isPending, error } = useConvexMutation(api.products.create);
 function createProduct(formSubmitEvent: FormSubmitEvent<InsertProductSchema>) {
-	props.table.toggleAllRowsSelected(false);
+	table.value?.tableApi.toggleAllRowsSelected(false);
 	mutate({
 		productname: formSubmitEvent.data.productname,
 		price: Number.parseFloat(unmaskedCreatePriceValue.value),

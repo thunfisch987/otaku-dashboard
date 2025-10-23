@@ -42,7 +42,6 @@ function getRowItems(row: Row<ProductSchema>): DropdownMenuItem[] {
 		},
 	];
 }
-
 export const columns: TableColumn<ProductSchema>[] = [
 	{
 		accessorKey: '_id',

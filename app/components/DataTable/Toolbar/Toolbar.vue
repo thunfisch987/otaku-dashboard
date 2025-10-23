@@ -5,14 +5,14 @@
 			class="max-w-sm"
 			placeholder="Filter..."
 		/>
-		<ColumnVisibilityDropdown :table="table" />
+		<ColumnVisibilityDropdown />
 		<USelect
 			v-model="facetedSelectValue"
 			:items="items"
 			class="w-36 mr-auto"
 		/>
-		<DeleteProductModal :table="table" />
-		<CreateProductModal :table="table" />
+		<DeleteProductModal />
+		<CreateProductModal />
 		<UKbd>C</UKbd>
 	</div>
 </template>
@@ -24,12 +24,13 @@ import CreateProductModal from './CreateProductModal.vue';
 import ColumnVisibilityDropdown from './ColumnVisibilityDropdown.vue';
 import type { SelectItem } from '@nuxt/ui';
 
-const props = defineProps<{
-	table: Table<ProductSchema>;
-}>();
+const table = useState<{
+	tableApi: Table<ProductSchema>;
+	tableRef: Ref<HTMLTableElement | null>;
+} | null>('table');
 
 const facets = computed(() =>
-	props.table.getColumn('supplier')?.getFacetedUniqueValues(),
+	table.value?.tableApi.getColumn('supplier')?.getFacetedUniqueValues(),
 );
 
 const globalFilter = useState('globalFilter', () => '');
@@ -51,7 +52,7 @@ const items = ref<SelectItem[]>([
 const facetedSelectValue = useState('facetedSelectValue', () => 'Alle');
 
 watch(facetedSelectValue, (value) => {
-	props.table
+	table.value?.tableApi
 		.getColumn('supplier')
 		?.setFilterValue(value === 'Alle' ? undefined : value);
 });

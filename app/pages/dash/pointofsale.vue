@@ -41,7 +41,6 @@
 import { api } from '~~/convex/_generated/api';
 import { useConvexQuery, useConvexMutation } from 'convex-vue';
 import { productArraySchema } from '~/components/DataTable/types';
-import { isConstructorDeclaration } from 'typescript';
 import type { Id } from '~~/convex/_generated/dataModel';
 const {
 	data: productos,

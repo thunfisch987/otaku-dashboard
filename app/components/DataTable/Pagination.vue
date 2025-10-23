@@ -5,13 +5,15 @@
 			:min="0"
 			:max="40"
 			:step="5"
-			@update:model-value="(value) => table.setPageSize(value)"
+			@update:model-value="(value) => table?.tableApi.setPageSize(value)"
 		/>
 		<UPagination
-			:default-page="(table.getState().pagination.pageIndex || 0) + 1"
-			:items-per-page="table.getState().pagination.pageSize"
-			:total="table.getFilteredRowModel().rows.length"
-			@update:page="(p) => table.setPageIndex(p - 1)"
+			:default-page="
+				(table?.tableApi.getState().pagination.pageIndex || 0) + 1
+			"
+			:items-per-page="table?.tableApi.getState().pagination.pageSize"
+			:total="table?.tableApi.getFilteredRowModel().rows.length"
+			@update:page="(p) => table?.tableApi.setPageIndex(p - 1)"
 		/>
 	</div>
 </template>
@@ -24,5 +26,8 @@ const pagination = useState<{ pageIndex: number; pageSize: number }>(
 	'pagination',
 );
 
-defineProps<{ table: Table<ProductSchema> }>();
+const table = useState<{
+	tableApi: Table<ProductSchema>;
+	tableRef: Ref<HTMLTableElement | null>;
+} | null>('table');
 </script>

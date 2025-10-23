@@ -8,14 +8,15 @@
  * @module
  */
 
+import type * as order from "../order.js";
+import type * as products from "../products.js";
+import type * as profilepics from "../profilepics.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as order from "../order.js";
-import type * as products from "../products.js";
-import type * as profilepics from "../profilepics.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -30,11 +31,15 @@ declare const fullApi: ApiFromModules<{
   products: typeof products;
   profilepics: typeof profilepics;
 }>;
+declare const fullApiWithMounts: typeof fullApi;
+
 export declare const api: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "public">
 >;
 export declare const internal: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "internal">
 >;
+
+export declare const components: {};

@@ -15,7 +15,6 @@
 		// "components/ui",
 	],
 
-
 	"format_on_save": "on",
 	"lsp": {
 		"tailwindcss-language-server": {
@@ -27,6 +26,48 @@
 					"class:list",
 					"active-class"
 				]
+			}
+		}
+	},
+	"languages": {
+		"JavaScript": {
+			"formatter": {
+				"external": {
+					"command": "prettier",
+					"arguments": ["--stdin-filepath", "{buffer_path}"]
+				}
+			}
+		},
+		"Vue.js": {
+			"formatter": {
+				"external": {
+					"command": "prettier",
+					"arguments": ["--stdin-filepath", "{buffer_path}"]
+				}
+			}
+		},
+		"TypeScript": {
+			"formatter": {
+				"external": {
+					"command": "prettier",
+					"arguments": ["--stdin-filepath", "{buffer_path}"]
+				}
+			}
+		},
+		"JSON": {
+			"formatter": {
+				"external": {
+					"command": "prettier",
+					"arguments": ["--stdin-filepath", "{buffer_path}"]
+				}
+			}
+		},
+		"JSONC": {
+			"formatter": {
+				"external": {
+					"command": "prettier",
+					"arguments": ["--stdin-filepath", "{buffer_path}"]
+				}
 			}
 		}
 	}
