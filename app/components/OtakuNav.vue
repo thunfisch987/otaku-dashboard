@@ -17,59 +17,13 @@
 					>
 						{{ item.name }}
 					</NuxtLink>
-					<ClientOnly>
-						<span
-							v-if="expiresIn > 0"
-							class="ml-auto"
-						>
-							Token expires in {{ expiresIn }} minutes
-						</span>
-						<template v-else>
-							<span class="ml-auto"> Token expired </span>
-							<UButton
-								class="ml-auto"
-								icon="i-lucide-rotate-ccw-key"
-								external
-								to="/api/auth/google"
-							/>
-						</template>
-						<template #fallback>
-							<span class="ml-auto">
-								Token expires in - minutes
-							</span>
-						</template>
-					</ClientOnly>
-					<UDropdownMenu :items="items">
-						<UButton
-							:title="`Logged in as: ${user!.name}`"
-							variant="ghost"
-						>
-							<template #leading>
-								<UAvatar
-									:src="user!.avatar"
-									:text="`${user!.given_name[0]}${user!.family_name[0]}`"
-									size="xl"
-									crossorigin="anonymous"
-									class="shrink-0"
-								/>
-							</template>
-						</UButton>
-					</UDropdownMenu>
+					<LazyTokenExpireTimer />
+					<LazyUserMenu :user="user" />
 				</template>
-				<GoogleSignIn
+				<LazyGoogleSignIn
 					v-else
 					class="ml-auto"
 				/>
-				<!--as of nuxt auth utils v0.5.14-->
-				<!-- <UButton
-					v-else
-					class="ml-auto"
-					variant="solid"
-					icon="i-lucide-log-in"
-					@click="openInPopup('/api/auth/google')"
-				>
-					Login
-				</UButton> -->
 			</template>
 			<template #placeholder>
 				<UButton
@@ -113,48 +67,13 @@
 </template>
 
 <script setup lang="ts">
-import type { DropdownMenuItem } from '@nuxt/ui';
 import type { RoutePathSchema } from '@typed-router';
-
-const expiresIn = ref(0);
 
 type MaguroNavLink = {
 	name: string;
 	to: RoutePathSchema;
 	original?: string;
 };
-
-const { clear, user: userSession } = useUserSession();
-
-onNuxtReady(() => {
-	if (userSession.value) {
-		expiresIn.value = Math.floor(
-			(userSession.value.tokens.expires_at - Date.now()) / 1000 / 60,
-		);
-	}
-	setInterval(() => {
-		if (userSession.value) {
-			expiresIn.value = Math.floor(
-				(userSession.value.tokens.expires_at - Date.now()) / 1000 / 60,
-			);
-		}
-	}, 10000);
-});
-
-async function clearSession() {
-	await clear();
-	navigateTo('/');
-}
-
-const items: DropdownMenuItem[] = [
-	{
-		label: 'Logout',
-		icon: 'i-lucide-log-out',
-		onSelect: () => {
-			clearSession();
-		},
-	},
-];
 
 const navLinks: MaguroNavLink[] = [
 	{
