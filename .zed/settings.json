@@ -27,6 +27,11 @@
 					"active-class"
 				]
 			}
+		},
+		"vtsls": {
+			"settings": {
+				"autoUseWorkspaceTsdk": true
+			}
 		}
 	},
 	"languages": {
