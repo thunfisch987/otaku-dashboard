@@ -33,6 +33,9 @@ export default defineNuxtConfig({
 	experimental: {
 		writeEarlyHints: true,
 		asyncContext: true,
+		viteEnvironmentApi: true,
+		extractAsyncDataHandlers: true,
+		typescriptPlugin: true,
 	},
 	compatibilityDate: '2025-06-03',
 	nitro: {
