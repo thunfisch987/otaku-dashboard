@@ -9,7 +9,6 @@
 		<template v-else>
 			<span class="ml-auto"> Token expired </span>
 			<UButton
-				class="ml-auto"
 				icon="i-lucide-rotate-ccw-key"
 				external
 				to="/api/auth/google"
@@ -22,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-const expiresIn = ref(0);
+const expiresIn = useState('tokenExpiresIn', () => 0);
 
 const { user: userSession } = useUserSession();
 
