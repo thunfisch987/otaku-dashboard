@@ -2,14 +2,14 @@
 	<div v-if="table && table?.tableApi !== undefined">
 		<div class="flex space-x-4">
 			<UDropdownMenu
-				v-model:open="openAll"
+				v-model:open="exportAllOpen"
 				:items="itemsAll"
 			>
 				<UButton
 					variant="outline"
 					leading
 					:icon="
-						openAll
+						exportAllOpen
 							? 'i-lucide-chevron-up'
 							: 'i-lucide-chevron-down'
 					"
@@ -19,7 +19,7 @@
 				</UButton>
 			</UDropdownMenu>
 			<UDropdownMenu
-				v-model:open="openFiltered"
+				v-model:open="exportFilteredOpen"
 				:items="itemsFiltered"
 			>
 				<UButton
@@ -33,7 +33,7 @@
 				</UButton>
 			</UDropdownMenu>
 			<UDropdownMenu
-				v-model:open="openSelected"
+				v-model:open="exportSelectedOpen"
 				:items="itemsSelected"
 			>
 				<UButton
@@ -55,7 +55,7 @@
 						table?.tableApi.getFilteredSelectedRowModel().rows
 							.length === 0
 							? 'i-lucide-x'
-							: openSelected
+							: exportSelectedOpen
 								? 'i-lucide-chevron-up'
 								: 'i-lucide-chevron-down'
 					"
@@ -82,15 +82,15 @@ const table = useState<{
 	tableRef: Ref<HTMLTableElement | null>;
 } | null>('table');
 
-const openAll = useState('openAll', () => false);
-const openSelected = useState('openSelected', () => false);
-const openFiltered = useState('openFiltered', () => false);
+const exportAllOpen = useState('exportAllOpen', () => false);
+const exportSelectedOpen = useState('exportSelectedOpen', () => false);
+const exportFilteredOpen = useState('exportFilteredOpen', () => false);
 const globalFilter = useState<string>('globalFilter');
 
 const exportFilteredEnabledIcon = computed((): string => {
 	return !exportFilteredEnabled.value
 		? 'i-lucide-x'
-		: openFiltered.value
+		: exportFilteredOpen.value
 			? 'i-lucide-chevron-up'
 			: 'i-lucide-chevron-down';
 });

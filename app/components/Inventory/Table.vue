@@ -7,15 +7,7 @@
 			v-if="parsedAllProducts"
 			class="w-full space-y-4 pb-4 flex-col hidden lg:flex"
 		>
-			<template
-				v-if="
-					table &&
-					table?.tableApi !== undefined &&
-					parsedAllProducts.data
-				"
-			>
-				<LazyInventoryToolbar />
-			</template>
+			<LazyInventoryToolbar :hydrate-when="parsedAllProducts.success" />
 			<UTable
 				ref="table"
 				v-model:pagination="pagination"
@@ -33,92 +25,85 @@
 				}"
 				class="flex-1"
 			/>
-			<template
+			<LazyInventorySelectedCount
+				:hydrate-when="parsedAllProducts.success"
+			/>
+			<LazyInventoryPagination
 				v-if="
-					table &&
-					table?.tableApi !== undefined &&
-					parsedAllProducts.data
+					table?.tableApi!.getFilteredRowModel()!.rows!.length! >= 5
 				"
+			/>
+			<LazyInventoryEditProductModal
+				:hydrate-when="parsedAllProducts.success"
+			/>
+			<div
+				v-if="parsedAllProducts.success"
+				class="flex space-x-4"
 			>
-				<LazyInventorySelectedCount />
-				<LazyInventoryPagination
-					v-if="
-						table?.tableApi!.getFilteredRowModel()!.rows!.length! >=
-						5
-					"
-				/>
-				<LazyInventoryEditProductModal />
-				<div class="flex space-x-4">
-					<UDropdownMenu
-						v-model:open="openAll"
-						:items="itemsAll"
+				<UDropdownMenu
+					v-model:open="exportAllOpen"
+					:items="itemsAll"
+				>
+					<UButton
+						variant="outline"
+						leading
+						:icon="
+							exportAllOpen
+								? 'i-lucide-chevron-up'
+								: 'i-lucide-chevron-down'
+						"
+						class=""
 					>
-						<UButton
-							variant="outline"
-							leading
-							:icon="
-								openAll
+						Export all
+					</UButton>
+				</UDropdownMenu>
+				<UDropdownMenu
+					v-model:open="exportFilteredOpen"
+					:items="itemsFiltered"
+				>
+					<UButton
+						variant="outline"
+						leading
+						:disabled="!exportFilteredEnabled"
+						:title="!exportFilteredEnabled ? 'Bitte Filtern!' : ''"
+						:icon="exportFilteredEnabledIcon"
+					>
+						Export filtered
+					</UButton>
+				</UDropdownMenu>
+				<UDropdownMenu
+					v-model:open="exportSelectedOpen"
+					:items="itemsSelected"
+				>
+					<UButton
+						variant="outline"
+						leading
+						:disabled="
+							table?.tableApi.getFilteredSelectedRowModel().rows
+								.length === 0 ||
+							table?.tableApi.getCoreRowModel().rows.length === 0
+						"
+						:title="
+							table?.tableApi.getFilteredSelectedRowModel().rows
+								.length === 0 ||
+							table?.tableApi.getCoreRowModel().rows.length === 0
+								? 'Mindestens ein Produkt muss ausgewählt sein!'
+								: ''
+						"
+						:icon="
+							table?.tableApi.getFilteredSelectedRowModel().rows
+								.length === 0
+								? 'i-lucide-x'
+								: exportSelectedOpen
 									? 'i-lucide-chevron-up'
 									: 'i-lucide-chevron-down'
-							"
-							class=""
-						>
-							Export all
-						</UButton>
-					</UDropdownMenu>
-					<UDropdownMenu
-						v-model:open="openFiltered"
-						:items="itemsFiltered"
+						"
+						class=""
 					>
-						<UButton
-							:key="parsedAllProducts.data[0]?.productname"
-							variant="outline"
-							leading
-							:disabled="!exportFilteredEnabled"
-							:title="
-								!exportFilteredEnabled ? 'Bitte Filtern!' : ''
-							"
-							:icon="exportFilteredEnabledIcon"
-						>
-							Export filtered
-						</UButton>
-					</UDropdownMenu>
-					<UDropdownMenu
-						v-model:open="openSelected"
-						:items="itemsSelected"
-					>
-						<UButton
-							variant="outline"
-							leading
-							:disabled="
-								table?.tableApi.getFilteredSelectedRowModel()
-									.rows.length === 0 ||
-								table?.tableApi.getCoreRowModel().rows
-									.length === 0
-							"
-							:title="
-								table?.tableApi.getFilteredSelectedRowModel()
-									.rows.length === 0 ||
-								table?.tableApi.getCoreRowModel().rows
-									.length === 0
-									? 'Mindestens ein Produkt muss ausgewählt sein!'
-									: ''
-							"
-							:icon="
-								table?.tableApi.getFilteredSelectedRowModel()
-									.rows.length === 0
-									? 'i-lucide-x'
-									: openSelected
-										? 'i-lucide-chevron-up'
-										: 'i-lucide-chevron-down'
-							"
-							class=""
-						>
-							Export selected
-						</UButton>
-					</UDropdownMenu>
-				</div>
-			</template>
+						Export selected
+					</UButton>
+				</UDropdownMenu>
+			</div>
 		</div>
 	</div>
 </template>
@@ -145,9 +130,9 @@ const json2csv = (data: ProductSchema[]) => {
 
 const toast = useToast();
 
-const openAll = useState('openAll', () => false);
-const openFiltered = useState('openFiltered', () => false);
-const openSelected = useState('openSelected', () => false);
+const exportAllOpen = useState('exportAllOpen', () => false);
+const exportFilteredOpen = useState('exportFilteredOpen', () => false);
+const exportSelectedOpen = useState('exportSelectedOpen', () => false);
 
 const table = useState<{
 	tableApi: Table<ProductSchema>;
@@ -184,7 +169,7 @@ const exportFilteredEnabled = computed((): boolean => {
 const exportFilteredEnabledIcon = computed((): string => {
 	return !exportFilteredEnabled.value
 		? 'i-lucide-x'
-		: openFiltered.value
+		: exportFilteredOpen.value
 			? 'i-lucide-chevron-up'
 			: 'i-lucide-chevron-down';
 });
