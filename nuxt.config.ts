@@ -6,7 +6,6 @@ export default defineNuxtConfig({
 		'nuxt-auth-utils',
 		'nuxt-typed-router',
 		'@nuxt/ui',
-		'@vueuse/nuxt',
 		'convex-nuxt',
 		'@compodium/nuxt',
 	],
