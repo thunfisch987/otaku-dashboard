@@ -1,6 +1,7 @@
 <template>
 	<div class="h-screen flex flex-col">
 		<NuxtRouteAnnouncer />
+		<NuxtPwaManifest />
 		<UApp>
 			<NuxtLoadingIndicator color="#E11D48" />
 			<OtakuNav />
