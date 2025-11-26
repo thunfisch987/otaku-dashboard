@@ -21,7 +21,7 @@
 		"convex-nuxt": "^0.1.5",
 		"convex-vue": "^0.1.5",
 		"maska": "^3.2.0",
-		"nuxt": "^4.2.1",
+		"nuxt": "^4.2.2-29401542.1ec99e9a",
 		"nuxt-auth-utils": "^0.5.25",
 		"nuxt-typed-router": "^4.0.2",
 		"unenv": "^1.10.0",
@@ -51,6 +51,7 @@
 		"workerd"
 	],
 	"overrides": {
-		"vite": "npm:rolldown-vite@latest"
+		"vite": "npm:rolldown-vite@latest",
+		"nuxt": "npm:nuxt-nightly@latest"
 	}
 }
