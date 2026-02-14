@@ -26,10 +26,10 @@ export const create = mutation({
 	handler: async (ctx, args) => {
 		const userId = await ctx.auth.getUserIdentity();
 		if (!userId) {
-			throw new Error('Not authenticated');
+			throw new Error('Not authenticated!');
 		}
 		if (args.price < 0) {
-			throw new Error('Price must be non-negative');
+			throw new Error('Price must be non-negative!');
 		}
 
 		const now = Date.now();
@@ -52,13 +52,13 @@ export const update = mutation({
 	handler: async (ctx, args) => {
 		const userId = await ctx.auth.getUserIdentity();
 		if (!userId) {
-			throw new Error('Not authenticated');
+			throw new Error('Not authenticated!');
 		}
 
 		const { id, ...updates } = args;
 
 		if (updates.price !== undefined && updates.price < 0) {
-			throw new Error('Price must be non-negative');
+			throw new Error('Price must be non-negative!');
 		}
 
 		const filteredUpdates = Object.fromEntries(
@@ -78,7 +78,7 @@ export const remove = mutation({
 	handler: async (ctx, args) => {
 		const userId = await ctx.auth.getUserIdentity();
 		if (!userId) {
-			throw new Error('Not authenticated');
+			throw new Error('Not authenticated!');
 		}
 
 		return await ctx.db.delete(args.id);
@@ -90,7 +90,7 @@ export const removeMany = mutation({
 	handler: async (ctx, args) => {
 		const userId = await ctx.auth.getUserIdentity();
 		if (!userId) {
-			throw new Error('Not authenticated');
+			throw new Error('Not authenticated!');
 		}
 		await Promise.all(args.ids.map((id) => ctx.db.delete(id)));
 	},
@@ -101,15 +101,15 @@ export const decreaseAmount = mutation({
 	handler: async (ctx, args) => {
 		const userId = await ctx.auth.getUserIdentity();
 		if (!userId) {
-			throw new Error('Not authenticated');
+			throw new Error('Not authenticated!');
 		}
 		const previousAmount = await ctx.db.get(args.id);
 		if (!previousAmount) {
-			throw new Error('Product not found');
+			throw new Error('Product not found!');
 		}
 		const newAmount = previousAmount.amount - 1;
 		if (newAmount < 0) {
-			throw new Error('Amount cannot be negative');
+			throw new Error('Amount cannot be negative!');
 		}
 		return await ctx.db.patch(args.id, { amount: newAmount });
 	},
