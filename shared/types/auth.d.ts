@@ -16,6 +16,10 @@ declare module '#auth-utils' {
 			// refresh_token: string;
 			expires_at: number;
 		};
+		login_methods: {
+			osu?: boolean;
+			google?: boolean;
+		};
 	}
 
 	interface UserSession {
@@ -24,6 +28,7 @@ declare module '#auth-utils' {
 
 	interface SecureSessionData {
 		access_token: string;
+		refresh_token?: string;
 	}
 }
 

@@ -28,10 +28,13 @@ export default defineOAuthGoogleEventHandler({
 					id_token: parsedTokens.id_token,
 					expires_at: parsedTokens.expires_in * 1000 + Date.now(),
 				},
-			} satisfies User,
+				login_methods: {
+					google: true,
+				},
+			},
 			secure: {
 				access_token: parsedTokens.access_token,
-			} satisfies SecureSessionData,
+			},
 			login_at: new Date(),
 		});
 		// const dbUser: InsertUser = {
