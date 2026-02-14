@@ -28,7 +28,7 @@ export default defineNuxtConfig({
 	},
 	devServer: { port: 3001 },
 	future: {
-		compatibilityVersion: 4,
+		compatibilityVersion: 5,
 	},
 	experimental: {
 		writeEarlyHints: true,
