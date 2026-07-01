@@ -39,7 +39,7 @@
 		"@nuxt/kit": "4.4.8",
 		"@types/node": "26.0.1",
 		"eslint": "10.6.0",
-		"prettier": "3.9.0",
+		"prettier": "3.9.1",
 		"typescript": "6.0.3"
 	},
 	"trustedDependencies": [
