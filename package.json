@@ -36,7 +36,7 @@
 		"@iconify-json/lucide": "1.2.121",
 		"@iconify-json/ph": "1.2.2",
 		"@nuxt/devtools": "3.4.1",
-		"@nuxt/kit": "4.5.1",
+		"@nuxt/kit": "4.5.2",
 		"@types/node": "26.1.2",
 		"eslint": "10.8.0",
 		"prettier": "3.9.6",
