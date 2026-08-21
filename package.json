@@ -33,7 +33,7 @@
 	},
 	"devDependencies": {
 		"@compodium/nuxt": "0.1.0-beta.13",
-		"@iconify-json/lucide": "1.2.123",
+		"@iconify-json/lucide": "1.2.124",
 		"@iconify-json/ph": "1.2.2",
 		"@nuxt/devtools": "3.4.1",
 		"@nuxt/kit": "4.5.2",
