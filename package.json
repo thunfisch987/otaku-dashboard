@@ -35,7 +35,7 @@
 		"@compodium/nuxt": "0.1.0-beta.13",
 		"@iconify-json/lucide": "1.2.125",
 		"@iconify-json/ph": "1.2.2",
-		"@nuxt/devtools": "3.4.1",
+		"@nuxt/devtools": "3.4.2",
 		"@nuxt/kit": "4.5.2",
 		"@types/node": "26.2.0",
 		"eslint": "10.9.0",
