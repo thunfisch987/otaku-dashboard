@@ -23,7 +23,7 @@ export default defineNuxtConfig({
 			htmlAttrs: {
 				lang: 'en',
 			},
-			meta: [],
+			meta: [{ name: 'description', content: 'Otaku Dashboard' }],
 		},
 	},
 	devServer: { port: 3001 },
