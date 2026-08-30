@@ -52,6 +52,39 @@ export default defineNuxtConfig({
 	},
 	pwa: {
 		useCredentials: true,
+		manifest: {
+			id: '/',
+			name: 'Otaku Dashboard',
+			short_name: 'Otaku Dashboard',
+			description: 'Otaku Dashboard',
+			start_url: '/',
+			scope: '/',
+			display: 'standalone',
+			background_color: '#ffffff',
+			theme_color: '#e11d48',
+			icons: [
+				{
+					src: '/pwa-192x192.png',
+					sizes: '192x192',
+					type: 'image/png',
+				},
+				{
+					src: '/pwa-512x512.png',
+					sizes: '512x512',
+					type: 'image/png',
+				},
+				{
+					src: '/maskable-icon-512x512.png',
+					sizes: '512x512',
+					type: 'image/png',
+					purpose: 'maskable',
+				},
+			],
+		},
+		devOptions: {
+			enabled: true,
+		},
+		registerWebManifestInRouteRules: true,
 	},
 	vite: {
 		optimizeDeps: {
