@@ -37,7 +37,7 @@ export default defineNuxtConfig({
 		extractAsyncDataHandlers: true,
 		typescriptPlugin: true,
 	},
-	compatibilityDate: '2025-06-03',
+	compatibilityDate: '2026-08-30',
 	nitro: {
 		experimental: {
 			tasks: true,
@@ -46,8 +46,24 @@ export default defineNuxtConfig({
 	},
 	ui: {
 		colorMode: true,
+		experimental: {
+			componentDetection: true,
+		},
 	},
 	pwa: {
 		useCredentials: true,
+	},
+	vite: {
+		optimizeDeps: {
+			include: [
+				'@internationalized/date',
+				'@tanstack/vue-table',
+				'@vue/devtools-core',
+				'@vue/devtools-kit',
+				'convex-vue',
+				'convex/server',
+				'zod/mini',
+			],
+		},
 	},
 });

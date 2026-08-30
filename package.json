@@ -4,7 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "nuxt build",
-		"dev": "nuxt dev --dotenv .env.local",
+		"dev": "bun --bun run nuxt dev --dotenv .env.local",
 		"generate": "nuxt generate",
 		"preview": "nuxt preview",
 		"postinstall": "nuxt prepare",
@@ -16,7 +16,7 @@
 		"@nuxt/image": "^2.1.0",
 		"@nuxt/ui": "^4.11.0",
 		"@nuxtjs/color-mode": "^4.0.1",
-		"@tanstack/vue-table": "^9.2.3",
+		"@tanstack/vue-table": "^8.21.3",
 		"@vite-pwa/nuxt": "^1.1.1",
 		"better-auth": "1.7.2",
 		"convex": "^1.45.0",
@@ -42,6 +42,9 @@
 		"prettier": "3.9.6",
 		"typescript": "7.0.2"
 	},
+	"overrides": {
+		"vite": "npm:rolldown-vite@latest"
+	},
 	"trustedDependencies": [
 		"@parcel/watcher",
 		"@tailwindcss/oxide",
@@ -52,8 +55,5 @@
 		"unrs-resolver",
 		"vue-demi",
 		"workerd"
-	],
-	"overrides": {
-		"vite": "npm:rolldown-vite@latest"
-	}
+	]
 }
