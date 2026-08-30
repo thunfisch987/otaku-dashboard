@@ -8,20 +8,20 @@
  * @module
  */
 
-import type * as order from "../order.js";
-import type * as products from "../products.js";
-import type * as profilepics from "../profilepics.js";
+import type * as order from '../order.js';
+import type * as products from '../products.js';
+import type * as profilepics from '../profilepics.js';
 
 import type {
-  ApiFromModules,
-  FilterApi,
-  FunctionReference,
-} from "convex/server";
+	ApiFromModules,
+	FilterApi,
+	FunctionReference,
+} from 'convex/server';
 
 declare const fullApi: ApiFromModules<{
-  order: typeof order;
-  products: typeof products;
-  profilepics: typeof profilepics;
+	order: typeof order;
+	products: typeof products;
+	profilepics: typeof profilepics;
 }>;
 
 /**
@@ -33,8 +33,8 @@ declare const fullApi: ApiFromModules<{
  * ```
  */
 export declare const api: FilterApi<
-  typeof fullApi,
-  FunctionReference<any, "public">
+	typeof fullApi,
+	FunctionReference<any, 'public'>
 >;
 
 /**
@@ -46,8 +46,8 @@ export declare const api: FilterApi<
  * ```
  */
 export declare const internal: FilterApi<
-  typeof fullApi,
-  FunctionReference<any, "internal">
+	typeof fullApi,
+	FunctionReference<any, 'internal'>
 >;
 
 export declare const components: {};
