@@ -1,101 +1,112 @@
 <template>
-	<div class="p-2 flex items-center gap-4">
-		<NuxtLink to="/">
+	<UHeader
+		to="/"
+		title="Otaku Dashboard"
+	>
+		<template #title>
 			<NuxtImg
 				src="pwa-192x192.png"
 				class="h-16 w-16"
 			/>
-		</NuxtLink>
-		<AuthState>
-			<template #default="{ loggedIn, user }">
-				<template v-if="loggedIn">
-					<NuxtLink
-						v-for="item in navLinks"
-						:key="item.name"
-						class="text-lg text-gray-400 hidden md:inline"
-						:to="item.to"
-					>
-						{{ item.name }}
-					</NuxtLink>
-					<LazyTokenExpireTimer />
-					<LazyUserMenu :user="user" />
-				</template>
-				<template v-else>
-					<LazyGoogleSignIn class="ml-auto" />
-				</template>
-			</template>
-			<template #placeholder>
-				<UButton
-					class="ml-auto"
-					loading
-					loading-icon="i-lucide-loader-circle"
-				>
-					Please wait
-				</UButton>
-			</template>
-		</AuthState>
-		<UColorModeButton>
-			<template #fallback>
-				<UButton
-					loading
-					variant="ghost"
-					color="neutral"
+		</template>
+
+		<template #default>
+			<AuthState v-slot="{ loggedIn }">
+				<UNavigationMenu
+					v-if="loggedIn"
+					:items="items"
 				/>
-			</template>
-		</UColorModeButton>
-		<USlideover>
-			<UButton
-				variant="ghost"
-				aria-label="Open Navigation Menu"
-				icon="i-lucide-menu"
-				class="md:hidden"
-				size="md"
-			/>
-			<template #body>
-				<NuxtLink
-					v-for="item in navLinks"
-					:key="item.name"
-					:to="item.to"
-					class="-mx-3 flex rounded-lg px-3 py-2 text-lg font-semibold leading-7 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-950 focus:bg-gray-50 dark:focus:bg-gray-950"
-				>
-					<span class="mx-auto">{{ item.name }}</span>
-				</NuxtLink>
-			</template>
-		</USlideover>
-	</div>
+			</AuthState>
+		</template>
+
+		<template #right>
+			<AuthState>
+				<template #default="{ loggedIn, user }">
+					<template v-if="loggedIn">
+						<LazyTokenExpireTimer />
+						<LazyUserMenu :user="user" />
+					</template>
+					<template v-else>
+						<LazyGoogleSignIn class="ml-auto" />
+					</template>
+				</template>
+				<template #placeholder>
+					<UButton
+						class="ml-auto"
+						loading
+						loading-icon="i-lucide-loader-circle"
+					>
+						Please wait
+					</UButton>
+				</template>
+			</AuthState>
+			<UColorModeButton>
+				<template #fallback>
+					<UButton
+						loading
+						variant="ghost"
+						color="neutral"
+					/>
+				</template>
+			</UColorModeButton>
+		</template>
+
+		<template #body>
+			<AuthState v-slot="{ loggedIn }">
+				<UNavigationMenu
+					v-if="loggedIn"
+					:items="items"
+					orientation="vertical"
+					class="-mx-2.5"
+				/>
+				<p v-else>Please log in</p>
+			</AuthState>
+		</template>
+	</UHeader>
 </template>
 
 <script setup lang="ts">
+import type { NavigationMenuItem } from '@nuxt/ui';
 import type { RoutePathSchema } from '@typed-router';
 
-type MaguroNavLink = {
-	name: string;
+interface MaguroNavLink extends NavigationMenuItem {
 	to: RoutePathSchema;
-	original?: string;
-};
+}
 
-const navLinks: MaguroNavLink[] = [
+const route = useRoute();
+
+const items = computed<MaguroNavLink[]>(() => [
 	{
-		name: 'Übersicht',
+		label: 'Übersicht',
 		to: '/dash/dashboard',
+		active: route.path === '/dash/dashboard',
 	},
 	{
-		name: 'Forms',
+		label: 'Forms',
 		to: '/dash/forms',
+		active: route.path === '/dash/forms',
 	},
 	{
-		name: 'Inventar',
+		label: 'Inventar',
 		to: '/dash/inventory',
+		active: route.path === '/dash/inventory',
 	},
 	{
-		name: 'Point of Sale',
+		label: 'Point of Sale',
 		to: '/dash/pointofsale',
+		active: route.path === '/dash/pointofsale',
 	},
 	{
-		name: 'Transaktionen',
+		label: 'Transaktionen',
 		to: '/dash/transactions',
+		active: route.path === '/dash/transactions',
 	},
-];
+	{
+		label: 'Benutzer',
+		to: '/dash/users',
+		active: route.path === '/dash/users',
+	},
+]);
 </script>
 
 <style>

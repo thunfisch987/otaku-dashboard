@@ -6,7 +6,9 @@
 			<NuxtLoadingIndicator color="#E11D48" />
 			<OtakuNav />
 			<USeparator />
-			<main><NuxtPage /></main>
+			<main>
+				<NuxtPage />
+			</main>
 			<USeparator class="mt-auto" />
 			<OtakuFooter />
 		</UApp>
