@@ -27,7 +27,7 @@ function getRowItems(row: Row<ProductSchema>): DropdownMenuItem[] {
 			label: 'Produkt löschen',
 			icon: 'i-lucide-trash',
 			onSelect() {
-				deleteProduct(row);
+				deleteProduct(row).catch(() => {});
 			},
 		},
 		{
@@ -46,7 +46,7 @@ export const columns: TableColumn<ProductSchema>[] = [
 	{
 		accessorKey: '_id',
 		header: ({ column }) => getSortHeader(column, 'ID'),
-		cell: ({ row }) => `#${row.getValue('_id')}`,
+		cell: ({ row }) => `#${row.getValue<string>('_id')}`,
 		enableHiding: true,
 	},
 	{
@@ -56,15 +56,14 @@ export const columns: TableColumn<ProductSchema>[] = [
 				modelValue: table.getIsSomePageRowsSelected()
 					? 'indeterminate'
 					: table.getIsAllPageRowsSelected(),
-				'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
+				'onUpdate:modelValue': (value) =>
 					table.toggleAllPageRowsSelected(!!value),
 				ariaLabel: 'Select all',
 			}),
 		cell: ({ row }) =>
 			h(UCheckbox, {
 				modelValue: row.getIsSelected(),
-				'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
-					row.toggleSelected(!!value),
+				'onUpdate:modelValue': (value) => row.toggleSelected(!!value),
 				ariaLabel: 'Select row',
 			}),
 		enableHiding: false,
@@ -104,7 +103,6 @@ export const columns: TableColumn<ProductSchema>[] = [
 				'div',
 				{ class: 'text-right' },
 				h(
-					// @ts-expect-error It throws an TS error but in the runtime it works completely fine
 					UDropdownMenu,
 					{
 						content: {

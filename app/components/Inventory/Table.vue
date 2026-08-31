@@ -115,7 +115,7 @@ import {
 import { columns } from './columns';
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Table } from '@tanstack/vue-table';
-import { api } from '~~/convex/_generated/api';
+import { api } from '#convex/api';
 
 const json2csv = (data: ProductSchema[]) => {
 	const csv = [
@@ -254,7 +254,7 @@ const {
 	data: productos,
 	isPending: pendingos,
 	suspense: sus,
-} = useConvexQuery(api.products.list);
+} = useConvexQuery(api.products.list, {});
 
 sus();
 

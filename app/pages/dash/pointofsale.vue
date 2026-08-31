@@ -38,8 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { api } from '~~/convex/_generated/api';
-import { useConvexQuery, useConvexMutation } from 'convex-vue';
+import { api } from '#convex/api';
 import { productArraySchema } from '~/components/Inventory/types';
 import type { Id } from '~~/convex/_generated/dataModel';
 const {
@@ -47,7 +46,7 @@ const {
 	isPending: pendingos,
 	error: erroros,
 	suspense: suspensos,
-} = useConvexQuery(api.products.list);
+} = useConvexQuery(api.products.list, {});
 
 await suspensos();
 

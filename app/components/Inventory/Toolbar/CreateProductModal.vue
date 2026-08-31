@@ -87,8 +87,7 @@ import type { Table } from '@tanstack/vue-table';
 import { vMaska } from 'maska/vue';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { MaskInputOptions } from 'maska';
-import { api } from '~~/convex/_generated/api';
-import { useConvexMutation } from 'convex-vue';
+import { api } from '#convex/api';
 
 const maskOptions: MaskInputOptions = {
 	eager: true,
@@ -129,7 +128,7 @@ const DEFAULT_STATE = {
 	amount: 0,
 	picture: '',
 } as const;
-// eslint-disable-next-line prefer-const
+
 let state = reactive<InsertProductSchema>(DEFAULT_STATE);
 
 const items: {

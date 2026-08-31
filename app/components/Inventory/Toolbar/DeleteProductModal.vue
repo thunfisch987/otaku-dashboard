@@ -37,7 +37,7 @@
 import type { Id } from '~~/convex/_generated/dataModel';
 import type { ProductSchema } from '../types';
 import type { Table } from '@tanstack/vue-table';
-import { api } from '~~/convex/_generated/api';
+import { api } from '#convex/api';
 
 const table = useState<{
 	tableApi: Table<ProductSchema>;

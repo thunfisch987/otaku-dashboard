@@ -82,7 +82,7 @@ import type { FormSubmitEvent } from '@nuxt/ui';
 import type { Table } from '@tanstack/vue-table';
 import type { Ref } from 'vue';
 import { vMaska } from 'maska/vue';
-import { api } from '~~/convex/_generated/api';
+import { api } from '#convex/api';
 import type { Id } from '~~/convex/_generated/dataModel';
 
 const table = useState<{

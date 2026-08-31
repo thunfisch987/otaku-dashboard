@@ -1,11 +1,11 @@
 import type { Row } from '@tanstack/vue-table';
-import type { ProductSchema } from '~/components/DataTable/types';
-import { api } from '~~/convex/_generated/api';
+import type { ProductSchema } from '~/components/Inventory/types';
+import { api } from '#convex/api';
 import type { Id } from '~~/convex/_generated/dataModel';
 
-export const deleteProduct = (row: Row<ProductSchema>) => {
+export const deleteProduct = async (row: Row<ProductSchema>) => {
 	const nuxtApp = useNuxtApp();
-	nuxtApp.runWithContext(() => {
+	await nuxtApp.runWithContext(() => {
 		const { mutate } = useConvexMutation(api.products.remove);
 		mutate({ id: row.original._id as Id<'products'> });
 	});
