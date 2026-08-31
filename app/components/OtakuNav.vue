@@ -22,11 +22,6 @@
 				</template>
 				<template v-else>
 					<LazyGoogleSignIn class="ml-auto" />
-					<UButton
-						external
-						to="/api/auth/osu"
-						>osu!</UButton
-					>
 				</template>
 			</template>
 			<template #placeholder>

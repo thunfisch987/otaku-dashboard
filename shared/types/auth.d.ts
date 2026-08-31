@@ -17,7 +17,6 @@ declare module '#auth-utils' {
 			expires_at: number;
 		};
 		login_methods: {
-			osu?: boolean;
 			google?: boolean;
 		};
 	}
