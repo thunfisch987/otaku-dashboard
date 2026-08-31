@@ -35,6 +35,7 @@ export default defineNuxtConfig({
 		viteEnvironmentApi: true,
 		extractAsyncDataHandlers: true,
 		typescriptPlugin: true,
+ buildCache: true,
 	},
 	compatibilityDate: '2026-08-30',
 	nitro: {
