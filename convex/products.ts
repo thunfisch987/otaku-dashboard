@@ -1,4 +1,3 @@
-import { Id } from './_generated/dataModel';
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 
@@ -62,11 +61,18 @@ export const update = mutation({
 			throw new Error('Price must be non-negative!');
 		}
 
-		const filteredUpdates = Object.fromEntries(
-			Object.entries(updates).filter(([_, value]) => value !== undefined),
-		);
+		// remove undefined fields from updates
+		const filteredUpdates: Record<string, unknown> = {};
+		let hasUpdates = false;
 
-		if (Object.keys(filteredUpdates).length > 0) {
+		for (const [key, value] of Object.entries(updates)) {
+			if (value !== undefined) {
+				filteredUpdates[key] = value;
+				hasUpdates = true;
+			}
+		}
+
+		if (hasUpdates) {
 			filteredUpdates.updatedAt = Date.now();
 		}
 

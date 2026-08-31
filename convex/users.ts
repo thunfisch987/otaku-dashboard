@@ -43,7 +43,7 @@ export const upsert = mutation({
 
 export const list = query({
 	args: {},
-	handler: async (ctx, args) => {
+	handler: async (ctx) => {
 		return await ctx.db.query('users').collect();
 	},
 });

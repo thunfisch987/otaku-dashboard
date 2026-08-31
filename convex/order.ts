@@ -83,9 +83,20 @@ export const update = mutation({
 			}
 		}
 
-		const filteredUpdates = Object.fromEntries(
-			Object.entries(updates).filter(([_, value]) => value !== undefined),
-		);
+		// remove undefined fields from updates
+		const filteredUpdates: Record<string, unknown> = {};
+		let hasUpdates = false;
+
+		for (const [key, value] of Object.entries(updates)) {
+			if (value !== undefined) {
+				filteredUpdates[key] = value;
+				hasUpdates = true;
+			}
+		}
+
+		if (hasUpdates) {
+			filteredUpdates.updatedAt = Date.now();
+		}
 
 		return await ctx.db.patch(id, filteredUpdates);
 	},
