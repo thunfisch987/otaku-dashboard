@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<pre>{{ transactions }}</pre>
+		<pre>{{ users }}</pre>
 	</div>
 </template>
 
@@ -10,11 +10,11 @@ import { api } from '~~/convex/_generated/api';
 const { user } = useUserSession();
 
 const {
-	data: transactions,
+	data: users,
 	isPending: pending,
 	error,
 	suspense,
-} = useConvexQuery(api.transactions.list);
+} = useConvexQuery(api.users.list);
 
 await suspense();
 </script>

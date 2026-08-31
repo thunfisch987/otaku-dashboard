@@ -1,5 +1,7 @@
 import type { SecureSessionData, User } from '#auth-utils';
 import { googleTokensSchema, googleUserSchema } from './googleUserSchema';
+import { api } from '~~/convex/_generated/api';
+import { ConvexHttpClient } from 'convex/browser';
 
 export default defineOAuthGoogleEventHandler({
 	config: {
@@ -37,23 +39,17 @@ export default defineOAuthGoogleEventHandler({
 			},
 			login_at: new Date(),
 		});
-		// const dbUser: InsertUser = {
-		// 	id: parsedUser.sub,
-		// 	name: parsedUser.name,
-		// 	givenName: parsedUser.given_name,
-		// 	familyName: parsedUser.family_name,
-		// 	email: parsedUser.email,
-		// 	avatar: parsedUser.picture,
-		// 	lastLogin: new Date(),
-		// 	createdAt: new Date(),
-		// };
-		// await useDrizzle()
-		// 	.insert(tables.users)
-		// 	.values(dbUser)
-		// 	.onConflictDoUpdate({
-		// 		target: tables.users.id,
-		// 		set: { lastLogin: dbUser.lastLogin },
-		// 	});
+
+		const convex = new ConvexHttpClient(
+			useRuntimeConfig().public.convex.url,
+			{ auth: parsedTokens.id_token },
+		);
+
+		await convex.mutation(api.users.upsert, {
+			name: parsedUser.name,
+			email: parsedUser.email,
+			avatar: parsedUser.picture,
+		});
 		return sendRedirect(event, '/dash/dashboard');
 	},
 	onError(event, error) {

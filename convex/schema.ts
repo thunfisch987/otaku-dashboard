@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
+import { availableMemory } from 'process';
 
 const applicationTables = {
 	products: defineTable({
@@ -26,6 +27,26 @@ const applicationTables = {
 		storageId: v.id('_storage'),
 		url: v.string(),
 	}).index('by_url', ['url']),
+
+	users: defineTable({
+		authId: v.string(),
+		name: v.string(),
+		email: v.string(),
+		avatar: v.optional(v.string()),
+	})
+		.index('by_authId', ['authId'])
+		.index('by_name', ['name'])
+		.index('by_email', ['email']),
+
+	transactions: defineTable({
+		productsId: v.id('products'),
+		previousAmount: v.number(),
+		amount: v.number(),
+		user: v.id('users'),
+		timestamp: v.number(),
+	})
+		.index('by_user', ['user'])
+		.index('by_timestamp', ['timestamp']),
 };
 
 export default defineSchema({

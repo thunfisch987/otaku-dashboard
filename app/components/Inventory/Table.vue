@@ -1,11 +1,8 @@
 <template>
 	<div>
-		<div class="lg:hidden">
-			<h1 class="text-2xl text-center">pls use desktop</h1>
-		</div>
 		<div
 			v-if="parsedAllProducts"
-			class="w-full space-y-4 pb-4 flex-col hidden lg:flex"
+			class="w-full space-y-4 pb-4 flex-col"
 		>
 			<LazyInventoryToolbar :hydrate-when="parsedAllProducts.success" />
 			<UTable

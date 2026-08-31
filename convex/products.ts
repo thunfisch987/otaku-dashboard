@@ -1,3 +1,4 @@
+import { Id } from './_generated/dataModel';
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 
@@ -111,6 +112,27 @@ export const decreaseAmount = mutation({
 		if (newAmount < 0) {
 			throw new Error('Amount cannot be negative!');
 		}
-		return await ctx.db.patch(args.id, { amount: newAmount });
+		const patch = await ctx.db.patch(args.id, { amount: newAmount });
+
+		const user = await ctx.db
+			.query('users')
+			.withIndex('by_authId', (q) =>
+				q.eq('authId', userId.tokenIdentifier),
+			)
+			.unique();
+
+		if (!user) {
+			throw new Error('User not found!');
+		}
+
+		await ctx.db.insert('transactions', {
+			productsId: args.id,
+			amount: newAmount,
+			user: user._id,
+			previousAmount: previousAmount.amount,
+			timestamp: Date.now(),
+		});
+
+		return patch;
 	},
 });
