@@ -8,7 +8,7 @@
 		"generate": "nuxt generate",
 		"preview": "nuxt preview",
 		"postinstall": "nuxt prepare",
-		"db:generate": "drizzle-kit generate"
+		"prepare": "vp config"
 	},
 	"dependencies": {
 		"@convex-dev/better-auth": "^0.12.5",
@@ -26,6 +26,7 @@
 		"nuxt-typed-router": "4.0.10",
 		"unenv": "^1.10.0",
 		"vue": "^3.5.41",
+		"nuxt-convex": "https://github.com/thunfisch987/onmax-nuxt-convex/releases/download/otaku-dashboard-convex-0.0.7-r2/nuxt-convex-0.0.7.tgz",
 		"vue-router": "^5.2.0",
 		"zod": "^4.4.3"
 	},
@@ -39,10 +40,9 @@
 		"@types/node": "26.4.0",
 		"eslint": "10.9.1",
 		"prettier": "3.9.6",
-		"typescript": "7.0.2"
-	},
-	"overrides": {
-		"vite": "npm:rolldown-vite@latest"
+		"typescript": "7.0.2",
+		"vite": "npm:@voidzero-dev/vite-plus-core@0.3.0",
+		"vite-plus": "0.3.0"
 	},
 	"trustedDependencies": [
 		"@parcel/watcher",
@@ -61,5 +61,8 @@
 			"version": "1.4.0",
 			"onFail": "download"
 		}
+	},
+	"overrides": {
+		"vite": "npm:@voidzero-dev/vite-plus-core@0.3.0"
 	}
 }
