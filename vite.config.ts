@@ -25,6 +25,6 @@ export default defineConfig({
 		singleAttributePerLine: true,
 		printWidth: 80,
 		sortPackageJson: false,
-		ignorePatterns: [],
+		ignorePatterns: ['convex/generated/**'],
 	},
 });
