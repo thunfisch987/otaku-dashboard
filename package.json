@@ -37,7 +37,7 @@
 		"@iconify-json/simple-icons": "1.2.94",
 		"@nuxt/devtools": "3.4.2",
 		"@nuxt/kit": "4.5.2",
-		"@types/node": "26.4.0",
+		"@types/node": "26.4.1",
 		"eslint": "10.9.1",
 		"prettier": "3.9.6",
 		"typescript": "7.0.2",
