@@ -10,7 +10,7 @@ export default defineConfig({
 		],
 		rules: { 'vite-plus/prefer-vite-plus-imports': 'error' },
 		options: { typeAware: true, typeCheck: true },
-		ignorePatterns: ['convex/generated/**'],
+		ignorePatterns: ['convex/_generated/**'],
 	},
 	fmt: {
 		tabWidth: 4,
@@ -25,6 +25,6 @@ export default defineConfig({
 		singleAttributePerLine: true,
 		printWidth: 80,
 		sortPackageJson: false,
-		ignorePatterns: ['convex/generated/**'],
+		ignorePatterns: ['convex/_generated/**', '.agent/**'],
 	},
 });
