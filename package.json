@@ -16,7 +16,7 @@
 		"@nuxt/image": "^2.1.0",
 		"@nuxt/ui": "^4.11.0",
 		"@nuxtjs/color-mode": "^4.0.1",
-		"@tanstack/vue-table": "^8.21.3",
+		"@tanstack/vue-table": "^9.0.0",
 		"@vite-pwa/nuxt": "^1.1.1",
 		"better-auth": "1.7.2",
 		"convex": "^1.45.0",
