@@ -20,15 +20,15 @@
 		"@tanstack/vue-table": "^8.21.3",
 		"@vite-pwa/nuxt": "^1.1.1",
 		"better-auth": "1.6.22",
-		"convex": "^1.35.1",
-		"maska": "^3.2.0",
+		"convex": "^1.45.0",
+		"maska": "^3.2.1",
 		"nuxt": "^4.5.2",
 		"nuxt-convex": "https://github.com/thunfisch987/onmax-nuxt-convex/releases/download/otaku-dashboard-convex-0.0.7-r2/nuxt-convex-0.0.7.tgz",
 		"nuxt-typed-router": "4.0.10",
 		"unenv": "^1.10.0",
-		"vue": "^3.5.41",
-		"vue-router": "^5.2.0",
-		"zod": "^4.4.3"
+		"vue": "^3.5.42",
+		"vue-router": "^5.3.1",
+		"zod": "^4.5.4"
 	},
 	"devDependencies": {
 		"@compodium/nuxt": "0.1.0-beta.14",
