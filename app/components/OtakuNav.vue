@@ -11,26 +11,41 @@
 		</template>
 
 		<template #default>
-			<AuthState v-slot="{ loggedIn }">
-				<UNavigationMenu
-					v-if="loggedIn"
-					:items="items"
-				/>
-			</AuthState>
+			<ClientOnly>
+				<BetterAuthState v-slot="{ loggedIn }">
+					<UNavigationMenu
+						v-if="loggedIn"
+						:items="items"
+					/>
+				</BetterAuthState>
+				<template #fallback>
+					<div class="h-8" />
+				</template>
+			</ClientOnly>
 		</template>
 
 		<template #right>
-			<AuthState>
-				<template #default="{ loggedIn, user }">
-					<template v-if="loggedIn">
-						<LazyTokenExpireTimer />
-						<LazyUserMenu :user="user" />
+			<ClientOnly>
+				<BetterAuthState>
+					<template #default="{ loggedIn, user }">
+						<template v-if="loggedIn">
+							<LazyUserMenu :user="user" />
+						</template>
+						<template v-else>
+							<LazyGoogleSignIn class="ml-auto" />
+						</template>
 					</template>
-					<template v-else>
-						<LazyGoogleSignIn class="ml-auto" />
+					<template #placeholder>
+						<UButton
+							class="ml-auto"
+							loading
+							loading-icon="i-lucide-loader-circle"
+						>
+							Please wait
+						</UButton>
 					</template>
-				</template>
-				<template #placeholder>
+				</BetterAuthState>
+				<template #fallback>
 					<UButton
 						class="ml-auto"
 						loading
@@ -39,7 +54,7 @@
 						Please wait
 					</UButton>
 				</template>
-			</AuthState>
+			</ClientOnly>
 			<UColorModeButton>
 				<template #fallback>
 					<UButton
@@ -52,15 +67,20 @@
 		</template>
 
 		<template #body>
-			<AuthState v-slot="{ loggedIn }">
-				<UNavigationMenu
-					v-if="loggedIn"
-					:items="items"
-					orientation="vertical"
-					class="-mx-2.5"
-				/>
-				<p v-else>Please log in</p>
-			</AuthState>
+			<ClientOnly>
+				<BetterAuthState v-slot="{ loggedIn }">
+					<UNavigationMenu
+						v-if="loggedIn"
+						:items="items"
+						orientation="vertical"
+						class="-mx-2.5"
+					/>
+					<p v-else>Please log in</p>
+				</BetterAuthState>
+				<template #fallback>
+					<p>Please log in</p>
+				</template>
+			</ClientOnly>
 		</template>
 	</UHeader>
 </template>

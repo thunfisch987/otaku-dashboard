@@ -1,6 +1,5 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { availableMemory } from 'process';
 
 const applicationTables = {
 	products: defineTable({

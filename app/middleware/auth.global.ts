@@ -1,15 +1,9 @@
-export default defineNuxtRouteMiddleware((to) => {
-	const { loggedIn, user, clear: clearSession } = useUserSession();
-	// if (import.meta.dev && to.path === '/dash/forms') {
-	// 	return;
-	// }
-	if (to.path !== '/') {
-		if (user.value && user.value.tokens.expires_at < Date.now()) {
-			clearSession();
-			return navigateTo('/');
-		}
-		if (!loggedIn.value) {
-			return navigateTo('/');
-		}
-	}
+export default defineNuxtRouteMiddleware(async (to) => {
+	if (import.meta.server || to.path === '/') return;
+
+	const { user, ready, waitForSession } = useUserSession();
+
+	if (!ready.value) await waitForSession();
+
+	if (!user.value) return navigateTo('/');
 });

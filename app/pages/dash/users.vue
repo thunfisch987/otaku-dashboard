@@ -10,8 +10,6 @@
 <script setup lang="ts">
 import { api } from '#convex/api';
 
-const { user } = useUserSession();
-
 const {
 	data: users,
 	isPending: pending,

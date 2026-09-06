@@ -1,13 +1,13 @@
 <template>
 	<UDropdownMenu :items="items">
 		<UButton
-			:title="`Logged in as: ${user!.name}`"
+			:title="`Logged in as: ${user?.name}`"
 			variant="ghost"
 		>
 			<template #leading>
 				<UAvatar
-					:src="user!.avatar"
-					:text="`${user!.given_name[0]}${user!.family_name[0]}`"
+					:src="user?.image ?? undefined"
+					:text="user?.name?.slice(0, 2).toUpperCase()"
 					size="xl"
 					crossorigin="anonymous"
 					class="shrink-0"
@@ -18,18 +18,15 @@
 </template>
 
 <script setup lang="ts">
-import type { User } from '#auth-utils';
+import type { AuthUser } from '#nuxt-better-auth';
 import type { DropdownMenuItem } from '@nuxt/ui';
 
-const props = defineProps<{
-	user: User | null;
-}>();
+const { user } = defineProps<{ user: AuthUser | null }>();
 
-const { clear } = useUserSession();
+const { signOut } = useUserSession();
 
 async function clearSession() {
-	await clear();
-	navigateTo('/');
+	await signOut();
 }
 
 const items: DropdownMenuItem[] = [

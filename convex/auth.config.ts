@@ -1,8 +1,4 @@
-export default {
-	providers: [
-		{
-			domain: 'https://accounts.google.com',
-			applicationID: process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID,
-		},
-	],
-};
+import type { AuthConfig } from 'convex/server';
+import { getAuthConfigProvider } from '@convex-dev/better-auth/auth-config';
+
+export default { providers: [getAuthConfigProvider()] } satisfies AuthConfig;

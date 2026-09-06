@@ -4,7 +4,12 @@ import { v } from 'convex/values';
 export const list = query({
 	args: {},
 	handler: async (ctx) => {
-		return await ctx.db.query('transactions').order('desc').collect();
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new Error('Not authenticated');
+		}
+
+		return await ctx.db.query('transactions').order('desc').take(100);
 	},
 });
 
@@ -12,14 +17,28 @@ export const create = mutation({
 	args: {
 		productId: v.id('products'),
 		amount: v.number(),
-		userId: v.id('users'),
 		previousAmount: v.number(),
 	},
 	handler: async (ctx, args) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new Error('Not authenticated');
+		}
+
+		const user = await ctx.db
+			.query('users')
+			.withIndex('by_authId', (q) =>
+				q.eq('authId', identity.tokenIdentifier),
+			)
+			.unique();
+		if (!user) {
+			throw new Error('User profile not found');
+		}
+
 		await ctx.db.insert('transactions', {
 			productsId: args.productId,
 			amount: args.amount,
-			user: args.userId,
+			user: user._id,
 			previousAmount: args.previousAmount,
 			timestamp: Date.now(),
 		});

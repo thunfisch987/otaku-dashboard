@@ -4,13 +4,23 @@ import { v } from 'convex/values';
 export const list = query({
 	args: {},
 	handler: async (ctx) => {
-		return await ctx.db.query('products').order('desc').collect();
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new Error('Not authenticated');
+		}
+
+		return await ctx.db.query('products').order('desc').take(100);
 	},
 });
 
 export const getById = query({
 	args: { id: v.id('products') },
 	handler: async (ctx, args) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new Error('Not authenticated');
+		}
+
 		return await ctx.db.get(args.id);
 	},
 });

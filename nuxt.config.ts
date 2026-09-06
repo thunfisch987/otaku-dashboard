@@ -3,11 +3,11 @@ export default defineNuxtConfig({
 	modules: [
 		'@nuxt/eslint',
 		'@nuxt/image',
-		'nuxt-auth-utils',
 		'nuxt-typed-router',
 		'@nuxt/ui',
 		'nuxt-convex',
 		'@vite-pwa/nuxt',
+		'@onmax/nuxt-better-auth',
 	],
 	css: ['~/assets/css/main.css'],
 	convex: {
@@ -35,7 +35,7 @@ export default defineNuxtConfig({
 		viteEnvironmentApi: true,
 		extractAsyncDataHandlers: true,
 		typescriptPlugin: true,
- buildCache: true,
+		buildCache: true,
 	},
 	compatibilityDate: '2026-08-30',
 	nitro: {
@@ -101,6 +101,18 @@ export default defineNuxtConfig({
 	routeRules: {
 		'/': {
 			prerender: true,
+		},
+	},
+	runtimeConfig: {
+		public: {
+			siteUrl: import.meta.env.NUXT_PUBLIC_SITE_URL,
+		},
+	},
+	auth: {
+		clientOnly: true,
+		redirects: {
+			login: '/',
+			logout: '/',
 		},
 	},
 });
