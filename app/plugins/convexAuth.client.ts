@@ -43,7 +43,11 @@ export default defineNuxtPlugin({
 
 				const cleanUrl = new URL(window.location.href);
 				cleanUrl.searchParams.delete('ott');
-				window.history.replaceState({}, '', cleanUrl);
+				window.history.replaceState(
+					{},
+					'',
+					`${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`,
+				);
 			})();
 
 			await oneTimeTokenPromise;
