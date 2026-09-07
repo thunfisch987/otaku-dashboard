@@ -1,18 +1,15 @@
 <template>
 	<div>
-		<div
-			v-if="parsedAllProducts"
-			class="w-full space-y-4 pb-4 flex-col"
-		>
-			<LazyInventoryToolbar :hydrate-when="parsedAllProducts.success" />
+		<div class="w-full space-y-4 pb-4 flex-col">
+			<LazyInventoryToolbar />
 			<UTable
 				ref="table"
 				v-model:pagination="pagination"
 				v-model:column-visibility="columnVisibility"
 				v-model:global-filter="globalFilter"
-				:data="parsedAllProducts.data"
+				:data="tableProducts"
 				:columns="columns"
-				:loading="pendingos"
+				:loading="pendingos || convexAuthLoading"
 				:pagination-options="{
 					getPaginationRowModel: getPaginationRowModel(),
 				}"
@@ -22,21 +19,32 @@
 				}"
 				class="flex-1"
 			/>
-			<LazyInventorySelectedCount
-				:hydrate-when="parsedAllProducts.success"
-			/>
+			<div
+				v-if="convexAuthLoading"
+				class="px-4 py-3.5 border-t border-accented text-sm text-muted"
+			>
+				Waiting for authentication…
+			</div>
+			<div
+				v-else-if="!convexAuthenticated"
+				class="px-4 py-3.5 border-t border-accented text-sm text-muted"
+			>
+				Not authenticated with Convex. Please sign in again.
+			</div>
+			<div
+				v-else-if="!pendingos && !parsedAllProducts.success"
+				class="px-4 py-3.5 border-t border-error text-sm text-error"
+			>
+				Could not read the product data.
+			</div>
+			<LazyInventorySelectedCount />
 			<LazyInventoryPagination
 				v-if="
 					table?.tableApi!.getFilteredRowModel()!.rows!.length! >= 5
 				"
 			/>
-			<LazyInventoryEditProductModal
-				:hydrate-when="parsedAllProducts.success"
-			/>
-			<div
-				v-if="parsedAllProducts.success"
-				class="flex space-x-4"
-			>
+			<LazyInventoryEditProductModal />
+			<div class="flex space-x-4">
 				<UDropdownMenu
 					v-model:open="exportAllOpen"
 					:items="itemsAll"
@@ -201,6 +209,12 @@ const itemsSelected: DropdownMenuItem[] = [
 	},
 ];
 
+const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
+	useConvexAuth();
+const productsQueryArgs = computed(() =>
+	convexAuthLoading.value || !convexAuthenticated.value ? 'skip' : {},
+);
+
 function getMyRowModel(
 	option: 'all' | 'filtered' | 'selected',
 	table: Table<ProductSchema>,
@@ -254,11 +268,14 @@ const {
 	data: productos,
 	isPending: pendingos,
 	suspense: sus,
-} = useConvexQuery(api.products.list, {});
+} = useConvexQuery(api.products.list, productsQueryArgs, { server: false });
 
 sus();
 
 const parsedAllProducts = computed(() =>
 	productArraySchema.safeParse(productos.value),
+);
+const tableProducts = computed(() =>
+	parsedAllProducts.value.success ? parsedAllProducts.value.data : [],
 );
 </script>

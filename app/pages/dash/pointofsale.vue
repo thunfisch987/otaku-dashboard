@@ -41,12 +41,17 @@
 import { api } from '#convex/api';
 import { productArraySchema } from '~/components/Inventory/types';
 import type { Id } from '~~/convex/_generated/dataModel';
+const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
+	useConvexAuth();
+const productsQueryArgs = computed(() =>
+	convexAuthLoading.value || !convexAuthenticated.value ? 'skip' : {},
+);
 const {
 	data: productos,
 	isPending: pendingos,
 	error: erroros,
 	suspense: suspensos,
-} = useConvexQuery(api.products.list, {});
+} = useConvexQuery(api.products.list, productsQueryArgs, { server: false });
 
 await suspensos();
 
