@@ -32,7 +32,10 @@
 							<LazyUserMenu :user="user" />
 						</template>
 						<template v-else>
-							<LazyGoogleSignIn class="ml-auto" />
+							<div class="ml-auto flex items-center gap-2">
+								<LazyGoogleSignIn />
+								<LazyPasskeySignIn />
+							</div>
 						</template>
 					</template>
 					<template #placeholder>
