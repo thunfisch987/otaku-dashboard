@@ -23,7 +23,6 @@ export default defineNuxtPlugin({
 							}>;
 						};
 					};
-					updateSession?: () => void;
 				};
 
 				const result =
@@ -42,7 +41,6 @@ export default defineNuxtPlugin({
 					});
 				}
 
-				authClient.updateSession?.();
 				const cleanUrl = new URL(window.location.href);
 				cleanUrl.searchParams.delete('ott');
 				window.history.replaceState({}, '', cleanUrl);

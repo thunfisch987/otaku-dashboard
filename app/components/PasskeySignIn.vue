@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 const toast = useToast();
-const { client, fetchSession } = useUserSession();
+const { client } = useUserSession();
 const isPending = ref(false);
 
 async function signInWithPasskey() {
@@ -31,8 +31,7 @@ async function signInWithPasskey() {
 			return;
 		}
 
-		await fetchSession({ force: true });
-		await navigateTo('/dash/dashboard', { replace: true });
+		window.location.replace('/dash/dashboard');
 	} catch (error) {
 		toast.add({
 			title: 'Passkey sign-in failed',
