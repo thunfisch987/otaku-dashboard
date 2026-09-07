@@ -1,7 +1,7 @@
 /* eslint-disable node/prefer-global/process */
 // Convex-runtime compatible env helpers (no node:process import)
-const DEFAULT_DEV_SITE_URL = 'http://localhost:3000';
-const DEFAULT_SITE_URL = 'https://demo-nuxt-convex.onmax.me';
+const DEFAULT_DEV_SITE_URL = 'http://localhost:3001';
+const DEFAULT_SITE_URL = 'https://www.lilbitgay.de';
 const DISABLED_VALUES = new Set(['0', 'false', 'no', 'off']);
 
 export function getPlaygroundSiteUrl(): string {

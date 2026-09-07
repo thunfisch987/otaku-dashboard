@@ -57,17 +57,34 @@ export default defineNuxtPlugin({
 			fetchToken: async () => {
 				await consumeOneTimeToken();
 				const cookie = client?.getCookie?.();
-				const response = await $fetch<{ token?: string }>(
-					'/api/auth/convex/token',
-					{
-						credentials: 'include',
-						headers: cookie
-							? { 'Better-Auth-Cookie': cookie }
-							: undefined,
-					},
-				);
 
-				return response.token ?? null;
+				// Convex treats null as the normal unauthenticated state. Avoid
+				// turning an expected 401 into a rejected token fetch, which leaves
+				// the Convex auth manager stuck before the user can sign in.
+				if (!cookie) return null;
+
+				try {
+					const response = await $fetch<{ token?: string }>(
+						'/api/auth/convex/token',
+						{
+							credentials: 'include',
+							headers: { 'Better-Auth-Cookie': cookie },
+						},
+					);
+
+					return response.token ?? null;
+				} catch (error: unknown) {
+					if (
+						error &&
+						typeof error === 'object' &&
+						'statusCode' in error &&
+						error.statusCode === 401
+					) {
+						return null;
+					}
+
+					throw error;
+				}
 			},
 		});
 	},
