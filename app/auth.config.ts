@@ -1,4 +1,5 @@
 import { convexClient } from '@convex-dev/better-auth/client/plugins';
+import { passkeyClient } from '@better-auth/passkey/client';
 import { defineClientAuth } from '@onmax/nuxt-better-auth/config';
 
 export default defineClientAuth(({ siteUrl }) => ({
@@ -6,5 +7,5 @@ export default defineClientAuth(({ siteUrl }) => ({
 		'/api/auth',
 		import.meta.client ? window.location.origin : siteUrl,
 	).toString(),
-	plugins: [convexClient()],
+	plugins: [convexClient(), passkeyClient()],
 }));
