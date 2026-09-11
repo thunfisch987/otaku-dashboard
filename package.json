@@ -11,7 +11,7 @@
 		"prepare": "vp config"
 	},
 	"dependencies": {
-		"@better-auth/passkey": "1.6.22",
+		"@better-auth/passkey": "1.7.3",
 		"@convex-dev/better-auth": "0.12.5",
 		"@nuxt/eslint": "^1.17.0",
 		"@nuxt/image": "^2.1.0",
@@ -20,7 +20,7 @@
 		"@onmax/nuxt-better-auth": "0.1.2",
 		"@tanstack/vue-table": "^8.21.3",
 		"@vite-pwa/nuxt": "^1.1.1",
-		"better-auth": "1.6.22",
+		"better-auth": "1.7.3",
 		"convex": "^1.45.0",
 		"maska": "^3.2.1",
 		"nuxt": "^4.5.2",
