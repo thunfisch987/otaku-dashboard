@@ -39,7 +39,7 @@
 		"@nuxt/devtools": "3.4.2",
 		"@nuxt/kit": "4.5.2",
 		"@types/node": "26.5.0",
-		"eslint": "10.10.0",
+		"eslint": "10.11.0",
 		"prettier": "3.9.6",
 		"typescript": "7.0.2",
 		"vite": "npm:@voidzero-dev/vite-plus-core@0.3.1",
