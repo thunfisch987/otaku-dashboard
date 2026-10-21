@@ -1,3 +1,16 @@
 [install]
 
 minimumReleaseAge = 259200 # 3 days in seconds
+
+minimumReleaseAgeExcludes = [
+	"@types/bun",
+	"typescript",
+	"@nuxt/image",
+	"nuxt",
+	"nitro",
+	"@nuxt/ui",
+	"vue",
+	"zod",
+	"@nuxt/kit",
+	"prettier",
+]
