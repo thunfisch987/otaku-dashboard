@@ -21,29 +21,29 @@
 		"@tanstack/vue-table": "^8.21.3",
 		"@vite-pwa/nuxt": "^1.1.1",
 		"better-auth": "1.6.22",
-		"convex": "^1.45.0",
-		"maska": "^3.2.1",
-		"nuxt": "^4.5.2",
+		"convex": "^1.47.0",
+		"maska": "^3.2.2",
+		"nuxt": "^4.6.2",
 		"nuxt-convex": "https://github.com/thunfisch987/onmax-nuxt-convex/releases/download/otaku-dashboard-convex-0.0.7-r2/nuxt-convex-0.0.7.tgz",
 		"nuxt-typed-router": "4.0.10",
 		"unenv": "^1.10.0",
-		"vue": "^3.5.42",
-		"vue-router": "^5.3.1",
-		"zod": "^4.5.4"
+		"vue": "^3.5.44",
+		"vue-router": "^5.4.0",
+		"zod": "^4.6.7"
 	},
 	"devDependencies": {
 		"@compodium/nuxt": "0.1.0-beta.14",
 		"@iconify-json/lucide": "1.2.145",
 		"@iconify-json/ph": "1.2.2",
 		"@iconify-json/simple-icons": "1.2.100",
-		"@nuxt/devtools": "3.4.3",
+		"@nuxt/devtools": "latest",
 		"@nuxt/kit": "4.6.2",
 		"@types/node": "26.5.0",
 		"eslint": "10.10.0",
 		"prettier": "3.9.10",
 		"typescript": "7.0.2",
-		"vite": "npm:@voidzero-dev/vite-plus-core@0.3.3",
-		"vite-plus": "0.3.3"
+		"vite": "npm:@voidzero-dev/vite-plus-core@1.3.0",
+		"vite-plus": "1.3.0"
 	},
 	"trustedDependencies": [
 		"@parcel/watcher",
@@ -64,6 +64,6 @@
 		}
 	},
 	"overrides": {
-		"vite": "npm:@voidzero-dev/vite-plus-core@0.3.3"
+		"vite": "npm:@voidzero-dev/vite-plus-core@1.3.0"
 	}
 }
