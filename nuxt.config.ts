@@ -11,7 +11,7 @@ export default defineNuxtConfig({
 	],
 	css: ['~/assets/css/main.css'],
 	convex: {
-		url: import.meta.env.CONVEX_URL,
+		url: process.env.CONVEX_URL,
 	},
 	devtools: { enabled: true },
 	app: {
@@ -105,7 +105,7 @@ export default defineNuxtConfig({
 	},
 	runtimeConfig: {
 		public: {
-			siteUrl: import.meta.env.NUXT_PUBLIC_SITE_URL,
+			siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
 		},
 	},
 	auth: {

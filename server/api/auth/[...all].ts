@@ -1,12 +1,10 @@
 import {
-	appendResponseHeader,
-	getMethod,
+	createError,
+	defineEventHandler,
 	getRequestHeaders,
-	getRequestURL,
-	isMethod,
-	readRawBody,
 	setResponseStatus,
-} from 'h3';
+	useRuntimeConfig,
+} from 'nuxt/server';
 
 function toConvexSiteUrl(convexUrl: string): string {
 	const url = new URL(convexUrl);
@@ -15,14 +13,14 @@ function toConvexSiteUrl(convexUrl: string): string {
 }
 
 export default defineEventHandler(async (event) => {
-	const requestUrl = getRequestURL(event);
+	const requestUrl = event.url;
 	const convexUrl = (useRuntimeConfig().public.convex as { url?: string })
 		?.url;
 
 	if (!convexUrl) {
 		throw createError({
-			statusCode: 500,
-			statusMessage: 'Missing public Convex URL',
+			status: 500,
+			statusText: 'Missing public Convex URL',
 		});
 	}
 
@@ -39,14 +37,14 @@ export default defineEventHandler(async (event) => {
 	headers.delete('content-length');
 	headers.delete('host');
 
-	const body = isMethod(event, ['PATCH', 'POST', 'PUT', 'DELETE'])
-		? await readRawBody(event, false)
+	const body = ['PATCH', 'POST', 'PUT', 'DELETE'].includes(event.req.method)
+		? await event.req.arrayBuffer()
 		: undefined;
 
 	const response = await fetch(target, {
-		method: getMethod(event),
+		method: event.req.method,
 		headers,
-		body: body as BodyInit | null | undefined,
+		body,
 		redirect: 'manual',
 	});
 
@@ -60,7 +58,7 @@ export default defineEventHandler(async (event) => {
 		)
 			continue;
 
-		appendResponseHeader(event, key, value);
+		event.res.headers.append(key, value);
 	}
 
 	const responseBody = await response.arrayBuffer();
