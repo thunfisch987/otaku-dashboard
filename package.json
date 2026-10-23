@@ -25,7 +25,7 @@
 		"maska": "^3.2.2",
 		"nuxt": "^4.6.2",
 		"nuxt-convex": "https://github.com/thunfisch987/onmax-nuxt-convex/releases/download/otaku-dashboard-convex-0.0.7-r2/nuxt-convex-0.0.7.tgz",
-		"nuxt-typed-router": "4.0.10",
+		"nuxt-typed-router": "4.0.11",
 		"unenv": "^1.10.0",
 		"vue": "^3.5.44",
 		"vue-router": "^5.4.0",
