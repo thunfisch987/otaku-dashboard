@@ -22,8 +22,14 @@ export function getPlaygroundSiteUrl(): string {
 
 export function getAuthAllowedHosts(): string[] {
 	const siteHost = new URL(getPlaygroundSiteUrl()).host;
+	const convexSiteHost = process.env.CONVEX_SITE_URL
+		? new URL(process.env.CONVEX_SITE_URL).host
+		: undefined;
+	const deploymentHosts = convexSiteHost ? [convexSiteHost] : [];
+	const appHosts = [siteHost, ...deploymentHosts];
+
 	if (process.env.ENABLE_DEV_AUTH_ORIGINS !== 'true') {
-		return [siteHost];
+		return [...new Set(appHosts)];
 	}
 
 	const extraHosts = (process.env.AUTH_ALLOWED_HOSTS ?? '')
@@ -31,7 +37,7 @@ export function getAuthAllowedHosts(): string[] {
 		.map((host) => host.trim())
 		.filter(Boolean);
 
-	return [...new Set([siteHost, ...LOCAL_AUTH_HOSTS, ...extraHosts])];
+	return [...new Set([...appHosts, ...LOCAL_AUTH_HOSTS, ...extraHosts])];
 }
 
 export function isGoogleAuthEnabled(): boolean {
