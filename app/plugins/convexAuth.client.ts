@@ -104,9 +104,21 @@ export default defineNuxtPlugin({
 				}
 
 				if (!userId) {
-					convexClient.clearAuth();
-					convexAuth.isLoading.value = false;
-					convexAuth.isAuthenticated.value = false;
+					let isCurrentSession = true;
+					convexAuth.isLoading.value = true;
+					convexClient.setAuth(
+						async () => null,
+						(isAuthenticated) => {
+							if (!isCurrentSession) return;
+
+							convexAuth.isLoading.value = false;
+							convexAuth.isAuthenticated.value = isAuthenticated;
+						},
+					);
+
+					onCleanup(() => {
+						isCurrentSession = false;
+					});
 					return;
 				}
 
