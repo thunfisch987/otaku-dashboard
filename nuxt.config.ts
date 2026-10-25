@@ -84,6 +84,11 @@ export default defineNuxtConfig({
 		registerWebManifestInRouteRules: true,
 	},
 	vite: {
+		server: {
+			allowedHosts: process.env.NUXT_DEV_ALLOWED_HOSTS?.split(',')
+				.map((host) => host.trim())
+				.filter(Boolean),
+		},
 		optimizeDeps: {
 			include: [
 				'@internationalized/date',
@@ -94,6 +99,8 @@ export default defineNuxtConfig({
 				'convex/server',
 				'convex/values',
 				'maska/vue',
+				'vue-convex',
+				'vue-convex/storage',
 				'zod/mini',
 			],
 		},

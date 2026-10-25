@@ -12,5 +12,23 @@ minimumReleaseAgeExcludes = [
 	"vue",
 	"zod",
 	"@nuxt/kit",
-	"prettier",
+]
+
+[fmt]
+tabWidth = 4
+useTabs = true
+semi = true
+singleQuote = true
+quoteProps = "as-needed"
+trailingComma = "all"
+bracketSpacing = true
+arrowParens = "always"
+bracketSameLine = false
+singleAttributePerLine = true
+printWidth = 80
+sortPackageJson = false
+ignorePatterns = [
+	"convex/_generated/**",
+	"convex/betterAuth/_generated/**",
+	".agent/**",
 ]

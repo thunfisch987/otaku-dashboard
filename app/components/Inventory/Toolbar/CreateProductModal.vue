@@ -129,7 +129,7 @@ const DEFAULT_STATE = {
 	picture: '',
 } as const;
 
-let state = reactive<InsertProductSchema>(DEFAULT_STATE);
+const state = reactive<InsertProductSchema>(DEFAULT_STATE);
 
 const items: {
 	label: ProductSchema['supplier'];

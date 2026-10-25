@@ -12,7 +12,7 @@
 
 <script setup lang="ts">
 const toast = useToast();
-const { client } = useUserSession();
+const client = useAuthClient();
 const isPending = ref(false);
 
 async function signInWithPasskey() {

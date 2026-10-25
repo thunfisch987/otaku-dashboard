@@ -25,7 +25,8 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 const { user } = defineProps<{ user: AuthUser | null }>();
 
 const toast = useToast();
-const { client, signOut } = useUserSession();
+const { signOut } = useUserSession();
+const client = useAuthClient();
 const passkeyQuery = client?.useListPasskeys();
 const registeredPasskeys = computed<Passkey[]>(
 	() => passkeyQuery?.value.data ?? [],

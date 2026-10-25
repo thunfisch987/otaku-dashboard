@@ -9,20 +9,18 @@ import { components } from './_generated/api';
 import { query } from './_generated/server';
 import authConfig from './auth.config';
 import authSchema from './betterAuth/schema';
-import { getPlaygroundSiteUrl, isGoogleAuthEnabled } from './env';
+import {
+	getAuthAllowedHosts,
+	getPlaygroundSiteUrl,
+	isGoogleAuthEnabled,
+} from './env';
 import { v } from 'convex/values';
 
 const siteUrl = getPlaygroundSiteUrl();
 const passkeyRpID = new URL(siteUrl).hostname;
 const enableGoogleAuth = isGoogleAuthEnabled();
 const useSecureCookies = siteUrl.startsWith('https://');
-const trustedOrigins = [
-	siteUrl,
-	'http://localhost:3000',
-	'http://localhost:3001',
-	'http://127.0.0.1:3000',
-	'http://127.0.0.1:3001',
-];
+const allowedHosts = getAuthAllowedHosts();
 
 export const authComponent = createClient<DataModel, typeof authSchema>(
 	components.betterAuth,
@@ -35,8 +33,10 @@ export const authComponent = createClient<DataModel, typeof authSchema>(
 
 export function createAuthOptions(ctx: GenericCtx<DataModel>) {
 	return {
-		baseURL: siteUrl,
-		trustedOrigins,
+		baseURL: {
+			allowedHosts,
+			protocol: 'auto' as const,
+		},
 		useSecureCookies,
 		database: authComponent.adapter(ctx),
 		...(enableGoogleAuth

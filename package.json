@@ -5,10 +5,19 @@
 	"scripts": {
 		"build": "nuxt build",
 		"dev": "nuxt dev --dotenv .env.local",
+		"format": "bun fmt",
+		"format:check": "bun fmt --check",
 		"generate": "nuxt generate",
+		"lint": "oxlint . && eslint --config eslint.oxlint.config.mjs .",
+		"lint:eslint": "eslint .",
+		"lint:eslint:fix": "eslint . --fix",
+		"lint:fix": "oxlint . --fix && eslint --config eslint.oxlint.config.mjs . --fix",
+		"lint:hybrid": "oxlint . && eslint --config eslint.oxlint.config.mjs .",
+		"lint:hybrid:fix": "oxlint . --fix && eslint --config eslint.oxlint.config.mjs . --fix",
+		"lint:oxlint": "oxlint .",
 		"preview": "nuxt preview",
 		"postinstall": "nuxt prepare",
-		"prepare": "vp config"
+		"prepare": "git config core.hooksPath .githooks"
 	},
 	"dependencies": {
 		"@better-auth/passkey": "1.6.22",
@@ -40,10 +49,8 @@
 		"@nuxt/kit": "4.6.2",
 		"@types/node": "26.6.5",
 		"eslint": "10.13.0",
-		"prettier": "3.9.10",
-		"typescript": "7.0.2",
-		"vite": "npm:@voidzero-dev/vite-plus-core@1.3.0",
-		"vite-plus": "1.3.0"
+		"oxlint": "1.88.0",
+		"typescript": "6.0.3"
 	},
 	"trustedDependencies": [
 		"@parcel/watcher",
@@ -59,11 +66,8 @@
 	"devEngines": {
 		"packageManager": {
 			"name": "bun",
-			"version": "1.4.3",
+			"version": "1.4.4",
 			"onFail": "download"
 		}
-	},
-	"overrides": {
-		"vite": "npm:@voidzero-dev/vite-plus-core@1.3.0"
 	}
 }

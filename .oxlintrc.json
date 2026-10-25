@@ -1,0 +1,24 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"categories": {
+		"correctness": "warn",
+		"suspicious": "warn"
+	},
+	"rules": {
+		"eslint/no-underscore-dangle": [
+			"warn",
+			{
+				"allow": ["_id"]
+			}
+		]
+	},
+	"ignorePatterns": [
+		".nuxt/**",
+		".output/**",
+		".data/**",
+		".nitro/**",
+		"convex/_generated/**",
+		"convex/betterAuth/_generated/**",
+		"**/*.vue"
+	]
+}

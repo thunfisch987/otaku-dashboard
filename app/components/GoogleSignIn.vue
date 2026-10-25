@@ -1,8 +1,8 @@
 <template>
 	<UButton
 		:loading="isPending"
-		@click="signInWithGoogle"
 		class="gsi-material-button"
+		@click="signInWithGoogle"
 	>
 		<div class="gsi-material-button-state" />
 		<div class="gsi-material-button-content-wrapper">
@@ -51,7 +51,10 @@ const isPending = computed(() => signInWithSocial.status.value === 'pending');
 async function signInWithGoogle() {
 	await signInWithSocial.execute({
 		provider: 'google',
-		callbackURL: '/dash/dashboard',
+		callbackURL: new URL(
+			'/dash/dashboard',
+			window.location.origin,
+		).toString(),
 	});
 }
 </script>

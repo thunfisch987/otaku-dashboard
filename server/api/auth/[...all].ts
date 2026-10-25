@@ -36,6 +36,13 @@ export default defineEventHandler(async (event) => {
 
 	headers.delete('content-length');
 	headers.delete('host');
+	headers.set('x-forwarded-host', requestUrl.host);
+	headers.set('x-forwarded-proto', requestUrl.protocol.replace(/:$/, ''));
+	headers.set('x-better-auth-forwarded-host', requestUrl.host);
+	headers.set(
+		'x-better-auth-forwarded-proto',
+		requestUrl.protocol.replace(/:$/, ''),
+	);
 
 	const body = ['PATCH', 'POST', 'PUT', 'DELETE'].includes(event.req.method)
 		? await event.req.arrayBuffer()

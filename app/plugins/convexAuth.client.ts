@@ -2,7 +2,7 @@ export default defineNuxtPlugin({
 	name: 'convex-better-auth-token',
 	enforce: 'post',
 	setup() {
-		const { client } = useUserSession();
+		const client = useAuthClient();
 		const route = useRoute();
 		let oneTimeTokenPromise: Promise<void> | undefined;
 
