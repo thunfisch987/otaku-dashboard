@@ -42,7 +42,7 @@ import { api } from '#convex/api';
 import { productArraySchema } from '~/components/Inventory/types';
 import type { Id } from '~~/convex/_generated/dataModel';
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
-	useConvexAuth();
+	useAppConvexAuth();
 const productsQueryArgs = computed(() =>
 	convexAuthLoading.value || !convexAuthenticated.value ? 'skip' : {},
 );

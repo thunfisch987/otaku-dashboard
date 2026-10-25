@@ -1,8 +1,13 @@
+import { useConvexClient } from '#convex/advanced';
+
 export default defineNuxtPlugin({
 	name: 'convex-better-auth-token',
 	enforce: 'post',
-	setup() {
+	async setup() {
 		const client = useAuthClient();
+		const convexClient = useConvexClient();
+		const { user, ready } = useUserSession();
+		const convexAuth = useAppConvexAuth();
 		const route = useRoute();
 		let oneTimeTokenPromise: Promise<void> | undefined;
 
@@ -53,39 +58,73 @@ export default defineNuxtPlugin({
 			await oneTimeTokenPromise;
 		};
 
-		useConvexAuth({
-			fetchToken: async () => {
-				await consumeOneTimeToken();
-				const cookie = client?.getCookie?.();
+		const fetchToken = async () => {
+			await consumeOneTimeToken();
+			const cookie = client?.getCookie?.();
 
-				// Convex treats null as the normal unauthenticated state. Avoid
-				// turning an expected 401 into a rejected token fetch, which leaves
-				// the Convex auth manager stuck before the user can sign in.
-				if (!cookie) return null;
+			// Convex treats null as the normal unauthenticated state. Avoid
+			// turning an expected 401 into a rejected token fetch, which leaves
+			// the Convex auth manager stuck before the user can sign in.
+			if (!cookie) return null;
 
-				try {
-					const response = await $fetch<{ token?: string }>(
-						'/api/auth/convex/token',
-						{
-							credentials: 'include',
-							headers: { 'Better-Auth-Cookie': cookie },
-						},
-					);
+			try {
+				const response = await $fetch<{ token?: string }>(
+					'/api/auth/convex/token',
+					{
+						credentials: 'include',
+						headers: { 'Better-Auth-Cookie': cookie },
+					},
+				);
 
-					return response.token ?? null;
-				} catch (error: unknown) {
-					if (
-						error &&
-						typeof error === 'object' &&
-						'statusCode' in error &&
-						error.statusCode === 401
-					) {
-						return null;
-					}
-
-					throw error;
+				return response.token ?? null;
+			} catch (error: unknown) {
+				if (
+					error &&
+					typeof error === 'object' &&
+					'statusCode' in error &&
+					error.statusCode === 401
+				) {
+					return null;
 				}
+
+				throw error;
+			}
+		};
+
+		if (typeof route.query.ott === 'string') {
+			await consumeOneTimeToken();
+		}
+
+		watch(
+			[ready, () => user.value?.id],
+			([sessionReady, userId], _previous, onCleanup) => {
+				if (!sessionReady) {
+					convexAuth.isLoading.value = true;
+					return;
+				}
+
+				if (!userId) {
+					convexClient.clearAuth();
+					convexAuth.isLoading.value = false;
+					convexAuth.isAuthenticated.value = false;
+					return;
+				}
+
+				let isCurrentSession = true;
+				convexAuth.isLoading.value = true;
+				convexAuth.isAuthenticated.value = false;
+				convexClient.setAuth(fetchToken, (isAuthenticated) => {
+					if (!isCurrentSession) return;
+
+					convexAuth.isLoading.value = false;
+					convexAuth.isAuthenticated.value = isAuthenticated;
+				});
+
+				onCleanup(() => {
+					isCurrentSession = false;
+				});
 			},
-		});
+			{ immediate: true },
+		);
 	},
 });

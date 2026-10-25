@@ -11,7 +11,7 @@
 import { api } from '#convex/api';
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
-	useConvexAuth();
+	useAppConvexAuth();
 const usersQueryArgs = computed(() =>
 	convexAuthLoading.value || !convexAuthenticated.value ? 'skip' : {},
 );

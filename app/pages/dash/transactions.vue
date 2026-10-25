@@ -12,7 +12,7 @@ import { api } from '#convex/api';
 
 const { user } = useUserSession();
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
-	useConvexAuth();
+	useAppConvexAuth();
 const transactionsQueryArgs = computed(() =>
 	convexAuthLoading.value || !convexAuthenticated.value ? 'skip' : {},
 );
