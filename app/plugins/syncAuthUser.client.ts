@@ -2,7 +2,7 @@ import { api } from '#convex/api';
 
 export default defineNuxtPlugin(() => {
 	const { user, ready } = useUserSession();
-	const { isAuthenticated } = useConvexAuth();
+	const { isAuthenticated } = useAppConvexAuth();
 	const { mutate } = useConvexMutation(api.users.upsert);
 
 	let syncedUserId: string | undefined;

@@ -210,7 +210,7 @@ const itemsSelected: DropdownMenuItem[] = [
 ];
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
-	useConvexAuth();
+	useAppConvexAuth();
 const productsQueryArgs = computed(() =>
 	convexAuthLoading.value || !convexAuthenticated.value ? 'skip' : {},
 );
