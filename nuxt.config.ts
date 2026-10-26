@@ -100,6 +100,7 @@ export default defineNuxtConfig({
 				'convex/values',
 				'maska/vue',
 				'vue-convex',
+				'vue-convex/advanced',
 				'vue-convex/storage',
 				'zod/mini',
 			],
