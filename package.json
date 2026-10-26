@@ -48,12 +48,12 @@
 		"@nuxt/devtools": "3.4.4",
 		"@nuxt/kit": "4.6.2",
 		"@types/node": "26.6.5",
-		"@typescript/native": "npm:typescript@^7.0.2",
+		"@typescript/native": "npm:typescript@7.0.2",
 		"eslint": "10.13.0",
 		"oxlint": "1.89.0",
-		"oxlint-tsgolint": "^7.0.2005",
-		"typescript": "npm:@typescript/typescript6@^6.0.2",
-		"vue-tsc": "^3.3.13"
+		"oxlint-tsgolint": "7.0.2005",
+		"typescript": "npm:@typescript/typescript6@6.0.2",
+		"vue-tsc": "3.3.13"
 	},
 	"trustedDependencies": [
 		"@parcel/watcher",
