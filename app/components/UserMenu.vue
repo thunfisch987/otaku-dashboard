@@ -26,7 +26,7 @@ import { api } from '#convex/api';
 const { user } = defineProps<{ user: AuthUser | null }>();
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
-	useConvexAuth();
+	useAppConvexAuth();
 const avatarQueryArgs = computed(() =>
 	convexAuthLoading.value || !convexAuthenticated.value ? 'skip' : {},
 );
