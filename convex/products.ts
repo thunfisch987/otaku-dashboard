@@ -48,7 +48,13 @@ export const create = mutation({
 			throw new Error('Not authenticated!');
 		}
 		if (args.price < 0) {
-			throw new Error('Price must be non-negative!');
+			throw new Error('Price must be non-negative');
+		}
+		if (!Number.isFinite(args.price)) {
+			throw new Error('Price must be a finite number');
+		}
+		if (!Number.isInteger(args.amount) || args.amount < 0) {
+			throw new Error('Amount must be a non-negative integer');
 		}
 
 		const now = Date.now();
@@ -77,7 +83,16 @@ export const update = mutation({
 		const { id, ...updates } = args;
 
 		if (updates.price !== undefined && updates.price < 0) {
-			throw new Error('Price must be non-negative!');
+			throw new Error('Price must be non-negative');
+		}
+		if (updates.price !== undefined && !Number.isFinite(updates.price)) {
+			throw new Error('Price must be a finite number');
+		}
+		if (
+			updates.amount !== undefined &&
+			(!Number.isInteger(updates.amount) || updates.amount < 0)
+		) {
+			throw new Error('Amount must be a non-negative integer');
 		}
 
 		// remove undefined fields from updates

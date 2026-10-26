@@ -1,10 +1,21 @@
 import { query, mutation } from './_generated/server';
+import type { Doc } from './_generated/dataModel';
 import {
 	paginationOptsValidator,
 	paginationResultValidator,
 } from 'convex/server';
 import { v } from 'convex/values';
 import schema from './schema';
+
+type OrderUpdates = Partial<
+	Pick<Doc<'orders'>, 'orderName' | 'productsId' | 'amount'>
+>;
+
+function validateAmount(amount: number) {
+	if (!Number.isInteger(amount) || amount <= 0) {
+		throw new Error('Order amount must be a positive integer');
+	}
+}
 
 export const list = query({
 	args: { paginationOpts: paginationOptsValidator },
@@ -52,6 +63,7 @@ export const create = mutation({
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
+		validateAmount(args.amount);
 
 		// Verify product exists
 		const product = await ctx.db.get(args.productsId);
@@ -79,32 +91,23 @@ export const update = mutation({
 			throw new Error('Not authenticated');
 		}
 
-		const { id, ...updates } = args;
+		const updates: OrderUpdates = {};
+		if (args.orderName !== undefined) updates.orderName = args.orderName;
+		if (args.productsId !== undefined) updates.productsId = args.productsId;
+		if (args.amount !== undefined) {
+			validateAmount(args.amount);
+			updates.amount = args.amount;
+		}
 
 		// If updating product, verify it exists
-		if (updates.productsId) {
+		if (updates.productsId !== undefined) {
 			const product = await ctx.db.get(updates.productsId);
 			if (!product) {
 				throw new Error('Product not found');
 			}
 		}
 
-		// remove undefined fields from updates
-		const filteredUpdates: Record<string, unknown> = {};
-		let hasUpdates = false;
-
-		for (const [key, value] of Object.entries(updates)) {
-			if (value !== undefined) {
-				filteredUpdates[key] = value;
-				hasUpdates = true;
-			}
-		}
-
-		if (hasUpdates) {
-			filteredUpdates.updatedAt = Date.now();
-		}
-
-		return await ctx.db.patch(id, filteredUpdates);
+		return await ctx.db.patch(args.id, updates);
 	},
 });
 
