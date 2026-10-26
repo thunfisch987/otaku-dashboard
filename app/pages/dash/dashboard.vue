@@ -30,6 +30,38 @@
 			>
 				Quick access
 			</h2>
+			<div
+				class="rounded-xl border border-default bg-elevated p-4"
+				aria-label="Keyboard navigation shortcuts"
+			>
+				<div class="flex flex-wrap items-center gap-x-2 gap-y-3">
+					<p class="mr-2 text-sm text-muted">
+						Use your keyboard to jump to a page: press
+						<kbd
+							class="rounded border border-default bg-default px-1.5 py-0.5 font-mono text-xs font-semibold text-highlighted"
+							>G</kbd
+						>, then:
+					</p>
+					<span
+						v-for="shortcut in [
+							{ key: 'D', page: 'Dashboard' },
+							{ key: 'F', page: 'Forms' },
+							{ key: 'I', page: 'Inventory' },
+							{ key: 'P', page: 'Point of sale' },
+							{ key: 'T', page: 'Transactions' },
+							{ key: 'U', page: 'Users' },
+						]"
+						:key="shortcut.key"
+						class="inline-flex items-center gap-1.5 text-sm"
+					>
+						<kbd
+							class="rounded border border-default bg-default px-1.5 py-0.5 font-mono text-xs font-semibold text-highlighted"
+							>{{ shortcut.key }}</kbd
+						>
+						<span class="text-muted">{{ shortcut.page }}</span>
+					</span>
+				</div>
+			</div>
 			<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
 				<UCard class="h-full">
 					<div class="flex h-full flex-col gap-4">
