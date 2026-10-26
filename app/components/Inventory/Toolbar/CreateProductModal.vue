@@ -11,6 +11,7 @@
 			label="Create Product"
 			color="neutral"
 			variant="subtle"
+			class="min-h-11"
 		/>
 
 		<template #body>
@@ -22,13 +23,13 @@
 				@submit="createProduct"
 			>
 				<UFormField
-					label="ProduktName"
+					label="Product name"
 					name="productname"
 					required
 				>
 					<UInput
 						v-model="state.productname"
-						placeholder="Name des Produkts"
+						placeholder="Product name"
 						autocomplete="off"
 						autofocus
 					/>
@@ -67,10 +68,23 @@
 					/>
 				</UFormField>
 				<UButton
-					label="Confirm"
+					label="Create product"
 					color="primary"
 					type="submit"
-					:disabled="form?.getErrors().length !== 0"
+					:loading="isPending"
+					:disabled="isPending || form?.getErrors().length !== 0"
+					class="min-h-11"
+				/>
+				<UAlert
+					v-if="error"
+					title="Could not create product"
+					:description="
+						error instanceof Error
+							? error.message
+							: 'Please try again.'
+					"
+					color="error"
+					icon="i-lucide-circle-alert"
 				/>
 			</UForm>
 		</template>
@@ -140,20 +154,26 @@ const items: {
 ];
 const toast = useToast();
 const { mutate, isPending, error } = useConvexMutation(api.products.create);
-function createProduct(formSubmitEvent: FormSubmitEvent<InsertProductSchema>) {
-	table.value?.tableApi.toggleAllRowsSelected(false);
-	mutate({
-		productname: formSubmitEvent.data.productname,
-		price: Number.parseFloat(unmaskedCreatePriceValue.value),
-		supplier: formSubmitEvent.data.supplier,
-		amount: formSubmitEvent.data.amount,
-		picture: formSubmitEvent.data.picture,
-	});
-	createProductOpen.value = false;
-	toast.add({
-		title: `Produkt namens ${formSubmitEvent.data.productname} erstellt!`,
-		color: 'success',
-		id: 'modal-success',
-	});
+async function createProduct(
+	formSubmitEvent: FormSubmitEvent<InsertProductSchema>,
+) {
+	try {
+		await mutate({
+			productname: formSubmitEvent.data.productname,
+			price: Number.parseFloat(unmaskedCreatePriceValue.value),
+			supplier: formSubmitEvent.data.supplier,
+			amount: formSubmitEvent.data.amount,
+			picture: formSubmitEvent.data.picture,
+		});
+		table.value?.tableApi.toggleAllRowsSelected(false);
+		createProductOpen.value = false;
+		toast.add({
+			title: `${formSubmitEvent.data.productname} created`,
+			color: 'success',
+			id: 'modal-success',
+		});
+	} catch {
+		// Keep the form open so the operator can correct or retry.
+	}
 }
 </script>

@@ -25,6 +25,7 @@
 			color="neutral"
 			variant="outline"
 			trailing-icon="i-lucide-chevron-down"
+			class="min-h-11"
 		/>
 	</UDropdownMenu>
 </template>

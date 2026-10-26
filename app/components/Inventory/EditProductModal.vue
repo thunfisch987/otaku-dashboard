@@ -1,8 +1,8 @@
 <template>
 	<UModal
 		v-model:open="editProductOpen"
-		title="Produkt bearbeiten"
-		description="Bearbeite ein bestehendes Produkt"
+		title="Edit product"
+		description="Update product details and stock quantity."
 		:ui="{ footer: 'justify-end' }"
 		@update:open="(isOpen: boolean) => isOpen && resetFormState()"
 	>
@@ -15,13 +15,13 @@
 				@submit="editProduct"
 			>
 				<UFormField
-					label="ProduktName"
+					label="Product name"
 					name="productname"
 					required
 				>
 					<UInput
 						v-model="editProductState.productname"
-						placeholder="Name des Produkts"
+						placeholder="Product name"
 						autocomplete="off"
 						autofocus
 					/>
@@ -50,20 +50,30 @@
 					/>
 				</UFormField>
 				<UFormField
-					label="Amount"
+					label="Stock quantity"
 					name="amount"
 					required
 				>
 					<UInputNumber
 						v-model="editProductState.amount"
-						placeholder="Amount"
+						placeholder="Stock quantity"
+						:min="0"
 					/>
 				</UFormField>
+				<UAlert
+					v-if="mutationError"
+					title="Could not save product changes"
+					:description="mutationError"
+					color="error"
+					icon="i-lucide-circle-alert"
+				/>
 				<UButton
-					label="Confirm"
+					label="Save changes"
 					color="primary"
 					type="submit"
-					:disabled="form?.getErrors().length !== 0"
+					:loading="isPending"
+					:disabled="isPending || form?.getErrors().length !== 0"
+					class="min-h-11"
 				/>
 			</UForm>
 		</template>
@@ -123,18 +133,29 @@ const editProductState = useState<PatchProductSchema>(
 	() => DEFAULT_STATE,
 );
 
-const { mutate } = useConvexMutation(api.products.update);
+const toast = useToast();
+const { mutate, isPending, error } = useConvexMutation(api.products.update);
+const mutationError = computed(() =>
+	error.value instanceof Error ? error.value.message : undefined,
+);
 
-function editProduct(formSubmitEvent: FormSubmitEvent<PatchProductSchema>) {
-	table.value?.tableApi.toggleAllRowsSelected(false);
-	mutate({
-		id: formSubmitEvent.data._id as Id<'products'>,
-		productname: formSubmitEvent.data.productname,
-		supplier: formSubmitEvent.data.supplier,
-		price: Number.parseFloat(unmaskedEditPriceValue.value),
-		amount: formSubmitEvent.data.amount,
-		picture: formSubmitEvent.data.picture,
-	});
-	editProductOpen.value = false;
+async function editProduct(
+	formSubmitEvent: FormSubmitEvent<PatchProductSchema>,
+) {
+	try {
+		await mutate({
+			id: formSubmitEvent.data._id as Id<'products'>,
+			productname: formSubmitEvent.data.productname,
+			supplier: formSubmitEvent.data.supplier,
+			price: Number.parseFloat(unmaskedEditPriceValue.value),
+			amount: formSubmitEvent.data.amount,
+			picture: formSubmitEvent.data.picture,
+		});
+		table.value?.tableApi.toggleAllRowsSelected(false);
+		editProductOpen.value = false;
+		toast.add({ title: 'Product updated', color: 'success' });
+	} catch {
+		// Keep the form open so the operator can review the entered stock value.
+	}
 }
 </script>

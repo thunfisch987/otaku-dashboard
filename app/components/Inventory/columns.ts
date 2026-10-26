@@ -1,7 +1,7 @@
 import type { TableColumn, DropdownMenuItem } from '@nuxt/ui';
 import type { Column, Row } from '@tanstack/vue-table';
 import type { ProductSchema } from './types';
-import { UButton, UDropdownMenu, UCheckbox } from '#components';
+import { UButton, UDropdownMenu, UCheckbox, UBadge } from '#components';
 import { prepareEditForm } from './forms';
 
 function getSortHeader(column: Column<ProductSchema>, label: string) {
@@ -16,7 +16,7 @@ function getSortHeader(column: Column<ProductSchema>, label: string) {
 				? 'i-lucide-arrow-up-narrow-wide'
 				: 'i-lucide-arrow-down-wide-narrow'
 			: 'i-lucide-arrow-up-down',
-		class: '-mx-2.5',
+		class: '-mx-2.5 min-h-11 px-3',
 		onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
 	});
 }
@@ -24,7 +24,7 @@ function getSortHeader(column: Column<ProductSchema>, label: string) {
 function getRowItems(row: Row<ProductSchema>): DropdownMenuItem[] {
 	return [
 		{
-			label: 'Produkt löschen',
+			label: 'Delete product',
 			icon: 'i-lucide-trash',
 			onSelect() {
 				deleteProduct(row).catch(() => {});
@@ -34,7 +34,7 @@ function getRowItems(row: Row<ProductSchema>): DropdownMenuItem[] {
 			type: 'separator',
 		},
 		{
-			label: 'Produkt bearbeiten',
+			label: 'Edit product',
 			icon: 'i-lucide-pen',
 			onSelect() {
 				prepareEditForm(row);
@@ -70,13 +70,13 @@ export const columns: TableColumn<ProductSchema>[] = [
 	},
 	{
 		accessorKey: 'productname',
-		header: ({ column }) => getSortHeader(column, 'Produktname'),
+		header: ({ column }) => getSortHeader(column, 'Product name'),
 		cell: ({ row }) => row.getValue('productname'),
 		enableHiding: false,
 	},
 	{
 		accessorKey: 'price',
-		header: ({ column }) => getSortHeader(column, 'Preis'),
+		header: ({ column }) => getSortHeader(column, 'Price'),
 		cell: ({ row }) =>
 			new Intl.NumberFormat('de-DE', {
 				style: 'currency',
@@ -92,8 +92,24 @@ export const columns: TableColumn<ProductSchema>[] = [
 	},
 	{
 		accessorKey: 'amount',
-		header: ({ column }) => getSortHeader(column, 'Menge'),
-		cell: ({ row }) => Number.parseInt(row.getValue('amount')),
+		header: ({ column }) => getSortHeader(column, 'Stock'),
+		cell: ({ row }) => {
+			const amount = Number(row.getValue('amount'));
+			return h(
+				UBadge,
+				{
+					color: amount === 0 ? 'error' : 'success',
+					variant: 'subtle',
+				},
+				() => (amount === 0 ? 'Out of stock' : `${amount} in stock`),
+			);
+		},
+		filterFn: (row, columnId, value: string) => {
+			const amount = Number(row.getValue(columnId));
+			return (
+				value === 'all' || (value === 'out' ? amount === 0 : amount > 0)
+			);
+		},
 		enableHiding: false,
 	},
 	{
@@ -115,7 +131,8 @@ export const columns: TableColumn<ProductSchema>[] = [
 							icon: 'i-lucide-ellipsis-vertical',
 							color: 'neutral',
 							variant: 'ghost',
-							class: 'ml-auto',
+							class: 'ml-auto min-h-11 min-w-11',
+							'aria-label': `Actions for ${row.original.productname}`,
 						}),
 				),
 			);

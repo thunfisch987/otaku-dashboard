@@ -19,6 +19,8 @@ full Nuxt ESLint pass is required.
   restrictions for these operators.
 - The core purpose is tracking stock and money during events. Prioritize
   accurate, easy-to-review inventory changes and sales records.
+- Operators need to download sales records for a selected day, suitable for
+  end-of-event money and stock reconciliation.
 - The point-of-sale flow should let an operator select one or more products,
   review the selection, then explicitly complete checkout. Avoid deducting
   stock immediately when a product is tapped; commit stock and money records

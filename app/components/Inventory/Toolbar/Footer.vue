@@ -1,6 +1,6 @@
 <template>
 	<div v-if="table && table?.tableApi !== undefined">
-		<div class="flex space-x-4">
+		<div class="flex flex-wrap gap-2">
 			<UDropdownMenu
 				v-model:open="exportAllOpen"
 				:items="itemsAll"
@@ -13,7 +13,7 @@
 							? 'i-lucide-chevron-up'
 							: 'i-lucide-chevron-down'
 					"
-					class=""
+					class="min-h-11"
 				>
 					Export all
 				</UButton>
@@ -26,8 +26,11 @@
 					variant="outline"
 					leading
 					:disabled="!exportFilteredEnabled"
-					:title="!exportFilteredEnabled ? 'Bitte Filtern!' : ''"
+					:title="
+						!exportFilteredEnabled ? 'Apply a filter first' : ''
+					"
 					:icon="exportFilteredEnabledIcon"
+					class="min-h-11"
 				>
 					Export filtered
 				</UButton>
@@ -48,7 +51,7 @@
 						table?.tableApi.getFilteredSelectedRowModel().rows
 							.length === 0 ||
 						table?.tableApi.getCoreRowModel().rows.length === 0
-							? 'Mindestens ein Produkt muss ausgewählt sein!'
+							? 'Select at least one product first'
 							: ''
 					"
 					:icon="
@@ -59,7 +62,7 @@
 								? 'i-lucide-chevron-up'
 								: 'i-lucide-chevron-down'
 					"
-					class=""
+					class="min-h-11"
 				>
 					Export selected
 				</UButton>
@@ -86,6 +89,8 @@ const exportAllOpen = useState('exportAllOpen', () => false);
 const exportSelectedOpen = useState('exportSelectedOpen', () => false);
 const exportFilteredOpen = useState('exportFilteredOpen', () => false);
 const globalFilter = useState<string>('globalFilter');
+const stockFilter = useState('inventoryStockFilter', () => 'all');
+const facetedSelectValue = useState('facetedSelectValue', () => 'Alle');
 
 const exportFilteredEnabledIcon = computed((): string => {
 	return !exportFilteredEnabled.value
@@ -102,6 +107,8 @@ const exportFilteredEnabled = computed((): boolean => {
 		if (
 			globalFilter.value !== '' ||
 			table.value?.tableApi.getColumn('supplier')?.getFilterValue() !==
+				undefined ||
+			table.value?.tableApi.getColumn('amount')?.getFilterValue() !==
 				undefined
 		) {
 			return true;
@@ -140,8 +147,6 @@ const itemsSelected: DropdownMenuItem[] = [
 	},
 ];
 
-const facetedSelectValue = useState('facetedSelectValue');
-
 function getMyRowModel(
 	option: 'all' | 'filtered' | 'selected',
 	table: Table<ProductSchema>,
@@ -167,7 +172,13 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 				Object.keys(rows[0] ?? {}),
 				...rows.map((it) => Object.values(it)),
 			].join('\n');
-			const filename = `export${option === 'filtered' ? `_${globalFilter.value || facetedSelectValue.value}` : ''}.csv`;
+			const filterName =
+				globalFilter.value ||
+				(stockFilter.value !== 'all' ? stockFilter.value : '') ||
+				(facetedSelectValue.value !== 'Alle'
+					? facetedSelectValue.value
+					: '');
+			const filename = `export${option === 'filtered' ? `_${filterName || 'filtered'}` : ''}.csv`;
 			const element = document.createElement('a');
 			element.setAttribute(
 				'href',
@@ -182,9 +193,8 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 			document.body.removeChild(element);
 		} else {
 			toast.add({
-				title: 'Keine Produkte zum exportieren vorhanden!',
-				description:
-					'Bitte kreiere oder importiere Produkte um diese zu exportieren.',
+				title: 'No products available to export',
+				description: 'Create or import products before exporting.',
 				color: 'error',
 				duration: 0,
 				close: { color: 'error', variant: 'outline' },
