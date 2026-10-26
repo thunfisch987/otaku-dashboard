@@ -16,11 +16,11 @@
 					for="sales-day"
 				>
 					Select day
-					<input
+					<UInput
 						id="sales-day"
 						v-model="selectedDay"
 						type="date"
-						class="min-h-12 rounded-lg border border-gray-300 bg-white px-3 text-base text-gray-900"
+						class="min-h-12"
 					/>
 				</label>
 				<UButton
@@ -33,13 +33,13 @@
 			</div>
 		</div>
 
-		<div
+		<UAlert
 			v-if="salesError"
-			role="alert"
-			class="rounded-lg border border-red-300 bg-red-50 p-4 text-red-800"
-		>
-			Sales records could not be loaded. Please try again.
-		</div>
+			title="Sales records could not be loaded"
+			description="Please try again."
+			color="error"
+			icon="i-lucide-circle-alert"
+		/>
 		<div
 			v-else-if="isLoading"
 			class="rounded-lg border p-6 text-center"

@@ -7,7 +7,7 @@
 				<p class="text-sm font-medium text-muted">Event operations</p>
 				<h1 class="text-3xl font-semibold tracking-tight">Dashboard</h1>
 				<p class="mt-1 text-muted">
-					Quick access to today's tools and current stock.
+					Quick access to your tools and current stock.
 				</p>
 			</div>
 			<UButton
@@ -147,28 +147,20 @@
 				<UProgress animation="carousel" />
 				<p class="mt-3">Checking your connection…</p>
 			</div>
-			<div
+			<UAlert
 				v-else-if="!convexAuthenticated"
-				class="rounded-xl border border-error/40 bg-error/5 p-5 text-error"
-				role="alert"
-			>
-				<p class="font-medium">
-					You are not connected to inventory data.
-				</p>
-				<p class="mt-1 text-sm">
-					Sign in again to load current product and stock counts.
-				</p>
-			</div>
-			<div
+				title="You are not connected to inventory data"
+				description="Sign in again to load current product and stock counts."
+				color="error"
+				icon="i-lucide-circle-alert"
+			/>
+			<UAlert
 				v-else-if="productsError"
-				class="rounded-xl border border-error/40 bg-error/5 p-5 text-error"
-				role="alert"
-			>
-				<p class="font-medium">Inventory could not be loaded.</p>
-				<p class="mt-1 text-sm">
-					Open inventory to try again or check your connection.
-				</p>
-			</div>
+				title="Inventory could not be loaded"
+				description="Open inventory to try again or check your connection."
+				color="error"
+				icon="i-lucide-circle-alert"
+			/>
 			<div
 				v-else-if="pendingProducts"
 				class="grid gap-3 sm:grid-cols-3"
@@ -181,16 +173,13 @@
 					class="h-28 animate-pulse rounded-xl border border-default bg-elevated"
 				/>
 			</div>
-			<div
+			<UAlert
 				v-else-if="!parsedProducts.success"
-				class="rounded-xl border border-error/40 bg-error/5 p-5 text-error"
-				role="alert"
-			>
-				<p class="font-medium">Inventory data could not be read.</p>
-				<p class="mt-1 text-sm">
-					Open inventory to review the product list.
-				</p>
-			</div>
+				title="Inventory data could not be read"
+				description="Open inventory to review the product list."
+				color="error"
+				icon="i-lucide-circle-alert"
+			/>
 			<template v-else>
 				<div class="grid gap-3 sm:grid-cols-3">
 					<UCard>
@@ -198,8 +187,7 @@
 							Products loaded
 						</p>
 						<p class="mt-2 text-3xl font-semibold tabular-nums">
-							{{ parsedProducts.data.length
-							}}<span
+							<span v-text="productCount" /><span
 								v-if="!productsDone"
 								class="text-lg text-muted"
 								>+</span
@@ -211,8 +199,7 @@
 							Units in loaded products
 						</p>
 						<p class="mt-2 text-3xl font-semibold tabular-nums">
-							{{ totalUnits.toLocaleString('en-US')
-							}}<span
+							<span v-text="formattedTotalUnits" /><span
 								v-if="!productsDone"
 								class="text-lg text-muted"
 								>+</span
@@ -224,8 +211,7 @@
 							Out of stock
 						</p>
 						<p class="mt-2 text-3xl font-semibold tabular-nums">
-							{{ outOfStockCount
-							}}<span
+							<span v-text="outOfStockCount" /><span
 								v-if="!productsDone"
 								class="text-lg text-muted"
 								>+</span
@@ -234,7 +220,7 @@
 					</UCard>
 				</div>
 				<div
-					v-if="parsedProducts.data.length === 0 && productsDone"
+					v-if="productCount === 0 && productsDone"
 					class="rounded-xl border border-dashed border-default p-6 text-center"
 				>
 					<UIcon
@@ -285,6 +271,9 @@ const {
 const parsedProducts = computed(() =>
 	productArraySchema.safeParse(products.value),
 );
+const productCount = computed(() =>
+	parsedProducts.value.success ? parsedProducts.value.data.length : 0,
+);
 const totalUnits = computed(() =>
 	parsedProducts.value.success
 		? parsedProducts.value.data.reduce(
@@ -292,6 +281,9 @@ const totalUnits = computed(() =>
 				0,
 			)
 		: 0,
+);
+const formattedTotalUnits = computed(() =>
+	totalUnits.value.toLocaleString('en-US'),
 );
 const outOfStockCount = computed(() =>
 	parsedProducts.value.success

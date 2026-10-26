@@ -7,6 +7,7 @@
 			<NuxtImg
 				src="pwa-192x192.png"
 				class="h-16 w-16"
+				alt="Logo der Anitoria Trier"
 			/>
 		</template>
 

@@ -8,7 +8,7 @@
 		"eslint/no-underscore-dangle": [
 			"warn",
 			{
-				"allow": ["_id"]
+				"allow": ["_id", "_default"]
 			}
 		]
 	},

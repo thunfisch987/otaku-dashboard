@@ -11,6 +11,7 @@
 					size="xl"
 					crossorigin="anonymous"
 					class="shrink-0"
+					:alt="`Profile picture of ${user?.name}`"
 				/>
 			</template>
 		</UButton>

@@ -8,20 +8,30 @@
 			</p>
 		</div>
 
-		<div
+		<UAlert
 			v-if="checkoutError"
-			role="alert"
-			class="rounded-lg border border-red-300 bg-red-50 p-4 text-red-800"
+			title="Checkout could not be completed"
+			:description="checkoutError"
+			color="error"
+			icon="i-lucide-circle-alert"
+		/>
+		<Transition
+			enter-active-class="transition duration-200 ease-out"
+			enter-from-class="translate-y-2 opacity-0"
+			enter-to-class="translate-y-0 opacity-100"
+			leave-active-class="transition duration-150 ease-in"
+			leave-from-class="translate-y-0 opacity-100"
+			leave-to-class="translate-y-2 opacity-0"
 		>
-			{{ checkoutError }}
-		</div>
-		<div
-			v-if="checkoutSuccess"
-			role="status"
-			class="rounded-lg border border-green-300 bg-green-50 p-4 text-green-800"
-		>
-			{{ checkoutSuccess }}
-		</div>
+			<UAlert
+				v-if="checkoutSuccess"
+				:description="checkoutSuccess"
+				color="success"
+				icon="i-lucide-circle-check"
+				role="status"
+				class="pointer-events-none fixed inset-x-4 bottom-4 z-50 mx-auto max-w-md shadow-lg sm:inset-x-auto sm:right-6"
+			/>
+		</Transition>
 
 		<div
 			class="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)]"
@@ -42,13 +52,13 @@
 				>
 					Loading products…
 				</div>
-				<div
+				<UAlert
 					v-else-if="productsError"
-					role="alert"
-					class="rounded-lg border p-4"
-				>
-					Products could not be loaded. Please refresh and try again.
-				</div>
+					title="Products could not be loaded"
+					description="Please refresh and try again."
+					color="error"
+					icon="i-lucide-circle-alert"
+				/>
 				<div
 					v-else-if="availableProducts.length === 0"
 					class="rounded-lg border p-4"
@@ -263,14 +273,14 @@ function addToCart(id: Id<'products'>) {
 
 function removeFromCart(id: Id<'products'>) {
 	const quantity = cart[id] ?? 0;
-	if (quantity <= 1) delete cart[id];
+	if (quantity <= 1) cart[id] = 0;
 	else cart[id] = quantity - 1;
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
 
 function clearCart() {
-	for (const id of Object.keys(cart)) delete cart[id];
+	for (const id of Object.keys(cart)) cart[id] = 0;
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
