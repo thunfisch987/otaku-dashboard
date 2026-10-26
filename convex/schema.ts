@@ -39,15 +39,24 @@ const applicationTables = {
 		.index('by_name', ['name'])
 		.index('by_email', ['email']),
 
-	transactions: defineTable({
-		productsId: v.id('products'),
-		previousAmount: v.number(),
-		amount: v.number(),
+	sales: defineTable({
+		checkoutId: v.string(),
 		user: v.id('users'),
+		operatorName: v.string(),
 		timestamp: v.number(),
+		total: v.number(),
 	})
-		.index('by_user', ['user'])
+		.index('by_checkoutId', ['checkoutId'])
 		.index('by_timestamp', ['timestamp']),
+
+	saleItems: defineTable({
+		saleId: v.id('sales'),
+		productsId: v.id('products'),
+		productName: v.string(),
+		unitPrice: v.number(),
+		quantity: v.number(),
+		lineTotal: v.number(),
+	}).index('by_saleId', ['saleId']),
 };
 
 export default defineSchema({
