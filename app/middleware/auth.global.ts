@@ -1,5 +1,5 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-	if (import.meta.server || to.path === '/') return;
+	if (import.meta.server || to.path === '/' || to.path === '/privacy') return;
 
 	const { user, ready, waitForSession } = useUserSession();
 

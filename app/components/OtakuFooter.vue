@@ -1,7 +1,15 @@
 <template>
 	<UFooter>
 		<template #default>
-			<p>Made by thunfisch987 :)</p>
+			<div class="flex items-center gap-4">
+				<p>Made by thunfisch987 :)</p>
+				<NuxtLink
+					to="/privacy"
+					class="text-sm text-muted hover:text-default underline"
+				>
+					Privacy policy
+				</NuxtLink>
+			</div>
 		</template>
 
 		<template #right>
