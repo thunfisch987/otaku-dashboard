@@ -88,16 +88,56 @@
 					{{ formatCurrency(totalSales) }}
 				</p>
 			</div>
-			<UTable
-				:data="saleRows"
-				class="flex-1"
-			/>
+			<div class="max-w-full overflow-x-auto rounded-lg border">
+				<UTable
+					:data="saleRows"
+					:columns="saleColumns"
+					class="min-w-[60rem]"
+				/>
+			</div>
 		</div>
+
+		<UModal
+			v-model:open="revertOpen"
+			title="Revert sale"
+			:description="revertDescription"
+			:ui="{ footer: 'justify-end' }"
+		>
+			<template #footer>
+				<div class="flex flex-wrap justify-end gap-2">
+					<UButton
+						color="neutral"
+						label="Cancel"
+						:disabled="isReverting"
+						@click="revertOpen = false"
+					/>
+					<UButton
+						label="Revert sale"
+						color="error"
+						:loading="isReverting"
+						:disabled="isReverting"
+						@click="confirmRevert"
+					/>
+				</div>
+				<UAlert
+					v-if="revertError"
+					title="Could not revert the sale"
+					:description="revertErrorMessage"
+					class="mt-3"
+					color="error"
+					icon="i-lucide-circle-alert"
+				/>
+			</template>
+		</UModal>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { api } from '#convex/api';
+import { UButton } from '#components';
+import type { TableColumn } from '@nuxt/ui';
+import { h } from 'vue';
+import type { Id } from '~~/convex/_generated/dataModel';
 
 type SaleWithItems = {
 	_id: string;
@@ -118,9 +158,17 @@ const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
 const selectedDay = ref(formatDateInput(new Date()));
 const dayRange = computed(() => {
 	const [year, month, day] = selectedDay.value.split('-').map(Number);
+	if (
+		!selectedDay.value ||
+		year === undefined ||
+		month === undefined ||
+		day === undefined
+	) {
+		return null;
+	}
 	const start = new Date(year, month - 1, day);
 	const end = new Date(year, month - 1, day + 1);
-	if (!selectedDay.value || !Number.isFinite(start.getTime())) return null;
+	if (!Number.isFinite(start.getTime())) return null;
 	return { dayStart: start.getTime(), dayEnd: end.getTime() };
 });
 const salesQueryArgs = computed(() =>
@@ -140,7 +188,20 @@ const {
 });
 const isLoading = computed(() => convexAuthLoading.value || salesPending.value);
 const sales = computed(() => (salesData.value ?? []) as SaleWithItems[]);
-const saleRows = computed(() =>
+type SaleRow = {
+	Time: string;
+	'Sale ID': string;
+	Operator: string;
+	Product: string;
+	Quantity: number;
+	'Unit price': string;
+	'Line total': string;
+	'Sale total': string;
+	_saleId: Id<'sales'>;
+	_isFirstRow: boolean;
+};
+
+const saleRows = computed<SaleRow[]>(() =>
 	sales.value.flatMap((sale) =>
 		sale.items.map((item, itemIndex) => ({
 			Time: new Date(sale.timestamp).toLocaleTimeString('en', {
@@ -154,9 +215,103 @@ const saleRows = computed(() =>
 			'Unit price': formatCurrency(item.unitPrice),
 			'Line total': formatCurrency(item.lineTotal),
 			'Sale total': itemIndex === 0 ? formatCurrency(sale.total) : '',
+			_saleId: sale._id as Id<'sales'>,
+			_isFirstRow: itemIndex === 0,
 		})),
 	),
 );
+
+const {
+	mutate: revertSale,
+	isPending: isReverting,
+	error: revertError,
+} = useConvexMutation(api.transactions.revertSale);
+const revertSaleId = ref<Id<'sales'> | null>(null);
+const revertOpen = ref(false);
+const revertSaleTotal = computed(() =>
+	formatCurrency(
+		sales.value.find((sale) => sale._id === revertSaleId.value)?.total ?? 0,
+	),
+);
+const revertDescription = computed(() =>
+	revertSaleId.value
+		? `This will delete sale ${revertSaleId.value} (${revertSaleTotal.value}), remove its items, and restore the sold stock to inventory.`
+		: '',
+);
+const revertErrorMessage = computed(() =>
+	revertError.value instanceof Error
+		? revertError.value.message
+		: 'Please try again.',
+);
+
+function askRevertSale(saleId: Id<'sales'>) {
+	revertSaleId.value = saleId;
+	revertOpen.value = true;
+}
+
+async function confirmRevert() {
+	if (!revertSaleId.value || isReverting.value) return;
+	try {
+		await revertSale({ saleId: revertSaleId.value });
+		revertOpen.value = false;
+		revertSaleId.value = null;
+	} catch {
+		// Keep the confirmation open so the operator can retry.
+	}
+}
+
+const saleColumns: TableColumn<SaleRow>[] = [
+	{
+		accessorKey: 'Time',
+		header: 'Time',
+	},
+	{
+		accessorKey: 'Sale ID',
+		header: 'Sale ID',
+	},
+	{
+		accessorKey: 'Operator',
+		header: 'Operator',
+	},
+	{
+		accessorKey: 'Product',
+		header: 'Product',
+	},
+	{
+		accessorKey: 'Quantity',
+		header: 'Quantity',
+	},
+	{
+		accessorKey: 'Unit price',
+		header: 'Unit price',
+	},
+	{
+		accessorKey: 'Line total',
+		header: 'Line total',
+	},
+	{
+		accessorKey: 'Sale total',
+		header: 'Sale total',
+	},
+	{
+		id: 'revert',
+		header: '',
+		cell: ({ row }) => {
+			const original = row.original as SaleRow;
+			if (!original._isFirstRow) return '';
+			return h(UButton, {
+				label: 'Revert',
+				color: 'error',
+				variant: 'subtle',
+				size: 'sm',
+				class: 'min-h-10',
+				disabled: isReverting.value,
+				'aria-label': `Revert sale ${original._saleId}`,
+				onClick: () => askRevertSale(original._saleId),
+			});
+		},
+	},
+];
 const totalQuantity = computed(() =>
 	sales.value.reduce(
 		(total, sale) =>
@@ -202,7 +357,9 @@ function downloadCsv() {
 	];
 	const body = saleRows.value.map((row) =>
 		headers
-			.map((header) => csvCell(row[header as keyof typeof row]))
+			.map((header) =>
+				csvCell(row[header as keyof typeof row] as string | number),
+			)
 			.join(','),
 	);
 	const csv = [headers.map(csvCell).join(','), ...body].join('\r\n');

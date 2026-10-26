@@ -120,6 +120,50 @@ export const checkout = mutation({
 	},
 });
 
+export const revertSale = mutation({
+	args: {
+		saleId: v.id('sales'),
+	},
+	returns: v.null(),
+	handler: async (ctx, args) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new Error('Not authenticated');
+		}
+
+		const sale = await ctx.db.get(args.saleId);
+		if (!sale) {
+			throw new Error('Sale no longer exists');
+		}
+
+		const items = await ctx.db
+			.query('saleItems')
+			.withIndex('by_saleId', (q) => q.eq('saleId', args.saleId))
+			.collect();
+
+		// Restore stock for every product in the sale, then track the items
+		// for deletion so the whole sale is reverted as one unit.
+		for (const item of items) {
+			const product = await ctx.db.get(item.productsId);
+			if (!product) {
+				throw new Error(
+					`Product ${item.productName} no longer exists; stock cannot be restored`,
+				);
+			}
+			await ctx.db.patch(product._id, {
+				amount: product.amount + item.quantity,
+				updatedAt: Date.now(),
+			});
+		}
+
+		for (const item of items) {
+			await ctx.db.delete(item._id);
+		}
+		await ctx.db.delete(args.saleId);
+		return null;
+	},
+});
+
 export const listSalesForDay = query({
 	args: {
 		dayStart: v.number(),
