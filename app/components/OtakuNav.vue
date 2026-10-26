@@ -101,7 +101,7 @@ const route = useRoute();
 
 const items = computed<MaguroNavLink[]>(() => [
 	{
-		label: 'Übersicht',
+		label: 'Overview',
 		to: '/dash/dashboard',
 		active: route.path === '/dash/dashboard',
 	},

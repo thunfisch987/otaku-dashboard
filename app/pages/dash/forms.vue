@@ -75,7 +75,7 @@
 							variant="subtle"
 							@click="foodStepperRef?.prev()"
 						>
-							Zurück
+							Go Back
 						</UButton>
 					</div>
 					<div>
@@ -86,7 +86,7 @@
 							variant="subtle"
 							@click="foodStepperRef?.next()"
 						>
-							Weiter
+							Next
 						</UButton>
 						<UButton
 							v-if="!foodStepperRef?.hasNext"
@@ -95,7 +95,7 @@
 							variant="solid"
 							type="submit"
 						>
-							Abschicken
+							Submit
 						</UButton>
 					</div>
 				</div>
@@ -112,7 +112,7 @@
 					<div class="flex flex-col space-y-2">
 						<UCard>
 							<UFormField
-								label="Hier beliebigen Text hinschreiben / einfügen"
+								label="Write or paste any text here"
 								required
 							>
 								<UTextarea
@@ -124,7 +124,7 @@
 						</UCard>
 						<UCard>
 							<UFormField
-								label="Unter welchem Namen möchtest du bestellen?"
+								label="What name should the order be placed under?"
 								required
 							>
 								<UInput v-model="state.nameinput" />
@@ -132,23 +132,23 @@
 						</UCard>
 						<UCard>
 							<UFormField
-								label="Bist du Helfer?"
+								label="Are you a helper?"
 								required
 							>
 								<UCheckbox
 									v-model="state.helfer"
-									label="Ja, ich bin Helfer"
+									label="Yes, I'm a helper"
 								/>
 							</UFormField>
 						</UCard>
 						<UCard>
 							<UFormField
-								label="Hast du schonmal ein Fomular abgeschickt und möchtest es überschreiben? "
+								label="Have you already submitted a form and want to overwrite it?"
 								required
 							>
 								<UCheckbox
 									v-model="state.overwrite"
-									label="Ja, ich möchte überschreiben"
+									label="Yes, I want to overwrite it"
 								/>
 							</UFormField>
 						</UCard>
@@ -157,12 +157,12 @@
 				<template #foodstep>
 					<UCard class="flex">
 						<p class="text-center">
-							Bilder sind beispielhaft und können von der Realität
-							abweichen
+							Images are for illustration and may differ from
+							actual dishes
 						</p>
 						{{ state.amount }}
 						<UFormField
-							label="Anzahl"
+							label="Amount"
 							required
 							class="ml-0 mx-auto"
 						>
@@ -177,8 +177,8 @@
 				<template #snacksstep>
 					<UCard>
 						<p class="text-center">
-							Bilder sind beispielhaft und können von der Realität
-							abweichen
+							Images are for illustration and may differ from
+							actual dishes
 						</p>
 					</UCard>
 				</template>
@@ -201,12 +201,12 @@
 				</template>
 				<template #confirmstep>
 					<UCard>
-						<p>Zahlung ist nur vor Ort in Bar möglich.</p>
+						<p>Payment is only possible on-site in cash.</p>
 						<br />
 						<UFormField name="confirmbox">
 							<UCheckbox
 								required
-								label="Ich bestätige hiermit, dass ich mich mit der Bestellung auch zur Zahlung verantworte."
+								label="I hereby confirm that by placing this order I also accept responsibility for paying for it."
 							/>
 						</UFormField>
 					</UCard>
@@ -221,7 +221,7 @@
 						variant="subtle"
 						@click="foodStepperRef?.prev()"
 					>
-						Zurück
+						Go Back
 					</UButton>
 				</div>
 				<div>
@@ -233,7 +233,7 @@
 						:disabled="state.nameinput.length < 1"
 						@click="foodStepperRef?.next()"
 					>
-						Weiter
+						Next
 					</UButton>
 					<UButton
 						v-if="!foodStepperRef?.hasNext"
@@ -242,7 +242,7 @@
 						variant="solid"
 						type="submit"
 					>
-						Abschicken
+						Submit
 					</UButton>
 				</div>
 			</div>
@@ -256,21 +256,19 @@ import type { CalendarDate } from '@internationalized/date';
 
 // type MyFormField = { component: Component; props: InputProps; value: string }[];
 
-const toext = `Heyo, diesmal gibt es wieder Donburi, genauer Gyudon.
-Aufgrund des Helfermangels und der Besonderheit das diemal das Treffen Samstags ist, mit einer kleineren Karte und keiner vegetarischen Auswahl.
+const toext = `Heyo, we have Donburi again this time, specifically Gyudon.
+Due to a lack of helpers and because this meeting takes place on a Saturday, the menu is smaller and there is no vegetarian option.
 
-Bitte beachtet das die Küche nur von 16:30-18:00 Uhr geöffnet hat.
+Please note that the kitchen is only open from 4:30 pm to 6:00 pm.
 
-
-Preise:
+Prices:
 
 Gyudon: 6€
 
-Edamame klein: 1€
-Edamame groß: 2€
+Edamame small: 1€
+Edamame large: 2€
 
-
-Wie immer kann man auch Onigiri vom Reiseck bestellen
+As always, you can also order Onigiri from Reiseck
 Onigiri: 3€
 `;
 
@@ -291,7 +289,7 @@ const items: MyStepperItem[] = [
 		value: 0,
 	},
 	{
-		title: 'Essen',
+		title: 'Food',
 		description: '',
 		slot: 'foodstep',
 		// formData: fields.value,
@@ -313,7 +311,7 @@ const items: MyStepperItem[] = [
 		value: 3,
 	},
 	{
-		title: 'Bestellung bestätigen',
+		title: 'Confirm order',
 		slot: 'confirmstep',
 		description: '',
 		icon: 'i-ph-check-fat',
@@ -323,26 +321,26 @@ const items: MyStepperItem[] = [
 
 type onigiriSortenTypes = [
 	'Avocado (Vegan)',
-	'Erdnuss Sesam',
-	'Garnelen',
-	'Hähnchen Teriyaki',
+	'Peanut Sesame',
+	'Shrimp',
+	'Chicken Teriyaki',
 	'Inari (Vegan)',
-	'Lachs Teriyaki',
+	'Salmon Teriyaki',
 	'Shiitake (Vegan)',
-	'Thunfisch Mayo',
-	'Thunfisch Scharf',
+	'Tuna Mayo',
+	'Spicy Tuna',
 ];
 
 const onigiriSorten = ref<onigiriSortenTypes>([
 	'Avocado (Vegan)',
-	'Erdnuss Sesam',
-	'Garnelen',
-	'Hähnchen Teriyaki',
+	'Peanut Sesame',
+	'Shrimp',
+	'Chicken Teriyaki',
 	'Inari (Vegan)',
-	'Lachs Teriyaki',
+	'Salmon Teriyaki',
 	'Shiitake (Vegan)',
-	'Thunfisch Mayo',
-	'Thunfisch Scharf',
+	'Tuna Mayo',
+	'Spicy Tuna',
 ]);
 
 type stateTypes = {
@@ -370,14 +368,14 @@ const state = reactive<stateTypes>({
 	activeUntilTime: '12:00',
 	onigiriSorten: [
 		'Avocado (Vegan)',
-		'Erdnuss Sesam',
-		'Garnelen',
-		'Hähnchen Teriyaki',
+		'Peanut Sesame',
+		'Shrimp',
+		'Chicken Teriyaki',
 		'Inari (Vegan)',
-		'Lachs Teriyaki',
+		'Salmon Teriyaki',
 		'Shiitake (Vegan)',
-		'Thunfisch Mayo',
-		'Thunfisch Scharf',
+		'Tuna Mayo',
+		'Spicy Tuna',
 	],
 });
 

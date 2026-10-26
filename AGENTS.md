@@ -31,6 +31,14 @@ full Nuxt ESLint pass is required.
   plans to translate it by hand after development is complete; do not add
   localization infrastructure unless requested.
 
+## UI conventions
+
+- Prefer `@nuxt/ui` components for interface elements. Build custom elements
+  only when a suitable `@nuxt/ui` component cannot meet the need.
+- Keep styling close to the built-in `@nuxt/ui` appearance. Prefer its
+  component variants, design tokens, and defaults over bespoke CSS or heavy
+  component overrides.
+
 <!-- convex-ai-start -->
 
 This project uses [Convex](https://convex.dev) as its backend.
