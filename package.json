@@ -52,7 +52,8 @@
 		"eslint": "10.13.0",
 		"oxlint": "1.89.0",
 		"oxlint-tsgolint": "^7.0.2005",
-		"typescript": "npm:@typescript/typescript6@^6.0.2"
+		"typescript": "npm:@typescript/typescript6@^6.0.2",
+		"vue-tsc": "^3.3.13"
 	},
 	"trustedDependencies": [
 		"@parcel/watcher",

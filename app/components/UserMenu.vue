@@ -41,7 +41,7 @@ const toast = useToast();
 const { signOut } = useUserSession();
 const client = useAuthClient();
 const passkeyQuery = client?.useListPasskeys();
-const registeredPasskeys = computed<Passkey[]>(
+const registeredPasskeys = computed<readonly Passkey[]>(
 	() => passkeyQuery?.value.data ?? [],
 );
 const creatingPasskey = ref(false);

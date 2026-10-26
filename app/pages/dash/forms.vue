@@ -7,7 +7,7 @@
 				>Add Text Field</UButton
 			>
 			<UButton @click="addField('textarea')">Add Textarea Field</UButton>
-			
+
 		</div> -->
 		<!-- <UCard>
 			<template #header>Bestellformular</template>
@@ -191,8 +191,7 @@
 								:ui="{ label: 'bg-disabled' }"
 							>
 								<template #label="{ item }">
-									//
-									{{ item.label }}
+									{{ item }}
 								</template>
 							</UCheckboxGroup>
 						</UFormField>
