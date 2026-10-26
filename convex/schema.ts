@@ -32,6 +32,8 @@ const applicationTables = {
 		name: v.string(),
 		email: v.string(),
 		avatar: v.optional(v.string()),
+		avatarStorageId: v.optional(v.id('_storage')),
+		avatarCachePendingUrl: v.optional(v.union(v.string(), v.null())),
 	})
 		.index('by_authId', ['authId'])
 		.index('by_name', ['name'])

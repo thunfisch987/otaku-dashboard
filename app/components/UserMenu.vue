@@ -6,7 +6,7 @@
 		>
 			<template #leading>
 				<UAvatar
-					:src="user?.image ?? undefined"
+					:src="cachedAvatarUrl ?? undefined"
 					:text="user?.name?.slice(0, 2).toUpperCase()"
 					size="xl"
 					crossorigin="anonymous"
@@ -21,8 +21,20 @@
 import type { AuthUser } from '#nuxt-better-auth';
 import type { Passkey } from '@better-auth/passkey/client';
 import type { DropdownMenuItem } from '@nuxt/ui';
+import { api } from '#convex/api';
 
 const { user } = defineProps<{ user: AuthUser | null }>();
+
+const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
+	useConvexAuth();
+const avatarQueryArgs = computed(() =>
+	convexAuthLoading.value || !convexAuthenticated.value ? 'skip' : {},
+);
+const { data: cachedAvatarUrl } = useConvexQuery(
+	api.users.getCachedAvatarUrl,
+	avatarQueryArgs,
+	{ server: false },
+);
 
 const toast = useToast();
 const { signOut } = useUserSession();
