@@ -1,15 +1,24 @@
 import { query, mutation } from './_generated/server';
+import {
+	paginationOptsValidator,
+	paginationResultValidator,
+} from 'convex/server';
 import { v } from 'convex/values';
+import schema from './schema';
 
 export const list = query({
-	args: {},
-	handler: async (ctx) => {
+	args: { paginationOpts: paginationOptsValidator },
+	returns: paginationResultValidator(schema.doc('transactions')),
+	handler: async (ctx, args) => {
 		const identity = await ctx.auth.getUserIdentity();
 		if (!identity) {
 			throw new Error('Not authenticated');
 		}
 
-		return await ctx.db.query('transactions').order('desc').take(100);
+		return await ctx.db
+			.query('transactions')
+			.order('desc')
+			.paginate(args.paginationOpts);
 	},
 });
 

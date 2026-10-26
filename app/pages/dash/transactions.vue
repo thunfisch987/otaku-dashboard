@@ -4,6 +4,16 @@
 			:data="transactions"
 			class="flex-1"
 		/>
+		<div class="flex justify-center py-4">
+			<UButton
+				v-if="convexAuthenticated && !isDone"
+				:loading="isLoadingMore"
+				:disabled="isLoadingMore"
+				@click="loadMore"
+			>
+				Load more transactions
+			</UButton>
+		</div>
 	</div>
 </template>
 
@@ -19,11 +29,13 @@ const transactionsQueryArgs = computed(() =>
 
 const {
 	data: transactions,
-	isPending: pending,
+	isDone,
+	isLoadingMore,
+	loadMore,
 	error,
 	suspense,
-} = useConvexQuery(api.transactions.list, transactionsQueryArgs, {
-	server: false,
+} = useConvexPaginatedQuery(api.transactions.list, transactionsQueryArgs, {
+	numItems: 100,
 });
 
 await suspense();

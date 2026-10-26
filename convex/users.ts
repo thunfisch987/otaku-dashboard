@@ -1,7 +1,12 @@
 import { internal } from './_generated/api';
 import { mutation, query } from './_generated/server';
+import {
+	paginationOptsValidator,
+	paginationResultValidator,
+} from 'convex/server';
 import { v } from 'convex/values';
 import { authComponent } from './auth';
+import schema from './schema';
 
 export const upsert = mutation({
 	args: {},
@@ -100,13 +105,14 @@ export const getCachedAvatarUrl = query({
 });
 
 export const list = query({
-	args: {},
-	handler: async (ctx) => {
+	args: { paginationOpts: paginationOptsValidator },
+	returns: paginationResultValidator(schema.doc('users')),
+	handler: async (ctx, args) => {
 		const identity = await ctx.auth.getUserIdentity();
 		if (!identity) {
 			throw new Error('Not authenticated');
 		}
 
-		return await ctx.db.query('users').take(100);
+		return await ctx.db.query('users').paginate(args.paginationOpts);
 	},
 });

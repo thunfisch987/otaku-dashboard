@@ -4,6 +4,16 @@
 			:data="users"
 			class="flex-1"
 		/>
+		<div class="flex justify-center py-4">
+			<UButton
+				v-if="convexAuthenticated && !isDone"
+				:loading="isLoadingMore"
+				:disabled="isLoadingMore"
+				@click="loadMore"
+			>
+				Load more users
+			</UButton>
+		</div>
 	</div>
 </template>
 
@@ -18,10 +28,14 @@ const usersQueryArgs = computed(() =>
 
 const {
 	data: users,
-	isPending: pending,
+	isDone,
+	isLoadingMore,
+	loadMore,
 	error,
 	suspense,
-} = useConvexQuery(api.users.list, usersQueryArgs, { server: false });
+} = useConvexPaginatedQuery(api.users.list, usersQueryArgs, {
+	numItems: 100,
+});
 
 await suspense();
 </script>

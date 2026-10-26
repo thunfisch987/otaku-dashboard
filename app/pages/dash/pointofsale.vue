@@ -28,6 +28,18 @@
 					</UCard>
 				</UButton>
 			</div>
+			<div
+				v-if="convexAuthenticated && !productsDone"
+				class="flex justify-center py-4 lg:max-w-1/2 lg:w-1/2"
+			>
+				<UButton
+					:loading="loadingMoreProducts"
+					:disabled="loadingMoreProducts"
+					@click="loadMoreProducts"
+				>
+					Load more products
+				</UButton>
+			</div>
 			<!-- <div class="flex-1 lg:max-w-1/2 lg:w-1/2">
 				<ul>
 					<li>pp</li>
@@ -49,9 +61,14 @@ const productsQueryArgs = computed(() =>
 const {
 	data: productos,
 	isPending: pendingos,
+	isDone: productsDone,
+	isLoadingMore: loadingMoreProducts,
+	loadMore: loadMoreProducts,
 	error: erroros,
 	suspense: suspensos,
-} = useConvexQuery(api.products.list, productsQueryArgs, { server: false });
+} = useConvexPaginatedQuery(api.products.list, productsQueryArgs, {
+	numItems: 200,
+});
 
 await suspensos();
 

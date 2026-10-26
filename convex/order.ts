@@ -1,28 +1,24 @@
 import { query, mutation } from './_generated/server';
+import {
+	paginationOptsValidator,
+	paginationResultValidator,
+} from 'convex/server';
 import { v } from 'convex/values';
+import schema from './schema';
 
 export const list = query({
-	args: {},
-	handler: async (ctx) => {
+	args: { paginationOpts: paginationOptsValidator },
+	returns: paginationResultValidator(schema.doc('orders')),
+	handler: async (ctx, args) => {
 		const identity = await ctx.auth.getUserIdentity();
 		if (!identity) {
 			throw new Error('Not authenticated');
 		}
 
-		const orders = await ctx.db.query('orders').order('desc').take(100);
-
-		// Fetch product details for each order
-		const ordersWithProducts = await Promise.all(
-			orders.map(async (order) => {
-				const product = await ctx.db.get(order.productsId);
-				return {
-					...order,
-					product,
-				};
-			}),
-		);
-
-		return ordersWithProducts;
+		return await ctx.db
+			.query('orders')
+			.order('desc')
+			.paginate(args.paginationOpts);
 	},
 });
 

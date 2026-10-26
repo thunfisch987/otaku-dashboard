@@ -20,6 +20,25 @@
 				class="flex-1"
 			/>
 			<div
+				v-if="
+					convexAuthenticated &&
+					!pendingos &&
+					!productsError &&
+					!productsDone
+				"
+				class="flex justify-center py-4"
+			>
+				<UButton
+					variant="subtle"
+					icon="i-lucide-chevrons-down"
+					:loading="loadingMoreProducts"
+					:disabled="loadingMoreProducts"
+					@click="loadMoreProducts"
+				>
+					Load more products
+				</UButton>
+			</div>
+			<div
 				v-if="convexAuthLoading"
 				class="px-4 py-3.5 border-t border-accented text-sm text-muted"
 			>
@@ -30,6 +49,12 @@
 				class="px-4 py-3.5 border-t border-accented text-sm text-muted"
 			>
 				Not authenticated with Convex. Please sign in again.
+			</div>
+			<div
+				v-else-if="!pendingos && productsError"
+				class="px-4 py-3.5 border-t border-error text-sm text-error"
+			>
+				Could not load the product data.
 			</div>
 			<div
 				v-else-if="!pendingos && !parsedAllProducts.success"
@@ -84,20 +109,15 @@
 						variant="outline"
 						leading
 						:disabled="
-							table?.tableApi.getFilteredSelectedRowModel().rows
-								.length === 0 ||
-							table?.tableApi.getCoreRowModel().rows.length === 0
+							selectedRowCount === 0 || productRowCount === 0
 						"
 						:title="
-							table?.tableApi.getFilteredSelectedRowModel().rows
-								.length === 0 ||
-							table?.tableApi.getCoreRowModel().rows.length === 0
+							selectedRowCount === 0 || productRowCount === 0
 								? 'Mindestens ein Produkt muss ausgewählt sein!'
 								: ''
 						"
 						:icon="
-							table?.tableApi.getFilteredSelectedRowModel().rows
-								.length === 0
+							selectedRowCount === 0
 								? 'i-lucide-x'
 								: exportSelectedOpen
 									? 'i-lucide-chevron-up'
@@ -143,6 +163,13 @@ const table = useState<{
 	tableApi: Table<ProductSchema>;
 	tableRef: Ref<HTMLTableElement | null>;
 } | null>('table');
+
+const productRowCount = computed(
+	() => table.value?.tableApi.getCoreRowModel().rows.length ?? 0,
+);
+const selectedRowCount = computed(
+	() => table.value?.tableApi.getFilteredSelectedRowModel().rows.length ?? 0,
+);
 
 const pagination = useState('pagination', () => ({
 	pageIndex: 0,
@@ -267,8 +294,14 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 const {
 	data: productos,
 	isPending: pendingos,
+	error: productsError,
+	isDone: productsDone,
+	isLoadingMore: loadingMoreProducts,
+	loadMore: loadMoreProducts,
 	suspense: sus,
-} = useConvexQuery(api.products.list, productsQueryArgs, { server: false });
+} = useConvexPaginatedQuery(api.products.list, productsQueryArgs, {
+	numItems: 200,
+});
 
 sus();
 

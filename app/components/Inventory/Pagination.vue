@@ -2,8 +2,8 @@
 	<div class="flex justify-center pt-4">
 		<UInputNumber
 			v-model="pagination.pageSize"
-			:min="0"
-			:max="40"
+			:min="5"
+			:max="200"
 			:step="5"
 			@update:model-value="(value) => table?.tableApi.setPageSize(value)"
 		/>
