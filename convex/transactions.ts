@@ -5,11 +5,12 @@ import {
 } from 'convex/server';
 import { v } from 'convex/values';
 import schema from './schema';
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 
 export const checkout = mutation({
 	args: {
 		checkoutId: v.string(),
+		isHelper: v.optional(v.boolean()),
 		items: v.array(
 			v.object({
 				productId: v.id('products'),
@@ -73,8 +74,11 @@ export const checkout = mutation({
 			);
 		}
 
+		const isHelper = args.isHelper ?? false;
 		const checkoutItems = [];
 		let totalCents = 0;
+		let onigiriPricingLoaded = false;
+		let onigiriPricing: Doc<'productCategoryPricing'> | null = null;
 		for (const [productId, quantity] of quantities) {
 			const product = await ctx.db.get(productId);
 			if (!product) {
@@ -83,10 +87,39 @@ export const checkout = mutation({
 			if (product.amount < quantity) {
 				throw new Error(`Not enough stock for ${product.productname}`);
 			}
-			const lineTotal =
-				(Math.round(product.price * 100) * quantity) / 100;
-			checkoutItems.push({ product, quantity, lineTotal });
-			totalCents += Math.round(product.price * 100) * quantity;
+
+			// Helper sales use the product's helper price when one is configured;
+			// otherwise they fall back to the ordinary price.
+			let unitPrice = product.price;
+			let helperPrice = product.helperPrice;
+			if (product.category === 'onigiri') {
+				if (!onigiriPricingLoaded) {
+					onigiriPricing = await ctx.db
+						.query('productCategoryPricing')
+						.withIndex('by_category', (q) =>
+							q.eq('category', 'onigiri'),
+						)
+						.unique();
+					onigiriPricingLoaded = true;
+				}
+				if (onigiriPricing) {
+					unitPrice = onigiriPricing.price;
+					helperPrice = onigiriPricing.helperPrice;
+				}
+			}
+			if (isHelper && helperPrice !== undefined) {
+				if (!Number.isFinite(helperPrice) || helperPrice < 0) {
+					throw new Error(
+						`Helper price for ${product.productname} is invalid`,
+					);
+				}
+				unitPrice = helperPrice;
+			}
+			unitPrice = Math.round(unitPrice * 100) / 100;
+
+			const lineTotal = (Math.round(unitPrice * 100) * quantity) / 100;
+			checkoutItems.push({ product, quantity, unitPrice, lineTotal });
+			totalCents += Math.round(unitPrice * 100) * quantity;
 		}
 
 		const total = totalCents / 100;
@@ -98,9 +131,15 @@ export const checkout = mutation({
 				user.name || identity.name || identity.email || 'Operator',
 			timestamp,
 			total,
+			isHelper,
 		});
 
-		for (const { product, quantity, lineTotal } of checkoutItems) {
+		for (const {
+			product,
+			quantity,
+			unitPrice,
+			lineTotal,
+		} of checkoutItems) {
 			const updatedAmount = product.amount - quantity;
 			await ctx.db.patch(product._id, {
 				amount: updatedAmount,
@@ -110,7 +149,7 @@ export const checkout = mutation({
 				saleId,
 				productsId: product._id,
 				productName: product.productname,
-				unitPrice: product.price,
+				unitPrice,
 				quantity,
 				lineTotal,
 			});

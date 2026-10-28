@@ -6,6 +6,17 @@
 				Add products to the cart, review the order, then complete
 				checkout.
 			</p>
+			<div class="mt-4">
+				<UCheckbox
+					v-model="isHelperCheckout"
+					:disabled="isCheckingOut"
+					label="Helper checkout"
+				/>
+				<p class="mt-1 text-sm text-gray-500">
+					Products use their helper price when set; otherwise the
+					regular price applies.
+				</p>
+			</div>
 		</div>
 
 		<UAlert
@@ -86,8 +97,17 @@
 								product.productname
 							}}</span>
 							<span class="mt-1 block">{{
-								formatCurrency(product.price)
+								formatCurrency(effectivePrice(product))
 							}}</span>
+							<span
+								v-if="
+									isHelperCheckout &&
+									product.helperPrice === undefined
+								"
+								class="mt-1 block text-xs text-gray-500"
+							>
+								Regular price
+							</span>
 							<span class="mt-1 block text-sm text-gray-500">
 								{{ product.amount - (cart[product._id] ?? 0) }}
 								in stock
@@ -150,10 +170,14 @@
 								{{ item.product.productname }}
 							</p>
 							<p class="text-sm text-gray-500">
-								{{ formatCurrency(item.product.price) }} each ·
+								{{
+									formatCurrency(effectivePrice(item.product))
+								}}
+								each ·
 								{{
 									formatCurrency(
-										item.product.price * item.quantity,
+										effectivePrice(item.product) *
+											item.quantity,
 									)
 								}}
 							</p>
@@ -203,18 +227,32 @@
 					<span>Total</span>
 					<span>{{ formatCurrency(cartTotal) }}</span>
 				</div>
-				<UButton
-					class="mt-4 min-h-12 w-full justify-center text-base"
-					:loading="isCheckingOut"
-					:disabled="
-						cartItems.length === 0 ||
-						isCheckingOut ||
-						!convexAuthenticated
-					"
-					@click="completeCheckout"
+				<div
+					class="mt-4 flex flex-wrap items-center justify-between gap-2"
 				>
-					Complete checkout
-				</UButton>
+					<UBadge
+						:color="isHelperCheckout ? 'warning' : 'neutral'"
+						variant="subtle"
+					>
+						{{
+							isHelperCheckout
+								? 'Helper checkout pricing active'
+								: 'Regular checkout pricing'
+						}}
+					</UBadge>
+					<UButton
+						class="min-h-12 w-full justify-center text-base sm:w-auto"
+						:loading="isCheckingOut"
+						:disabled="
+							cartItems.length === 0 ||
+							isCheckingOut ||
+							!convexAuthenticated
+						"
+						@click="completeCheckout"
+					>
+						Complete checkout
+					</UButton>
+				</div>
 			</section>
 		</div>
 	</div>
@@ -222,6 +260,7 @@
 
 <script setup lang="ts">
 import { api } from '#convex/api';
+import { createRequestId } from '~/utils/requestId';
 import { productArraySchema } from '~/components/Inventory/types';
 import type { Id } from '~~/convex/_generated/dataModel';
 
@@ -246,6 +285,12 @@ const availableProducts = computed(() => {
 	return parsed.success ? parsed.data : [];
 });
 const cart = reactive<Record<string, number>>({});
+const isHelperCheckout = ref(false);
+watch(isHelperCheckout, () => {
+	checkoutId.value = '';
+	checkoutError.value = '';
+	checkoutSuccess.value = '';
+});
 const cartItems = computed(() =>
 	availableProducts.value.flatMap((product) => {
 		const quantity = cart[product._id] ?? 0;
@@ -254,10 +299,17 @@ const cartItems = computed(() =>
 );
 const cartTotal = computed(() =>
 	cartItems.value.reduce(
-		(total, item) => total + item.product.price * item.quantity,
+		(total, item) => total + effectivePrice(item.product) * item.quantity,
 		0,
 	),
 );
+function effectivePrice(product: { price: number; helperPrice?: number }) {
+	const price =
+		isHelperCheckout.value && product.helperPrice !== undefined
+			? product.helperPrice
+			: product.price;
+	return Math.round(price * 100) / 100;
+}
 const formatCurrency = (amount: number) =>
 	new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(
 		amount,
@@ -267,6 +319,7 @@ function addToCart(id: Id<'products'>) {
 	const product = availableProducts.value.find((item) => item._id === id);
 	if (!product || (cart[id] ?? 0) >= product.amount) return;
 	cart[id] = (cart[id] ?? 0) + 1;
+	checkoutId.value = '';
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
@@ -275,12 +328,15 @@ function removeFromCart(id: Id<'products'>) {
 	const quantity = cart[id] ?? 0;
 	if (quantity <= 1) cart[id] = 0;
 	else cart[id] = quantity - 1;
+	checkoutId.value = '';
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
 
 function clearCart() {
 	for (const id of Object.keys(cart)) cart[id] = 0;
+	isHelperCheckout.value = false;
+	checkoutId.value = '';
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
@@ -297,9 +353,10 @@ async function completeCheckout() {
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 	try {
-		if (!checkoutId.value) checkoutId.value = crypto.randomUUID();
+		if (!checkoutId.value) checkoutId.value = createRequestId();
 		const result = await checkout({
 			checkoutId: checkoutId.value,
+			isHelper: isHelperCheckout.value,
 			items: cartItems.value.map(({ product, quantity }) => ({
 				productId: product._id as Id<'products'>,
 				quantity,

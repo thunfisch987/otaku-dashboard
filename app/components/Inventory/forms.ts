@@ -11,10 +11,15 @@ export function prepareEditForm(row: Row<ProductSchema>) {
 	editProductOpen.value = true;
 	editProductState.value.amount = row.original.amount;
 	editProductState.value.picture = row.original.picture;
+	editProductState.value.helperPrice =
+		row.original.helperPrice === undefined
+			? ''
+			: String(row.original.helperPrice);
 	editProductState.value.price = Intl.NumberFormat('de-DE').format(
 		row.original.price,
 	);
 	editProductState.value.productname = row.original.productname;
+	editProductState.value.category = row.original.category;
 	editProductState.value.supplier = row.original.supplier;
 	editProductState.value._id = String(row.original._id);
 	unmaskedProductEditValue.value = String(row.original.price);
@@ -27,9 +32,11 @@ export function resetFormState() {
 	);
 	editProductState.value.productname = '';
 	editProductState.value.price = '';
+	editProductState.value.category = 'other';
 	editProductState.value.supplier = 'Otaku';
 	editProductState.value.amount = 0;
 	editProductState.value.picture = '';
+	editProductState.value.helperPrice = '';
 	editProductState.value._id = '';
 	unmaskedProductEditValue.value = '';
 }

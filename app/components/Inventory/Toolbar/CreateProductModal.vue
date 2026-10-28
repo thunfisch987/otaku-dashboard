@@ -35,6 +35,16 @@
 					/>
 				</UFormField>
 				<UFormField
+					label="Category"
+					name="category"
+					required
+				>
+					<USelect
+						v-model="state.category"
+						:items="productCategories"
+					/>
+				</UFormField>
+				<UFormField
 					label="Price"
 					name="price"
 					required
@@ -45,8 +55,37 @@
 						v-maska:unmaskedCreatePriceValue.unmasked="maskOptions"
 						inputmode="numeric"
 						trailing-icon="i-lucide-euro"
+						:disabled="
+							state.category === 'onigiri' && !!onigiriPricing
+						"
 					/>
 				</UFormField>
+				<UFormField
+					label="Helper price"
+					name="helperPrice"
+					hint="Optional. Helper checkouts use the regular price when this is empty."
+				>
+					<UInput
+						v-model="state.helperPrice"
+						type="number"
+						min="0"
+						step="0.01"
+						placeholder="Use regular price"
+						:disabled="
+							state.category === 'onigiri' && !!onigiriPricing
+						"
+					/>
+				</UFormField>
+				<p
+					v-if="state.category === 'onigiri'"
+					class="text-sm text-muted"
+				>
+					{{
+						onigiriPricing
+							? 'Onigiri prices are shared across all products in this category.'
+							: 'These prices will initialize the shared Onigiri prices.'
+					}}
+				</p>
 				<UFormField
 					label="Supplier"
 					name="supplier"
@@ -94,6 +133,7 @@
 <script setup lang="ts">
 import {
 	insertProductSchema,
+	productCategories,
 	type InsertProductSchema,
 	type ProductSchema,
 } from '../types';
@@ -102,6 +142,17 @@ import { vMaska } from 'maska/vue';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { MaskInputOptions } from 'maska';
 import { api } from '#convex/api';
+
+const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
+	useAppConvexAuth();
+const onigiriPricingArgs = computed(() =>
+	convexAuthLoading.value || !convexAuthenticated.value ? 'skip' : {},
+);
+const { data: onigiriPricing } = useConvexQuery(
+	api.products.getOnigiriPricing,
+	onigiriPricingArgs,
+	{ server: false },
+);
 
 const maskOptions: MaskInputOptions = {
 	eager: true,
@@ -115,9 +166,11 @@ const maskOptions: MaskInputOptions = {
 function resetFormState() {
 	state.productname = '';
 	state.price = '';
+	state.category = 'other';
 	state.supplier = 'Otaku';
 	state.amount = 0;
 	state.picture = '';
+	state.helperPrice = '';
 	unmaskedCreatePriceValue.value = '';
 }
 
@@ -138,12 +191,32 @@ const createProductOpen = useState('createProductOpen', () => false);
 const DEFAULT_STATE = {
 	productname: '',
 	price: '',
+	category: 'other',
 	supplier: 'Otaku',
 	amount: 0,
 	picture: '',
+	helperPrice: '',
 } as const;
 
 const state = reactive<InsertProductSchema>(DEFAULT_STATE);
+
+watch(
+	() =>
+		[
+			state.category,
+			onigiriPricing.value?.price,
+			onigiriPricing.value?.helperPrice,
+		] as const,
+	([category, sharedPrice, sharedHelperPrice]) => {
+		if (category !== 'onigiri' || sharedPrice === undefined) return;
+		state.price = new Intl.NumberFormat('de-DE', {
+			minimumFractionDigits: 2,
+		}).format(sharedPrice);
+		unmaskedCreatePriceValue.value = String(sharedPrice);
+		state.helperPrice =
+			sharedHelperPrice === undefined ? '' : String(sharedHelperPrice);
+	},
+);
 
 const items: {
 	label: ProductSchema['supplier'];
@@ -161,6 +234,17 @@ async function createProduct(
 		await mutate({
 			productname: formSubmitEvent.data.productname,
 			price: Number.parseFloat(unmaskedCreatePriceValue.value),
+			category: formSubmitEvent.data.category,
+			...(String(formSubmitEvent.data.helperPrice ?? '').trim()
+				? {
+						helperPrice: Number(
+							String(formSubmitEvent.data.helperPrice).replace(
+								',',
+								'.',
+							),
+						),
+					}
+				: {}),
 			supplier: formSubmitEvent.data.supplier,
 			amount: formSubmitEvent.data.amount,
 			picture: formSubmitEvent.data.picture,

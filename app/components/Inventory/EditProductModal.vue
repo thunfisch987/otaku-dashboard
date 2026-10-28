@@ -27,6 +27,16 @@
 					/>
 				</UFormField>
 				<UFormField
+					label="Category"
+					name="category"
+					required
+				>
+					<USelect
+						v-model="editProductState.category"
+						:items="productCategories"
+					/>
+				</UFormField>
+				<UFormField
 					label="Price"
 					name="price"
 					required
@@ -37,8 +47,39 @@
 						v-maska:unmaskedEditPriceValue.unmasked="maskOptions"
 						inputmode="numeric"
 						trailing-icon="i-lucide-euro"
+						:disabled="
+							editProductState.category === 'onigiri' &&
+							!!onigiriPricing
+						"
 					/>
 				</UFormField>
+				<UFormField
+					label="Helper price"
+					name="helperPrice"
+					hint="Optional. Helper checkouts use the regular price when this is empty."
+				>
+					<UInput
+						v-model="editProductState.helperPrice"
+						type="number"
+						min="0"
+						step="0.01"
+						placeholder="Use regular price"
+						:disabled="
+							editProductState.category === 'onigiri' &&
+							!!onigiriPricing
+						"
+					/>
+				</UFormField>
+				<p
+					v-if="editProductState.category === 'onigiri'"
+					class="text-sm text-muted"
+				>
+					{{
+						onigiriPricing
+							? 'Onigiri prices are shared across all products in this category.'
+							: 'These prices will initialize the shared Onigiri prices.'
+					}}
+				</p>
 				<UFormField
 					label="Supplier"
 					name="supplier"
@@ -85,6 +126,7 @@ import type { MaskInputOptions } from 'maska';
 import { resetFormState } from './forms';
 import {
 	patchProductSchema,
+	productCategories,
 	type PatchProductSchema,
 	type ProductSchema,
 } from './types';
@@ -94,6 +136,17 @@ import type { Ref } from 'vue';
 import { vMaska } from 'maska/vue';
 import { api } from '#convex/api';
 import type { Id } from '~~/convex/_generated/dataModel';
+
+const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
+	useAppConvexAuth();
+const onigiriPricingArgs = computed(() =>
+	convexAuthLoading.value || !convexAuthenticated.value ? 'skip' : {},
+);
+const { data: onigiriPricing } = useConvexQuery(
+	api.products.getOnigiriPricing,
+	onigiriPricingArgs,
+	{ server: false },
+);
 
 const table = useState<{
 	tableApi: Table<ProductSchema>;
@@ -126,11 +179,30 @@ const DEFAULT_STATE = {
 	amount: 0,
 	picture: '',
 	_id: '',
+	category: 'other',
 } as const;
 const editProductOpen = useState('editProductOpen', () => false);
 const editProductState = useState<PatchProductSchema>(
 	'editProductState',
 	() => DEFAULT_STATE,
+);
+
+watch(
+	() =>
+		[
+			editProductState.value.category,
+			onigiriPricing.value?.price,
+			onigiriPricing.value?.helperPrice,
+		] as const,
+	([category, sharedPrice, sharedHelperPrice]) => {
+		if (category !== 'onigiri' || sharedPrice === undefined) return;
+		editProductState.value.price = new Intl.NumberFormat('de-DE', {
+			minimumFractionDigits: 2,
+		}).format(sharedPrice);
+		unmaskedEditPriceValue.value = String(sharedPrice);
+		editProductState.value.helperPrice =
+			sharedHelperPrice === undefined ? '' : String(sharedHelperPrice);
+	},
 );
 
 const toast = useToast();
@@ -148,6 +220,15 @@ async function editProduct(
 			productname: formSubmitEvent.data.productname,
 			supplier: formSubmitEvent.data.supplier,
 			price: Number.parseFloat(unmaskedEditPriceValue.value),
+			category: formSubmitEvent.data.category,
+			helperPrice: String(editProductState.value.helperPrice ?? '').trim()
+				? Number(
+						String(editProductState.value.helperPrice).replace(
+							',',
+							'.',
+						),
+					)
+				: null,
 			amount: formSubmitEvent.data.amount,
 			picture: formSubmitEvent.data.picture,
 		});

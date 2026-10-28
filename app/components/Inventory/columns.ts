@@ -75,6 +75,12 @@ export const columns: TableColumn<ProductSchema>[] = [
 		enableHiding: false,
 	},
 	{
+		accessorKey: 'category',
+		header: ({ column }) => getSortHeader(column, 'Category'),
+		cell: ({ row }) => productCategoryLabel(row.original.category),
+		enableHiding: false,
+	},
+	{
 		accessorKey: 'price',
 		header: ({ column }) => getSortHeader(column, 'Price'),
 		cell: ({ row }) =>
@@ -83,6 +89,20 @@ export const columns: TableColumn<ProductSchema>[] = [
 				currency: 'EUR',
 			}).format(Number.parseFloat(row.getValue('price'))),
 		enableHiding: false,
+	},
+	{
+		accessorKey: 'helperPrice',
+		header: 'Helper price',
+		cell: ({ row }) => {
+			const price = row.original.helperPrice;
+			return price === undefined
+				? '—'
+				: new Intl.NumberFormat('de-DE', {
+						style: 'currency',
+						currency: 'EUR',
+					}).format(price);
+		},
+		enableHiding: true,
 	},
 	{
 		accessorKey: 'supplier',
@@ -140,3 +160,12 @@ export const columns: TableColumn<ProductSchema>[] = [
 		enableHiding: false,
 	},
 ];
+
+function productCategoryLabel(category: ProductSchema['category']) {
+	return {
+		onigiri: 'Onigiri',
+		food: 'Food',
+		snacks: 'Snacks',
+		other: 'Other',
+	}[category];
+}

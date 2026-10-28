@@ -145,6 +145,7 @@ type SaleWithItems = {
 	timestamp: number;
 	operatorName: string;
 	total: number;
+	isHelper?: boolean;
 	items: {
 		productName: string;
 		unitPrice: number;
@@ -192,6 +193,7 @@ type SaleRow = {
 	Time: string;
 	'Sale ID': string;
 	Operator: string;
+	Helper: string;
 	Product: string;
 	Quantity: number;
 	'Unit price': string;
@@ -210,6 +212,14 @@ const saleRows = computed<SaleRow[]>(() =>
 			}),
 			'Sale ID': sale._id,
 			Operator: sale.operatorName,
+			Helper:
+				itemIndex === 0
+					? sale.isHelper === undefined
+						? ''
+						: sale.isHelper
+							? 'Yes'
+							: 'No'
+					: '',
 			Product: item.productName,
 			Quantity: item.quantity,
 			'Unit price': formatCurrency(item.unitPrice),
@@ -272,6 +282,10 @@ const saleColumns: TableColumn<SaleRow>[] = [
 	{
 		accessorKey: 'Operator',
 		header: 'Operator',
+	},
+	{
+		accessorKey: 'Helper',
+		header: 'Helper',
 	},
 	{
 		accessorKey: 'Product',
@@ -349,6 +363,7 @@ function downloadCsv() {
 		'Time',
 		'Sale ID',
 		'Operator',
+		'Helper',
 		'Product',
 		'Quantity',
 		'Unit price',

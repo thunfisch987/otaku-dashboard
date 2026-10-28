@@ -25,38 +25,10 @@
 </template>
 
 <script setup lang="ts">
-import {
-	DateFormatter,
-	today,
-	getDayOfWeek,
-	type DateValue,
-} from '@internationalized/date';
+import { DateFormatter, today, type DateValue } from '@internationalized/date';
+const calendarModel = defineModel<DateValue>('calendarModel');
 
-defineProps<{
-	activeUntil?: boolean;
-}>();
-
-const calendarModel = defineModel<DateValue>('calendarModel', {
-	default(props) {
-		return props.activeUntil
-			? defaultDate.subtract({ days: 2 })
-			: defaultDate;
-	},
-});
-
-const df = new DateFormatter('de-DE', {
+const df = new DateFormatter('en', {
 	dateStyle: 'medium',
 });
-</script>
-
-<script lang="ts">
-let todaysDate = today('Europe/Berlin');
-
-const delta = getDayOfWeek(todaysDate, 'de-DE') - 5;
-
-if (delta) {
-	todaysDate = todaysDate.add({ days: (7 - delta) % 7 });
-}
-
-const defaultDate = todaysDate.add({ weeks: 2 });
 </script>
