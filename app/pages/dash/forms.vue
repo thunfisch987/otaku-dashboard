@@ -507,13 +507,33 @@
 										{{ submission.lastName }}
 									</p>
 									<p class="text-sm text-gray-500">
-										Helper:
+										Helper (self-declared):
 										{{ submission.isHelper ? 'Yes' : 'No' }}
 									</p>
 								</div>
-								<time class="text-xs text-gray-500">{{
-									formatDateTime(submission._creationTime)
-								}}</time>
+								<div class="flex items-start gap-2">
+									<UButton
+										color="error"
+										icon="i-lucide-trash-2"
+										size="xs"
+										variant="ghost"
+										class="shrink-0"
+										:aria-label="
+											'Remove the order from ' +
+											submission.firstName +
+											' ' +
+											submission.lastName
+										"
+										:disabled="pendingRemovalId !== null"
+										@click="
+											requestSubmissionRemoval(submission)
+										"
+										>Remove</UButton
+									>
+									<time class="text-xs text-gray-500">{{
+										formatDateTime(submission._creationTime)
+									}}</time>
+								</div>
 							</div>
 							<ul class="mt-3 space-y-1 text-sm">
 								<li
@@ -540,6 +560,57 @@
 				</section>
 			</div>
 		</UCard>
+
+		<UModal
+			:open="submissionToRemove !== null"
+			title="Remove preorder"
+			:ui="{ footer: 'justify-end' }"
+			@update:open="
+				(open: boolean) => {
+					if (!open) submissionToRemove = null;
+				}
+			"
+		>
+			<template #description>
+				<span>
+					This permanently removes the preorder from
+					<span class="font-medium"
+						>{{ submissionToRemove?.firstName }}
+						{{ submissionToRemove?.lastName }}</span
+					>
+					({{ removalTargetQuantity }}
+					items). Preparation totals are reduced accordingly. This
+					cannot be undone.
+				</span>
+			</template>
+			<template #footer>
+				<div class="flex flex-wrap justify-end gap-2">
+					<UButton
+						color="neutral"
+						label="Cancel"
+						@click="submissionToRemove = null"
+					/>
+					<UButton
+						color="error"
+						:loading="pendingRemovalId !== null"
+						:disabled="pendingRemovalId !== null"
+						label="Remove preorder"
+						@click="confirmSubmissionRemoval"
+					/>
+				</div>
+				<UAlert
+					v-if="removalError"
+					title="Could not remove the preorder"
+					:description="
+						removalError instanceof Error
+							? removalError.message
+							: 'Please try again.'
+					"
+					color="error"
+					icon="i-lucide-circle-alert"
+				/>
+			</template>
+		</UModal>
 	</main>
 </template>
 
@@ -1014,6 +1085,51 @@ const { data: preparationTotals, isPending: preparationPending } =
 	useConvexQuery(api.preorders.preparationTotals, reviewArgs, {
 		server: false,
 	});
+
+// Submission removal. The confirmation names the affected submission and
+// quantity; the backend keeps totals and counters consistent.
+type ReviewSubmission = {
+	_id: Id<'preorderSubmissions'>;
+	firstName: string;
+	lastName: string;
+	items: { quantity: number }[];
+};
+function submissionTotalQuantity(submission: ReviewSubmission) {
+	return submission.items.reduce((total, item) => total + item.quantity, 0);
+}
+const submissionToRemove = ref<ReviewSubmission | null>(null);
+const removalTargetQuantity = computed(() =>
+	submissionToRemove.value
+		? submissionTotalQuantity(submissionToRemove.value)
+		: 0,
+);
+const pendingRemovalId = ref<Id<'preorderSubmissions'> | null>(null);
+const { mutate: removeSubmission, error: removalError } = useConvexMutation(
+	api.preorders.removeSubmission,
+);
+function requestSubmissionRemoval(submission: ReviewSubmission) {
+	removalError.value = null;
+	submissionToRemove.value = submission;
+}
+async function confirmSubmissionRemoval() {
+	const submission = submissionToRemove.value;
+	if (!submission || pendingRemovalId.value !== null) return;
+	pendingRemovalId.value = submission._id;
+	removalError.value = null;
+	try {
+		await removeSubmission({ submissionId: submission._id });
+		submissionToRemove.value = null;
+		toast.add({
+			title: 'Preorder removed',
+			description: `Removed ${submission.firstName} ${submission.lastName} (${submissionTotalQuantity(submission)} items) from ${selectedForm.value?.name ?? 'the form'}.`,
+			color: 'success',
+		});
+	} catch {
+		// Keep the confirmation open so the operator can retry.
+	} finally {
+		pendingRemovalId.value = null;
+	}
+}
 
 const formatCurrency = (amount: number) =>
 	new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(

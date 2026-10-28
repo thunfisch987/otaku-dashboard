@@ -24,6 +24,13 @@ const MAX_QUANTITY_PER_LINE = 20;
 const MAX_TOTAL_QUANTITY = 300;
 const MAX_SUBMISSIONS_PER_FORM = 2_000;
 
+// Coarse per-client throttling on top of the per-form submission cap. A client
+// identifier is browser-supplied and spoofable, so this only protects against
+// accidental request loops and casual cap burning, not a determined attacker.
+const SUBMISSION_WINDOW_MS = 10 * 60 * 1000;
+const MAX_SUBMISSIONS_PER_CLIENT_WINDOW = 4;
+const MAX_CLIENT_ID_LENGTH = 64;
+
 const sectionValidator = preorderSectionValidator;
 
 const adminFormItemValidator = v.object({
@@ -101,6 +108,58 @@ function requireFiniteNumber(value: number, label: string): number {
 		throw new Error(`${label} must be a finite number`);
 	}
 	return value;
+}
+
+function requireClientId(value: string): string {
+	const clientId = value.trim();
+	if (!clientId || clientId.length > MAX_CLIENT_ID_LENGTH) {
+		throw new Error('This submission attempt is not valid');
+	}
+	return clientId;
+}
+
+/**
+ * Validate and advance the per-client submission window. Runs inside the
+ * submit transaction so the window increment rolls back together with the
+ * submission when the mutation fails; a validated retry with a used token
+ * never reaches this helper and does not consume the window.
+ */
+async function claimSubmissionWindow(
+	ctx: MutationCtx,
+	formId: Id<'preorderForms'>,
+	clientId: string,
+	now: number,
+): Promise<void> {
+	const windowDoc = await ctx.db
+		.query('preorderFormSubmissionWindows')
+		.withIndex('by_formId_and_clientId', (q) =>
+			q.eq('formId', formId).eq('clientId', clientId),
+		)
+		.unique();
+	if (!windowDoc) {
+		await ctx.db.insert('preorderFormSubmissionWindows', {
+			formId,
+			clientId,
+			windowStart: now,
+			submissionCount: 1,
+		});
+		return;
+	}
+	if (now - windowDoc.windowStart >= SUBMISSION_WINDOW_MS) {
+		await ctx.db.patch(windowDoc._id, {
+			windowStart: now,
+			submissionCount: 1,
+		});
+		return;
+	}
+	if (windowDoc.submissionCount >= MAX_SUBMISSIONS_PER_CLIENT_WINDOW) {
+		throw new Error(
+			'Too many orders were placed from this device recently. Please wait a few minutes before ordering again.',
+		);
+	}
+	await ctx.db.patch(windowDoc._id, {
+		submissionCount: windowDoc.submissionCount + 1,
+	});
 }
 
 function isFormOpen(
@@ -369,7 +428,9 @@ export const setActive = mutation({
 
 /**
  * Public form configuration. Deliberately returns regular product prices only:
- * no helper price, stock, sales or submissions are exposed.
+ * no helper price, stock, sales or submissions are exposed. When the form is
+ * closed or inactive the item data (names, prices, pictures) is withheld:
+ * inactive means inactive. Once closed, `submit` no longer accepts orders.
  */
 export const publicForm = query({
 	args: {
@@ -395,6 +456,21 @@ export const publicForm = query({
 			.first();
 		if (!form) {
 			return null;
+		}
+
+		// Closed or inactive forms disclose only their state, never items.
+		if (!isFormOpen(form, now)) {
+			return {
+				_id: form._id,
+				name: form.name,
+				eventDate: form.eventDate,
+				closeAt: form.closeAt,
+				isActive: form.isActive,
+				status: 'closed' as const,
+				includeFood: form.includeFood,
+				includeSnacks: form.includeSnacks,
+				items: [],
+			};
 		}
 
 		const configuredItems = await ctx.db
@@ -453,12 +529,14 @@ export const publicForm = query({
 
 /**
  * Unauthenticated preorder submission. Records the request only; it NEVER
- * reserves or deducts stock and never creates a sale.
+ * reserves or deducts stock and never creates a sale. Rate limiting is coarse:
+ * per (form, client identifier) window counters on top of the per-form cap.
  */
 export const submit = mutation({
 	args: {
 		slug: v.string(),
 		submissionToken: v.string(),
+		clientId: v.string(),
 		firstName: v.string(),
 		lastName: v.string(),
 		isHelper: v.boolean(),
@@ -489,6 +567,7 @@ export const submit = mutation({
 		if (submissionToken.length < 16 || submissionToken.length > 120) {
 			throw new Error('This submission attempt is not valid');
 		}
+		const clientId = requireClientId(args.clientId);
 
 		const firstName = requirePersonName(args.firstName, 'First name');
 		const lastName = requirePersonName(args.lastName, 'Last name');
@@ -625,6 +704,9 @@ export const submit = mutation({
 		}
 
 		const now = Date.now();
+		// Coarse abuse throttle: counted only on accepted submissions, inside
+		// the same transaction as their writes.
+		await claimSubmissionWindow(ctx, form._id, clientId, now);
 		const submissionId = await ctx.db.insert('preorderSubmissions', {
 			formId: form._id,
 			submissionToken,
@@ -719,6 +801,68 @@ export const listSubmissions = query({
 				})),
 			),
 		};
+	},
+});
+
+/**
+ * Operator-only removal of one submission (duplicate, correction request, or
+ * rate-limit abuse recovery). Decrements the preparation totals and the
+ * submission counter so the records stay reviewable and the per-form cap
+ * frees up. This does not touch sales, stock, or the submission windows.
+ */
+export const removeSubmission = mutation({
+	args: { submissionId: v.id('preorderSubmissions') },
+	returns: v.null(),
+	handler: async (ctx, args) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new Error('Not authenticated');
+		}
+
+		const submission = await ctx.db.get(args.submissionId);
+		if (!submission) {
+			// Already removed (e.g. a retry after a lost response); nothing to do.
+			return null;
+		}
+
+		const items = await ctx.db
+			.query('preorderSubmissionItems')
+			.withIndex('by_submissionId', (q) =>
+				q.eq('submissionId', args.submissionId),
+			)
+			.take(MAX_ORDER_LINES);
+
+		const now = Date.now();
+		for (const item of items) {
+			// Totals may hold multiple documents per product (see the summing
+			// comments on the read side); decrement the first match.
+			const totals = await ctx.db
+				.query('preorderFormTotals')
+				.withIndex('by_formId_and_productId', (q) =>
+					q.eq('formId', item.formId).eq('productId', item.productId),
+				)
+				.first();
+			if (totals) {
+				await ctx.db.patch(totals._id, {
+					quantity: Math.max(0, totals.quantity - item.quantity),
+					updatedAt: now,
+				});
+			}
+			await ctx.db.delete(item._id);
+		}
+
+		const stats = await ctx.db
+			.query('preorderFormStats')
+			.withIndex('by_formId', (q) => q.eq('formId', submission.formId))
+			.unique();
+		if (stats && stats.submissionCount > 0) {
+			await ctx.db.patch(stats._id, {
+				submissionCount: stats.submissionCount - 1,
+			});
+		}
+
+		await ctx.db.delete(args.submissionId);
+		return null;
 	},
 });
 
