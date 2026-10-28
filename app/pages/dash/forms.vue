@@ -468,6 +468,7 @@
 						/>
 						<UButton
 							variant="outline"
+							:loading="preparationRetrying"
 							@click="retryPreparationTotals"
 							>Retry preparation totals</UButton
 						>
@@ -505,7 +506,7 @@
 						Loading orders…
 					</div>
 					<div
-						v-else-if="submissionsError"
+						v-else-if="submissionsError && !submissions?.length"
 						class="space-y-2"
 					>
 						<UAlert
@@ -562,6 +563,24 @@
 								</li>
 							</ul>
 						</UCard>
+					</div>
+					<div
+						v-if="submissionsError && submissions?.length"
+						class="mt-3 space-y-2"
+					>
+						<UAlert
+							title="Additional orders could not be loaded"
+							description="An error occurred while loading more orders. The orders already loaded are kept."
+							color="error"
+							icon="i-lucide-circle-alert"
+						/>
+						<UButton
+							variant="outline"
+							:loading="loadingMoreSubmissions"
+							:disabled="loadingMoreSubmissions"
+							@click="loadMoreSubmissions"
+							>Retry loading more orders</UButton
+						>
 					</div>
 					<div
 						v-if="
@@ -1045,13 +1064,18 @@ const reviewArgs = computed(() =>
 );
 // Plain queries have no reset; changing the args object identity makes
 // the composable re-subscribe, where the tick enters the args computed
-// while the backend keeps receiving only the unchanged formId.
+// while the backend keeps receiving only the unchanged formId. This
+// relies on vue-convex re-subscribing when the args object identity
+// changes. If a future vue-convex version dedupes args instead, the
+// retry button must be reworked (e.g. a keyed local component).
 const preparationRetryTick = ref(0);
+const preparationRetrying = ref(false);
 const preparationArgs = computed(() => {
 	void preparationRetryTick.value;
 	return selectedFormId.value ? { formId: selectedFormId.value } : 'skip';
 });
 function retryPreparationTotals() {
+	preparationRetrying.value = true;
 	preparationRetryTick.value++;
 }
 const {
@@ -1071,6 +1095,9 @@ const {
 	error: preparationError,
 } = useConvexQuery(api.preorders.preparationTotals, preparationArgs, {
 	server: false,
+});
+watch([preparationTotals, preparationError, selectedFormId], () => {
+	preparationRetrying.value = false;
 });
 
 const formatCurrency = (amount: number) =>
