@@ -359,9 +359,9 @@
 				</h2>
 
 				<UAlert
-					v-if="duplicateOrderWarning"
+					v-if="duplicateOrderHint"
 					title="Is this a second order?"
-					description="An earlier submit attempt failed, but it may still have gone through. If you already see an 'Order received' confirmation, don't place this order again — placing it instead would create a duplicate. Submitting the unchanged order again is safe."
+					description="Your earlier attempt may still have gone through even though you saw an error. Submitting this order unchanged again is safe. If this changed order also goes through, it will be a second order — an organizer can remove the extra one."
 					color="warning"
 					icon="i-lucide-circle-alert"
 					variant="subtle"
@@ -497,8 +497,10 @@
 //   when the form is closed or the submission is invalid. Repeating the same
 //   token with the same submission is idempotent. `clientId` is an
 //   unauthenticated browser identifier used for coarse rate limiting only.
-// The optional close date is evaluated against the client clock (Convex
-// queries cannot read the wall clock); submit re-validates server-side.
+// The optional close date is evaluated against a timestamp fixed at page
+// load (Convex queries cannot read the wall clock); the locally ticking clock
+// only flips the UI state in this component. Submit re-validates the open
+// state against the server clock.
 // Nothing here reserves stock or creates sales; helpers are recorded only
 // as an operational flag for the POS.
 // ---------------------------------------------------------------------------
@@ -780,11 +782,17 @@ const submitted = ref<{
 const submissionAttempt = ref<{ signature: string; token: string } | null>(
 	null,
 );
-// Set when a submit attempt failed so a later, *edited* order can be flagged:
-// the failed attempt may still have completed server-side even though the
-// client saw an error, and a changed signature means idempotency no longer
-// covers the retry.
+// Set when a submit attempt failed so a later, *edited* order can be flagged.
 const lastFailedSignature = ref<string | null>(null);
+// Shows on the review step once a failed attempt exists and the order has
+// been edited since: the failed attempt may still have completed server-side
+// even though the client saw an error, and a changed signature means
+// idempotency no longer covers the retry.
+const duplicateOrderHint = computed(
+	() =>
+		lastFailedSignature.value !== null &&
+		currentOrderSignature.value !== lastFailedSignature.value,
+);
 
 const currentOrderSignature = computed(() =>
 	JSON.stringify({
@@ -802,28 +810,29 @@ const currentOrderSignature = computed(() =>
 	}),
 );
 
-const duplicateOrderWarning = computed(
-	() =>
-		lastFailedSignature.value !== null &&
-		currentOrderSignature.value !== lastFailedSignature.value,
-);
-
-// Coarse per-device identifier for the public rate limit on submit. It is
-// browser-supplied and never treated as an identity.
+// Per-device identifier for the public rate limit on submit. Storage is used
+// when available; in private-mode browsers where storage is consistently
+// blocked, one identifier is kept in memory for the whole page visit instead
+// of regenerating per submission. Never treated as an identity.
 const CLIENT_ID_STORAGE_KEY = 'otaku-preorder-client-id';
+let memoizedClientId: string | null = null;
 function readClientId(): string {
+	if (memoizedClientId) return memoizedClientId;
+	let clientId: string | null = null;
 	try {
-		const existing = window.localStorage.getItem(CLIENT_ID_STORAGE_KEY);
-		if (existing) return existing;
+		clientId = window.localStorage.getItem(CLIENT_ID_STORAGE_KEY);
 	} catch {
-		// Storage unavailable; a session-scoped identifier is used instead.
+		// Storage unavailable; fall through to generating an identifier.
 	}
-	const clientId = createRequestId();
-	try {
-		window.localStorage.setItem(CLIENT_ID_STORAGE_KEY, clientId);
-	} catch {
-		// Storage unavailable; the identifier is not persisted.
+	if (!clientId) {
+		clientId = createRequestId();
+		try {
+			window.localStorage.setItem(CLIENT_ID_STORAGE_KEY, clientId);
+		} catch {
+			// Storage unavailable; the identifier stays in memory only.
+		}
 	}
+	memoizedClientId = clientId;
 	return clientId;
 }
 

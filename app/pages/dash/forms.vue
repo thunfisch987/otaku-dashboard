@@ -506,7 +506,7 @@
 										{{ submission.firstName }}
 										{{ submission.lastName }}
 									</p>
-									<p class="text-sm text-gray-500">
+									<p class="text-sm text-muted">
 										Helper (self-declared):
 										{{ submission.isHelper ? 'Yes' : 'No' }}
 									</p>
@@ -564,40 +564,36 @@
 		<UModal
 			:open="submissionToRemove !== null"
 			title="Remove preorder"
-			:ui="{ footer: 'justify-end' }"
 			@update:open="
 				(open: boolean) => {
-					if (!open) submissionToRemove = null;
+					if (!open && pendingRemovalId === null)
+						submissionToRemove = null;
 				}
 			"
 		>
 			<template #description>
-				<span>
-					This permanently removes the preorder from
-					<span class="font-medium"
-						>{{ submissionToRemove?.firstName }}
-						{{ submissionToRemove?.lastName }}</span
-					>
-					({{ removalTargetQuantity }}
-					items). Preparation totals are reduced accordingly. This
-					cannot be undone.
-				</span>
-			</template>
-			<template #footer>
-				<div class="flex flex-wrap justify-end gap-2">
-					<UButton
-						color="neutral"
-						label="Cancel"
-						@click="submissionToRemove = null"
-					/>
-					<UButton
-						color="error"
-						:loading="pendingRemovalId !== null"
-						:disabled="pendingRemovalId !== null"
-						label="Remove preorder"
-						@click="confirmSubmissionRemoval"
-					/>
+				<div class="space-y-2">
+					<p>
+						This permanently removes the preorder from
+						<span class="font-medium"
+							>{{ submissionToRemove?.firstName }}
+							{{ submissionToRemove?.lastName }}</span
+						>
+						({{ quantityLabel(removalTargetQuantity) }}).
+						Preparation totals are reduced accordingly:
+					</p>
+					<ul class="list-disc pl-5">
+						<li
+							v-for="item in submissionToRemove?.items"
+							:key="item._id"
+						>
+							{{ item.productName }} × {{ item.quantity }}
+						</li>
+					</ul>
+					<p>This cannot be undone.</p>
 				</div>
+			</template>
+			<template #body>
 				<UAlert
 					v-if="removalError"
 					title="Could not remove the preorder"
@@ -609,6 +605,23 @@
 					color="error"
 					icon="i-lucide-circle-alert"
 				/>
+			</template>
+			<template #footer>
+				<div class="flex flex-wrap justify-end gap-2">
+					<UButton
+						color="neutral"
+						label="Cancel"
+						:disabled="pendingRemovalId !== null"
+						@click="submissionToRemove = null"
+					/>
+					<UButton
+						color="error"
+						:loading="pendingRemovalId !== null"
+						:disabled="pendingRemovalId !== null"
+						label="Remove preorder"
+						@click="confirmSubmissionRemoval"
+					/>
+				</div>
 			</template>
 		</UModal>
 	</main>
@@ -1086,18 +1099,25 @@ const { data: preparationTotals, isPending: preparationPending } =
 		server: false,
 	});
 
-// Submission removal. The confirmation names the affected submission and
-// quantity; the backend keeps totals and counters consistent.
+// Submission removal. The confirmation names the affected order, its items,
+// and quantities; the backend keeps totals and counters consistent.
 type ReviewSubmission = {
 	_id: Id<'preorderSubmissions'>;
 	firstName: string;
 	lastName: string;
-	items: { quantity: number }[];
+	items: {
+		_id: Id<'preorderSubmissionItems'>;
+		productName: string;
+		quantity: number;
+	}[];
 };
+function quantityLabel(count: number) {
+	return `${count} ${count === 1 ? 'item' : 'items'}`;
+}
+const submissionToRemove = ref<ReviewSubmission | null>(null);
 function submissionTotalQuantity(submission: ReviewSubmission) {
 	return submission.items.reduce((total, item) => total + item.quantity, 0);
 }
-const submissionToRemove = ref<ReviewSubmission | null>(null);
 const removalTargetQuantity = computed(() =>
 	submissionToRemove.value
 		? submissionTotalQuantity(submissionToRemove.value)
@@ -1121,7 +1141,7 @@ async function confirmSubmissionRemoval() {
 		submissionToRemove.value = null;
 		toast.add({
 			title: 'Preorder removed',
-			description: `Removed ${submission.firstName} ${submission.lastName} (${submissionTotalQuantity(submission)} items) from ${selectedForm.value?.name ?? 'the form'}.`,
+			description: `Removed ${submission.firstName} ${submission.lastName} (${quantityLabel(submissionTotalQuantity(submission))}) from ${selectedForm.value?.name ?? 'the form'}.`,
 			color: 'success',
 		});
 	} catch {
