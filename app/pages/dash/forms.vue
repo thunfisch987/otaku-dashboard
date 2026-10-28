@@ -2,7 +2,7 @@
 	<main class="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
 		<header>
 			<h1 class="text-3xl font-semibold">Preorder forms</h1>
-			<p class="mt-2 text-gray-500">
+			<p class="mt-2 text-muted">
 				Create event menus, share a public preorder link, and review
 				preparation totals.
 			</p>
@@ -109,14 +109,14 @@
 								</h3>
 								<p
 									v-if="section.key === 'onigiri'"
-									class="text-sm text-gray-500"
+									class="text-sm text-muted"
 								>
 									Onigiri is always included. Add at least one
 									product categorized as Onigiri.
 								</p>
 								<p
 									v-else
-									class="text-sm text-gray-500"
+									class="text-sm text-muted"
 								>
 									Only products categorized as
 									{{ section.label }} appear here.
@@ -197,7 +197,7 @@
 							<h3 class="font-semibold">
 								Create an inventory product
 							</h3>
-							<p class="text-sm text-gray-500">
+							<p class="text-sm text-muted">
 								Choose a menu category to add the product
 								directly to that preorder section.
 							</p>
@@ -308,7 +308,7 @@
 			>
 			<div
 				v-if="formsPending"
-				class="py-4 text-center text-gray-500"
+				class="py-4 text-center text-muted"
 			>
 				Loading forms…
 			</div>
@@ -331,7 +331,7 @@
 			</div>
 			<p
 				v-else-if="!forms?.length"
-				class="py-4 text-gray-500"
+				class="py-4 text-muted"
 			>
 				No preorder forms have been created yet.
 			</p>
@@ -361,10 +361,10 @@
 							>
 								{{ formStatus(form) }}
 							</UBadge>
-							<p class="text-sm text-gray-500">
+							<p class="text-sm text-muted">
 								Event: {{ formatDate(form.eventDate) }}
 							</p>
-							<p class="text-sm text-gray-500">
+							<p class="text-sm text-muted">
 								{{
 									form.closeAt === null
 										? 'No closing time'
@@ -452,7 +452,7 @@
 					<h3 class="mb-3 font-semibold">Preparation totals</h3>
 					<div
 						v-if="preparationPending"
-						class="text-sm text-gray-500"
+						class="text-sm text-muted"
 					>
 						Loading quantities…
 					</div>
@@ -475,7 +475,7 @@
 					</div>
 					<p
 						v-else-if="!preparationTotals?.length"
-						class="text-sm text-gray-500"
+						class="text-sm text-muted"
 					>
 						No items are configured for this form.
 					</p>
@@ -501,7 +501,7 @@
 					<h3 class="mb-3 font-semibold">Submitted orders</h3>
 					<div
 						v-if="submissionsPending"
-						class="text-sm text-gray-500"
+						class="text-sm text-muted"
 					>
 						Loading orders…
 					</div>
@@ -524,7 +524,7 @@
 					</div>
 					<p
 						v-else-if="!submissions?.length"
-						class="text-sm text-gray-500"
+						class="text-sm text-muted"
 					>
 						No preorders have been submitted yet.
 					</p>
@@ -569,7 +569,7 @@
 										"
 										>Remove</UButton
 									>
-									<time class="text-xs text-gray-500">{{
+									<time class="text-xs text-muted">{{
 										formatDateTime(submission._creationTime)
 									}}</time>
 								</div>

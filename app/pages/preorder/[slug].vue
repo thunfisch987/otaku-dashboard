@@ -3,7 +3,7 @@
 		<!-- Loading -->
 		<div
 			v-if="formIsPending"
-			class="py-12 text-center text-gray-500"
+			class="py-12 text-center text-muted"
 			role="status"
 		>
 			Loading preorder form…
@@ -17,7 +17,7 @@
 			<div class="flex flex-col items-center gap-3 py-4 text-center">
 				<UIcon
 					name="i-lucide-circle-check"
-					class="text-4xl text-green-500"
+					class="text-4xl text-success"
 				/>
 				<h2
 					id="preorder-success-heading"
@@ -27,11 +27,11 @@
 				>
 					Order received
 				</h2>
-				<p class="text-gray-500">
+				<p class="text-muted">
 					Thanks {{ submitted.firstName }}! Your preorder has been
 					saved.
 				</p>
-				<p class="text-sm text-gray-500">
+				<p class="text-sm text-muted">
 					Please pay in cash when picking up your order at the event.
 				</p>
 			</div>
@@ -46,11 +46,11 @@
 					:key="line.key"
 					class="flex items-center justify-between gap-4 px-4 py-2"
 				>
-					<span class="text-sm text-gray-700">
+					<span class="text-sm text-default">
 						<span class="font-medium">{{ line.name }}</span> ×
 						{{ line.quantity }}
 					</span>
-					<span class="text-sm tabular-nums text-gray-500">
+					<span class="text-sm tabular-nums text-muted">
 						{{ formatCurrency(line.lineTotal) }}
 					</span>
 				</li>
@@ -97,10 +97,10 @@
 			<div class="flex flex-col items-center gap-3 py-6 text-center">
 				<UIcon
 					name="i-lucide-file-question"
-					class="text-4xl text-gray-400"
+					class="text-4xl text-muted"
 				/>
 				<h2 class="text-xl font-semibold">Preorders are unavailable</h2>
-				<p class="text-gray-500">
+				<p class="text-muted">
 					This form is inactive, closed, or the link is invalid.
 				</p>
 			</div>
@@ -111,7 +111,7 @@
 			<div class="flex flex-col items-center gap-3 py-6 text-center">
 				<UIcon
 					name="i-lucide-lock"
-					class="text-4xl text-gray-400"
+					class="text-4xl text-muted"
 				/>
 				<h2
 					id="preorder-closed-heading"
@@ -121,7 +121,7 @@
 				>
 					Preorders are closed
 				</h2>
-				<p class="text-gray-500">
+				<p class="text-muted">
 					{{
 						closeNotice
 							? `The preorder window closed on ${closeNotice}.`
@@ -140,7 +140,7 @@
 				<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
 					<span
 						v-if="preorderForm.eventDate"
-						class="text-sm text-gray-500"
+						class="text-sm text-muted"
 					>
 						Event: {{ formatDate(preorderForm.eventDate) }}
 					</span>
@@ -242,7 +242,7 @@
 					/>
 				</UFormField>
 
-				<p class="text-sm text-gray-500">
+				<p class="text-sm text-muted">
 					We only need your name to find you on pickup day.
 				</p>
 			</section>
@@ -264,7 +264,7 @@
 
 				<div
 					v-if="currentSection.items.length === 0"
-					class="rounded-lg border p-4 text-center text-gray-500"
+					class="rounded-lg border p-4 text-center text-muted"
 				>
 					Nothing is offered in this section right now.
 				</div>
@@ -288,7 +288,7 @@
 								<p class="font-semibold">
 									{{ item.name }}
 								</p>
-								<p class="text-sm text-gray-500">
+								<p class="text-sm text-muted">
 									{{ formatCurrency(item.price) }} each
 								</p>
 							</div>
@@ -331,14 +331,14 @@
 						totalSelectedQuantity >= maxOrderTotal ||
 						selectedLineCount >= maxOrderLines
 					"
-					class="text-sm text-gray-500"
+					class="text-sm text-muted"
 					role="status"
 				>
 					The order limit has been reached. You can order up to
 					{{ maxOrderTotal }} items and {{ maxOrderLines }} different
 					products.
 				</p>
-				<p class="text-xs text-gray-500">
+				<p class="text-xs text-muted">
 					Prices are per item. Images may differ from the actual
 					dishes.
 				</p>
@@ -371,7 +371,7 @@
 
 				<div
 					v-if="selectedLines.length === 0"
-					class="rounded-lg border p-4 text-center text-gray-500"
+					class="rounded-lg border p-4 text-center text-muted"
 				>
 					You have not selected any items yet.
 				</div>
@@ -384,11 +384,11 @@
 						:key="line.key"
 						class="flex items-center justify-between gap-4 px-4 py-2"
 					>
-						<span class="text-sm text-gray-700">
+						<span class="text-sm text-default">
 							<span class="font-medium">{{ line.name }}</span>
 							× {{ line.quantity }}
 						</span>
-						<span class="text-sm tabular-nums text-gray-500">
+						<span class="text-sm tabular-nums text-muted">
 							{{ formatCurrency(line.lineTotal) }}
 						</span>
 					</li>
@@ -407,10 +407,10 @@
 						Ordered under:
 						<span class="font-medium">{{ fullName }}</span>
 					</p>
-					<p class="text-gray-500">
+					<p class="text-muted">
 						Helper: {{ isHelper ? 'Yes' : 'No' }}
 					</p>
-					<p class="text-gray-500">
+					<p class="text-muted">
 						Payment is only possible on-site in cash.
 					</p>
 				</div>
@@ -460,7 +460,7 @@
 			</div>
 			<p
 				v-if="currentStepKey === 'details' && !canLeaveStep"
-				class="mt-2 text-sm text-gray-500"
+				class="mt-2 text-sm text-muted"
 			>
 				Enter your first and last name and choose whether you are a
 				helper to continue.
@@ -469,13 +469,13 @@
 				v-else-if="
 					currentStepKey === 'review' && selectedLines.length === 0
 				"
-				class="mt-2 text-sm text-gray-500"
+				class="mt-2 text-sm text-muted"
 			>
 				Select at least one item to place an order.
 			</p>
 			<p
 				v-else-if="currentStepKey === 'review' && !confirmed"
-				class="mt-2 text-sm text-gray-500"
+				class="mt-2 text-sm text-muted"
 			>
 				Confirm the cash payment to place your order.
 			</p>

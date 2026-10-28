@@ -2,7 +2,7 @@
 	<div class="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
 		<div>
 			<h1 class="text-3xl font-semibold">Point of Sale</h1>
-			<p class="mt-2 text-gray-500">
+			<p class="mt-2 text-muted">
 				Add products to the cart, review the order, then complete
 				checkout.
 			</p>
@@ -12,7 +12,7 @@
 					:disabled="isCheckingOut"
 					label="Helper checkout"
 				/>
-				<p class="mt-1 text-sm text-gray-500">
+				<p class="mt-1 text-sm text-muted">
 					Products use their helper price when set; otherwise the
 					regular price applies.
 				</p>
@@ -125,11 +125,11 @@
 									isHelperCheckout &&
 									product.helperPrice === undefined
 								"
-								class="mt-1 block text-xs text-gray-500"
+								class="mt-1 block text-xs text-muted"
 							>
 								Regular price
 							</span>
-							<span class="mt-1 block text-sm text-gray-500">
+							<span class="mt-1 block text-sm text-muted">
 								{{ product.amount - (cart[product._id] ?? 0) }}
 								in stock
 							</span>
@@ -173,7 +173,7 @@
 
 				<div
 					v-if="cartItems.length === 0"
-					class="py-8 text-center text-gray-500"
+					class="py-8 text-center text-muted"
 				>
 					No products selected yet.
 				</div>
@@ -190,7 +190,7 @@
 							<p class="font-medium">
 								{{ item.product.productname }}
 							</p>
-							<p class="text-sm text-gray-500">
+							<p class="text-sm text-muted">
 								{{
 									formatCurrency(effectivePrice(item.product))
 								}}

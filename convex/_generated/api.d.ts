@@ -15,6 +15,7 @@ import type * as order from "../order.js";
 import type * as preorders from "../preorders.js";
 import type * as products from "../products.js";
 import type * as profilepics from "../profilepics.js";
+import type * as sharedConstants from "../sharedConstants.js";
 import type * as transactions from "../transactions.js";
 import type * as users from "../users.js";
 
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   preorders: typeof preorders;
   products: typeof products;
   profilepics: typeof profilepics;
+  sharedConstants: typeof sharedConstants;
   transactions: typeof transactions;
   users: typeof users;
 }>;
