@@ -11,6 +11,11 @@ Oxlint checks standalone JavaScript/TypeScript files and Nuxt ESLint checks
 Vue SFCs only, avoiding duplicate linting. Use `bun run lint:eslint` when a
 full Nuxt ESLint pass is required.
 
+Agent skills live in the project under `.agents/skills/` (one directory per
+skill, containing a `SKILL.md`). This location works for both Codex and
+OpenCode; do not add tool-specific skill folders such as `.claude/skills/`
+or `.opencode/skills/`.
+
 ## Project vision
 
 - This app supports events run by a non-profit youth organization.
@@ -38,6 +43,74 @@ full Nuxt ESLint pass is required.
 - Keep styling close to the built-in `@nuxt/ui` appearance. Prefer its
   component variants, design tokens, and defaults over bespoke CSS or heavy
   component overrides.
+
+## Design / UI guidelines (extends "UI conventions" above)
+
+- Make the flow obvious: clear next action, visible system state, and explicit
+  confirmation before committing stock/money. Especially `order/` checkout (show
+  items/qty/total/stock impact; disable the button while committing; a double-tap
+  must never create a second sale) and `dash/` reconciliation. Apply the same to
+  destructive actions (stock edits, deletions, reconciliation status changes):
+  confirmations must name the specific product and quantity affected.
+- Prefer simple systems; avoid decorative and architectural complexity. Keep
+  feature-specific UI local (e.g., `order/` product selection, `Inventory/`
+  display); extract a shared component only when genuinely reused. Small local
+  duplication in the POS grid is preferable to a premature abstraction.
+- Extend `@nuxt/ui` via variants, sizes, slots, and semantic design tokens
+  (`text-default`, `text-muted`, `bg-elevated`, `border-muted`) instead of
+  rebuilding controls, restyling raw Tailwind palette colors, or heavy overrides.
+  Read the generated theme files (`.nuxt/ui/<component>.ts`) for exact slot
+  names. The `nuxt-ui` skill in `.agents/skills/nuxt-ui/` documents component
+  selection (Modal vs Slideover, tables, dashboard layout) — consult it rather
+  than guessing component APIs.
+- Shared components own their appearance (`OtakuNav.vue`, `OtakuFooter.vue`);
+  pages own layout and composition (`index.vue`, `dash/`, `order/`, `preorder/`,
+  `privacy.vue`). The app shell lives in `app.vue`; there is no `app/layouts/`.
+- Prefer local Tailwind utility classes. Add global CSS only for app-wide rules
+  or unavoidable third-party styling.
+- Performance and honest states: no continuously repainting or decorative loop
+  animations (purposeful success/confirmation feedback stays allowed). Loading,
+  partial data, errors, and disabled states must say what is actually happening.
+  In `dash/`, loading ≠ empty ≠ zero: never render a "$0 / No sales" frame before
+  the query resolves, and never present partial paginated results as totals.
+- Know each surface's device: `preorder/[slug].vue` is a public page used on
+  phones (compact, narrow, larger text); `dash/` and `order/` are operator
+  surfaces used on tablets (generous touch targets). Review both, but don't
+  judge one against the other's sizing.
+- Assume flaky venue Wi-Fi: writes (especially checkout) need a retry path and
+  clear "connection lost, not committed" feedback — never optimistically show a
+  sale or stock change that didn't record.
+- CSV downloads are core deliverables. Sales export in `dash/transactions.vue`
+  (end-of-event money/stock reconciliation): consistent BOM/encoding, filename
+  `sales-YYYY-MM-DD.csv`, button disabled while generating. Stock export in
+  `Inventory/Table.vue` (list of stock, all/filtered/selected): same encoding
+  and UX standards, filename `stock-YYYY-MM-DD.csv`.
+- Never hardcode Tailwind palette colors (`text-gray-500`, `bg-gray-*`): they
+  break dark mode. Existing `text-gray-*` usages are pre-existing debt to replace
+  with semantic tokens when touched.
+- Accuracy tie-breaker: when design polish conflicts with accurate, reviewable
+  stock/money records, accuracy wins — call out the divergence instead of
+  silently choosing. No UI may gate features by role (see Project vision).
+
+### Deliberately not guidelines (do not import)
+
+The following habits from general style guides are intentionally rejected for
+this project. Treat them as standing decisions, not gaps in these guidelines:
+
+- Small local duplication beats premature abstraction — no "never duplicate
+  markup/classes" rule.
+- Custom CSS and animation are allowed for narrow, purposeful cases; only
+  decorative, continuously-repainting motion is off-limits.
+- Not everything must be reusable — the app is a focused event-operations tool.
+- Interaction is touch-first for tablet operators; keyboard shortcuts stay
+  optional and must never trap focus.
+
+## Agent communication
+
+- Before saying frontend work is done, state which relevant surfaces you
+  checked.
+- If a repository rule conflicts with the requested task, say so clearly and
+  get human approval before breaking it.
 
 <!-- convex-ai-start -->
 
