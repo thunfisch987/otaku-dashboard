@@ -128,6 +128,18 @@ const applicationTables = {
 		submissionCount: v.number(),
 	}).index('by_formId', ['formId']),
 
+	// Coarse abuse throttling for the unauthenticated submit endpoint: one
+	// sliding-reset window counter per (form, client identifier). Client
+	// identifiers come from the browser and are spoofable, so this only raises
+	// the bar against accidental loops or casual burning of the overall
+	// submission cap; the operator removal mutation remains the recovery path.
+	preorderFormSubmissionWindows: defineTable({
+		formId: v.id('preorderForms'),
+		clientId: v.string(),
+		windowStart: v.number(),
+		submissionCount: v.number(),
+	}).index('by_formId_and_clientId', ['formId', 'clientId']),
+
 	preorderSubmissionItems: defineTable({
 		formId: v.id('preorderForms'),
 		submissionId: v.id('preorderSubmissions'),

@@ -358,6 +358,16 @@
 					Review your order
 				</h2>
 
+				<UAlert
+					v-if="duplicateOrderHint"
+					title="Is this a second order?"
+					description="Your earlier attempt may still have gone through even though you saw an error. Submitting this order unchanged again is safe. If this changed order also goes through, it will be a second order — an organizer can remove the extra one."
+					color="warning"
+					icon="i-lucide-circle-alert"
+					variant="subtle"
+					role="status"
+				/>
+
 				<div
 					v-if="selectedLines.length === 0"
 					class="rounded-lg border p-4 text-center text-gray-500"
@@ -480,18 +490,25 @@
 //   { _id, name, eventDate, closeAt: number | null, isActive, includeFood,
 //     includeSnacks, items: [{ productId, section: 'onigiri' | 'food' |
 //     'snacks', productname, price, picture? }] } — items use ordinary product
-//     names/prices; helper prices never reach this page.
-// - `api.preorders.submit({ slug, submissionToken, firstName, lastName,
-//   isHelper, confirmed, items: [{ productId, quantity }] })` throws when the
-//   form is closed or the submission is invalid. Repeating the same token
-//   with the same submission is idempotent.
-// The optional close date is evaluated against the client clock (Convex
-// queries cannot read the wall clock); submit re-validates server-side.
+//     names/prices; helper prices never reach this page. Once the form is
+//     closed or inactive the server withholds all item data.
+// - `api.preorders.submit({ slug, submissionToken, clientId, firstName,
+//   lastName, isHelper, confirmed, items: [{ productId, quantity }] })` throws
+//   when the form is closed or the submission is invalid. Repeating the same
+//   token with the same submission is idempotent. `clientId` is an
+//   unauthenticated browser identifier used for coarse rate limiting only.
+// The optional close date is evaluated against a timestamp fixed at page
+// load (Convex queries cannot read the wall clock); the locally ticking clock
+// only flips the UI state in this component. Submit re-validates the open
+// state against the server clock.
 // Nothing here reserves stock or creates sales; helpers are recorded only
 // as an operational flag for the POS.
 // ---------------------------------------------------------------------------
 import { api } from '#convex/api';
 import { createRequestId } from '~/utils/requestId';
+
+// Public customer page: minimal layout, no operator shell or shortcuts.
+definePageMeta({ layout: 'public' });
 
 type PreorderSection = 'onigiri' | 'food' | 'snacks';
 
@@ -524,11 +541,12 @@ interface OrderLine {
 const route = useRoute();
 const slug = computed(() => String(route.params.slug ?? ''));
 
-// Supply a fresh timestamp so the server re-evaluates open/closed state
-// instead of relying on a cached wall-clock read.
-const now = ref(Date.now());
+// Supply a timestamp fixed at page load so the subscription stays stable
+// (a reactive clock would re-subscribe the whole form every tick). The server
+// re-validates the open state against its own clock on every submit.
+const mountedAt = Date.now();
 const formArgs = computed(() =>
-	slug.value ? { slug: slug.value, now: now.value } : 'skip',
+	slug.value ? { slug: slug.value, now: mountedAt } : 'skip',
 );
 const {
 	data: formData,
@@ -537,11 +555,13 @@ const {
 } = useConvexQuery(api.preorders.publicForm, formArgs, { server: false });
 
 const preorderForm = computed(() => formData.value ?? null);
-// Keep the clock ticking so a passing close date flips to the closed state.
+// Local clock only drives the closed-state flip in this component; it never
+// feeds the query arguments.
+const localNow = ref(Date.now());
 let nowTimer: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
 	nowTimer = setInterval(() => {
-		now.value = Date.now();
+		localNow.value = Date.now();
 	}, 30_000);
 });
 onBeforeUnmount(() => {
@@ -555,7 +575,7 @@ const isClosed = computed(() => {
 	return (
 		typeof form.closeAt === 'number' &&
 		form.closeAt > 0 &&
-		now.value >= form.closeAt
+		localNow.value >= form.closeAt
 	);
 });
 
@@ -565,7 +585,7 @@ const closeNotice = computed(() => {
 	return form?.isActive === true &&
 		typeof closeAt === 'number' &&
 		closeAt > 0 &&
-		closeAt <= now.value
+		closeAt <= localNow.value
 		? formatDateTime(closeAt)
 		: '';
 });
@@ -762,6 +782,59 @@ const submitted = ref<{
 const submissionAttempt = ref<{ signature: string; token: string } | null>(
 	null,
 );
+// Set when a submit attempt failed so a later, *edited* order can be flagged.
+const lastFailedSignature = ref<string | null>(null);
+// Shows on the review step once a failed attempt exists and the order has
+// been edited since: the failed attempt may still have completed server-side
+// even though the client saw an error, and a changed signature means
+// idempotency no longer covers the retry.
+const duplicateOrderHint = computed(
+	() =>
+		lastFailedSignature.value !== null &&
+		currentOrderSignature.value !== lastFailedSignature.value,
+);
+
+const currentOrderSignature = computed(() =>
+	JSON.stringify({
+		firstName: firstName.value.trim(),
+		lastName: lastName.value.trim(),
+		isHelper: isHelper.value,
+		items: selectedLines.value
+			.map((line) => ({
+				productId: line.productId,
+				quantity: line.quantity,
+			}))
+			.sort((a, b) =>
+				String(a.productId).localeCompare(String(b.productId)),
+			),
+	}),
+);
+
+// Per-device identifier for the public rate limit on submit. Storage is used
+// when available; in private-mode browsers where storage is consistently
+// blocked, one identifier is kept in memory for the whole page visit instead
+// of regenerating per submission. Never treated as an identity.
+const CLIENT_ID_STORAGE_KEY = 'otaku-preorder-client-id';
+let memoizedClientId: string | null = null;
+function readClientId(): string {
+	if (memoizedClientId) return memoizedClientId;
+	let clientId: string | null = null;
+	try {
+		clientId = window.localStorage.getItem(CLIENT_ID_STORAGE_KEY);
+	} catch {
+		// Storage unavailable; fall through to generating an identifier.
+	}
+	if (!clientId) {
+		clientId = createRequestId();
+		try {
+			window.localStorage.setItem(CLIENT_ID_STORAGE_KEY, clientId);
+		} catch {
+			// Storage unavailable; the identifier stays in memory only.
+		}
+	}
+	memoizedClientId = clientId;
+	return clientId;
+}
 
 const canSubmit = computed(
 	() =>
@@ -790,6 +863,14 @@ async function submitPreorder() {
 	if (!canSubmit.value) return;
 	isSubmitting.value = true;
 	submitError.value = '';
+	const signature = currentOrderSignature.value;
+	if (submissionAttempt.value?.signature !== signature) {
+		submissionAttempt.value = {
+			signature,
+			token: createRequestId(),
+		};
+	}
+	lastFailedSignature.value = null;
 	try {
 		const firstNameValue = firstName.value.trim();
 		const lastNameValue = lastName.value.trim();
@@ -797,23 +878,10 @@ async function submitPreorder() {
 			productId: line.productId,
 			quantity: line.quantity,
 		}));
-		const signature = JSON.stringify({
-			firstName: firstNameValue,
-			lastName: lastNameValue,
-			isHelper: isHelper.value,
-			items: [...orderItems].sort((a, b) =>
-				String(a.productId).localeCompare(String(b.productId)),
-			),
-		});
-		if (submissionAttempt.value?.signature !== signature) {
-			submissionAttempt.value = {
-				signature,
-				token: createRequestId(),
-			};
-		}
 		await submitOrder({
 			slug: slug.value,
 			submissionToken: submissionAttempt.value.token,
+			clientId: readClientId(),
 			firstName: firstNameValue,
 			lastName: lastNameValue,
 			isHelper: isHelper.value,
@@ -831,6 +899,7 @@ async function submitPreorder() {
 			error instanceof Error
 				? error.message
 				: 'Submitting failed. Please review your order and try again.';
+		lastFailedSignature.value = signature;
 	} finally {
 		isSubmitting.value = false;
 	}
@@ -840,6 +909,7 @@ function startNewOrder() {
 	submitted.value = null;
 	submissionAttempt.value = null;
 	submitError.value = '';
+	lastFailedSignature.value = null;
 	firstName.value = '';
 	lastName.value = '';
 	helperChoice.value = '';
@@ -875,5 +945,6 @@ useHead({
 			? `${preorderForm.value.name} — Preorder`
 			: 'Preorder',
 	),
+	meta: [{ name: 'robots', content: 'noindex, nofollow' }],
 });
 </script>
