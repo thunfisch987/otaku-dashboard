@@ -15,9 +15,7 @@ export function prepareEditForm(row: Row<ProductSchema>) {
 		row.original.helperPrice === undefined
 			? ''
 			: String(row.original.helperPrice);
-	editProductState.value.price = Intl.NumberFormat('de-DE').format(
-		row.original.price,
-	);
+	editProductState.value.price = row.original.price.toFixed(2);
 	editProductState.value.productname = row.original.productname;
 	editProductState.value.category = row.original.category;
 	editProductState.value.supplier = row.original.supplier;

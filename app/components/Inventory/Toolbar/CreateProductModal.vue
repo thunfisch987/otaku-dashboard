@@ -159,7 +159,7 @@ const maskOptions: MaskInputOptions = {
 	number: {
 		unsigned: true,
 		fraction: 2,
-		locale: 'de-DE',
+		locale: 'en-US',
 	},
 };
 
@@ -209,9 +209,7 @@ watch(
 		] as const,
 	([category, sharedPrice, sharedHelperPrice]) => {
 		if (category !== 'onigiri' || sharedPrice === undefined) return;
-		state.price = new Intl.NumberFormat('de-DE', {
-			minimumFractionDigits: 2,
-		}).format(sharedPrice);
+		state.price = sharedPrice.toFixed(2);
 		unmaskedCreatePriceValue.value = String(sharedPrice);
 		state.helperPrice =
 			sharedHelperPrice === undefined ? '' : String(sharedHelperPrice);
