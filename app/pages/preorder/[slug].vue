@@ -497,7 +497,7 @@ import {
 	MAX_ORDER_LINES,
 	MAX_QUANTITY_PER_LINE,
 	MAX_TOTAL_QUANTITY,
-} from '~~/convex/preorderLimits';
+} from '~~/convex/sharedConstants';
 
 type PreorderSection = 'onigiri' | 'food' | 'snacks';
 
@@ -684,7 +684,7 @@ const fullName = computed(() => {
 });
 
 // Quantities, keyed by section+product. Nothing touches inventory here.
-// Limits are shared with the backend (convex/preorderLimits.ts) so the UI
+// Limits are shared with the backend (convex/sharedConstants.ts) so the UI
 // can never drift from what the server actually enforces.
 const maxQuantity = MAX_QUANTITY_PER_LINE;
 const maxOrderLines = MAX_ORDER_LINES;

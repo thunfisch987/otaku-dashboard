@@ -94,12 +94,15 @@ export const checkout = mutation({
 			let helperPrice = product.helperPrice;
 			if (product.category === 'onigiri') {
 				if (!onigiriPricingLoaded) {
+					// .first() instead of .unique(): a stray duplicate pricing
+					// row must not throw mid-checkout; the shared-pricing save
+					// removes duplicates.
 					onigiriPricing = await ctx.db
 						.query('productCategoryPricing')
 						.withIndex('by_category', (q) =>
 							q.eq('category', 'onigiri'),
 						)
-						.unique();
+						.first();
 					onigiriPricingLoaded = true;
 				}
 				if (onigiriPricing) {

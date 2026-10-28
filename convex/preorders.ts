@@ -11,7 +11,7 @@ import {
 	MAX_ORDER_LINES,
 	MAX_QUANTITY_PER_LINE,
 	MAX_TOTAL_QUANTITY,
-} from './preorderLimits';
+} from './sharedConstants';
 
 const MAX_FORM_NAME_LENGTH = 120;
 const MAX_PERSON_NAME_LENGTH = 80;
@@ -24,7 +24,7 @@ const MAX_FORM_TOTALS = 400;
 
 // Submission bounds. These protect the unauthenticated endpoint from oversized
 // payloads; they are intentionally generous for a real event. The public page
-// reads the same values from ./preorderLimits so the two cannot drift.
+// reads the same values from ./sharedConstants so the two cannot drift.
 const MAX_SUBMISSIONS_PER_FORM = 2_000;
 
 const sectionValidator = preorderSectionValidator;

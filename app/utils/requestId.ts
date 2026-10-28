@@ -23,8 +23,8 @@ let fallbackCounter = 0;
  * Crypto-free fallback used on non-HTTPS venue LANs, where this token dedupes
  * submissions. Math.random alone can repeat across concurrently opened pages,
  * so mix in the current timestamp and a monotonic counter: the first six bytes
- * come from the clock, the next two from a per-page counter, and only the
- * remaining bytes from Math.random.
+ * come from the clock, the next two from a per-page counter, and the remaining
+ * eight from Math.random.
  */
 function fallbackRandomBytes(bytes: Uint8Array) {
 	fallbackCounter = (fallbackCounter + 1) % 0x1_0000;
