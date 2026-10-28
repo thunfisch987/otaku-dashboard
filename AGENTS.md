@@ -67,7 +67,9 @@ or `.opencode/skills/`.
   than guessing component APIs.
 - Shared components own their appearance (`OtakuNav.vue`, `OtakuFooter.vue`);
   pages own layout and composition (`index.vue`, `dash/`, `preorder/`,
-  `privacy.vue`). The app shell lives in `app.vue`; there is no `app/layouts/`.
+  `privacy.vue`). The shell in `app.vue` is the operator shell; public customer
+  pages (`preorder/`) must not render it — give them a minimal public layout,
+  via a route-dependent shell in `app.vue` or a separate `app/layouts/` entry.
 - Prefer local Tailwind utility classes. Add global CSS only for app-wide rules
   or unavoidable third-party styling.
 - Performance and honest states: no continuously repainting or decorative loop
@@ -93,6 +95,15 @@ or `.opencode/skills/`.
 - Accuracy tie-breaker: when design polish conflicts with accurate, reviewable
   stock/money records, accuracy wins — call out the divergence instead of
   silently choosing. No UI may gate features by role (see Project vision).
+
+### Pricing clarifications
+
+- Product and shared prices are stable once a preorder form has been created
+  for an event: operators do not change prices while a form is live. This is
+  why preorder submissions do not need price snapshots.
+- The shared Onigiri price defaults to €3.
+- Expected revenue per submission is deliberately not tracked; a future
+  addition may be an expected cost for supplies in preparation totals.
 
 ### Deliberately not guidelines (do not import)
 
