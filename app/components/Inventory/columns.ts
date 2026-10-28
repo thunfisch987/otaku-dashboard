@@ -84,7 +84,7 @@ export const columns: TableColumn<ProductSchema>[] = [
 		accessorKey: 'price',
 		header: ({ column }) => getSortHeader(column, 'Price'),
 		cell: ({ row }) =>
-			new Intl.NumberFormat('de-DE', {
+			new Intl.NumberFormat('en', {
 				style: 'currency',
 				currency: 'EUR',
 			}).format(Number.parseFloat(row.getValue('price'))),
@@ -97,7 +97,7 @@ export const columns: TableColumn<ProductSchema>[] = [
 			const price = row.original.helperPrice;
 			return price === undefined
 				? '—'
-				: new Intl.NumberFormat('de-DE', {
+				: new Intl.NumberFormat('en', {
 						style: 'currency',
 						currency: 'EUR',
 					}).format(price);
@@ -162,10 +162,14 @@ export const columns: TableColumn<ProductSchema>[] = [
 ];
 
 function productCategoryLabel(category: ProductSchema['category']) {
-	return {
+	const labels: Record<
+		Exclude<ProductSchema['category'], undefined>,
+		string
+	> = {
 		onigiri: 'Onigiri',
 		food: 'Food',
 		snacks: 'Snacks',
 		other: 'Other',
-	}[category];
+	};
+	return (category && labels[category]) ?? '—';
 }

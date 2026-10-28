@@ -5,15 +5,26 @@ import {
 	paginationResultValidator,
 } from 'convex/server';
 import { v } from 'convex/values';
+import type { Doc } from './_generated/dataModel';
 import schema, { productCategoryValidator } from './schema';
 
 type ProductContext = QueryCtx | MutationCtx;
 
+function requireFiniteNumberArg(value: number) {
+	if (!Number.isFinite(value)) {
+		throw new Error('Current time must be a finite number');
+	}
+	return value;
+}
+
 async function readOnigiriPricing(ctx: ProductContext) {
+	// .first() instead of .unique(): a stray duplicate pricing row (from an
+	// import, migration or manual repair) must not break every read. The
+	// update mutation removes duplicates, so the row it returns is kept.
 	return await ctx.db
 		.query('productCategoryPricing')
 		.withIndex('by_category', (q) => q.eq('category', 'onigiri'))
-		.unique();
+		.first();
 }
 
 function applyOnigiriPricing<
@@ -81,6 +92,46 @@ export const getOnigiriPricing = query({
 	},
 });
 
+/** How much a shared Onigiri price change would affect, shown before saving. */
+export const getOnigiriPricingImpact = query({
+	args: { now: v.number() },
+	returns: v.object({
+		onigiriProductCount: v.number(),
+		activeFormCount: v.number(),
+		countsTruncated: v.boolean(),
+	}),
+	handler: async (ctx, args) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new Error('Not authenticated');
+		}
+		requireFiniteNumberArg(args.now);
+
+		// The operator tables are small (a single event's inventory), so a
+		// bounded scan is exact in practice. When a rescan hits the bound the
+		// counts are floors, reported to the client so it can say "at least".
+		const BOUND = 2000;
+		const products = await ctx.db.query('products').take(BOUND);
+		const onigiriProductCount = products.filter(
+			(product) => product.category === 'onigiri',
+		).length;
+		const forms = await ctx.db.query('preorderForms').take(BOUND);
+		// Forms currently accepting orders (marked active and not past their
+		// close time); the client passes its clock so no wall-clock read is
+		// needed here. Onigiri-section items of these forms use the shared
+		// price wherever the product is still categorized as onigiri.
+		const activeFormCount = forms.filter(
+			(form) =>
+				form.isActive &&
+				(form.closeAt === null || form.closeAt > args.now),
+		).length;
+		const countsTruncated =
+			products.length === BOUND || forms.length === BOUND;
+
+		return { onigiriProductCount, activeFormCount, countsTruncated };
+	},
+});
+
 /** Update the shared regular/helper prices for all Onigiri products. */
 export const updateOnigiriPricing = mutation({
 	args: {
@@ -93,8 +144,12 @@ export const updateOnigiriPricing = mutation({
 		if (!identity) {
 			throw new Error('Not authenticated');
 		}
-		if (!Number.isFinite(args.price) || args.price < 0) {
-			throw new Error('Price must be a finite non-negative number');
+		if (!Number.isFinite(args.price) || args.price <= 0) {
+			throw new Error(
+				'Onigiri regular price must be a number above 0. ' +
+					'The save was rejected and every Onigiri product keeps its ' +
+					'current price.',
+			);
 		}
 		if (
 			args.helperPrice !== null &&
@@ -110,7 +165,17 @@ export const updateOnigiriPricing = mutation({
 			);
 		}
 
-		const pricing = await readOnigiriPricing(ctx);
+		// A duplicate pricing row would make .unique() reads throw.
+		// .first() keeps reads working; saving removes the extra rows so the
+		// table self-heals towards one canonical row.
+		const pricingRows = await ctx.db
+			.query('productCategoryPricing')
+			.withIndex('by_category', (q) => q.eq('category', 'onigiri'))
+			.take(100);
+		const pricing = pricingRows[0] ?? null;
+		for (const duplicate of pricingRows.slice(1)) {
+			await ctx.db.delete(duplicate._id);
+		}
 		const updatedAt = Date.now();
 		if (pricing) {
 			await ctx.db.patch(pricing._id, {
@@ -171,24 +236,43 @@ export const create = mutation({
 		const category = args.category ?? 'other';
 		let price = args.price;
 		let helperPrice = args.helperPrice;
+		let onigiriPricing: Doc<'productCategoryPricing'> | null = null;
 		if (category === 'onigiri') {
-			let pricing = await readOnigiriPricing(ctx);
-			if (!pricing) {
-				const pricingId = await ctx.db.insert(
-					'productCategoryPricing',
-					{
-						category: 'onigiri',
-						price,
-						...(helperPrice === undefined ? {} : { helperPrice }),
-						updatedAt: now,
-					},
+			onigiriPricing = await readOnigiriPricing(ctx);
+			if (onigiriPricing) {
+				if (onigiriPricing.price <= 0) {
+					// A corrupt or legacy zero-price row would zero every
+					// onigiri product at POS.
+					throw new Error(
+						'The shared Onigiri regular price is not above 0. ' +
+							'Fix the Shared Onigiri prices in Inventory ' +
+							'before creating an Onigiri product.',
+					);
+				}
+				// Shared pricing wins for the regular price; conflicting
+				// helper-price input is rejected, never applied globally or
+				// silently discarded.
+				if (
+					args.helperPrice !== undefined &&
+					args.helperPrice !== onigiriPricing.helperPrice
+				) {
+					throw new Error(
+						'Onigiri prices are shared by every Onigiri ' +
+							'product and currently exist. Change the helper ' +
+							'price in the Shared Onigiri prices card in ' +
+							'Inventory; the product was not created.',
+					);
+				}
+				price = onigiriPricing.price;
+				helperPrice = onigiriPricing.helperPrice;
+			} else if (price <= 0) {
+				// The first onigiri product seeds the shared pricing row; a
+				// zero regular price would zero every future onigiri product.
+				throw new Error(
+					'Onigiri regular price must be a number above 0. ' +
+						'The product was not created.',
 				);
-				pricing = await ctx.db.get(pricingId);
 			}
-			if (!pricing)
-				throw new Error('Could not initialize Onigiri pricing');
-			price = pricing.price;
-			helperPrice = pricing.helperPrice;
 		}
 		if (helperPrice !== undefined && helperPrice > price) {
 			throw new Error(
@@ -196,6 +280,15 @@ export const create = mutation({
 			);
 		}
 		const { helperPrice: _inputHelperPrice, ...productFields } = args;
+		if (category === 'onigiri' && !onigiriPricing) {
+			// Seed the shared pricing row from the operator's input.
+			await ctx.db.insert('productCategoryPricing', {
+				category: 'onigiri',
+				price,
+				...(helperPrice === undefined ? {} : { helperPrice }),
+				updatedAt: now,
+			});
+		}
 		return await ctx.db.insert('products', {
 			...productFields,
 			category,
@@ -269,24 +362,55 @@ export const update = mutation({
 				? undefined
 				: (updates.helperPrice ?? effectiveCurrentHelperPrice);
 
+		let onigiriPricing: Doc<'productCategoryPricing'> | null = null;
 		if (category === 'onigiri') {
-			let pricing = await readOnigiriPricing(ctx);
-			if (!pricing) {
-				const pricingId = await ctx.db.insert(
-					'productCategoryPricing',
-					{
-						category: 'onigiri',
-						price,
-						...(helperPrice === undefined ? {} : { helperPrice }),
-						updatedAt: Date.now(),
-					},
+			// Reuse the read made for the effective current values when the
+			// product was already onigiri; only a newly-onigiri product needs
+			// a fresh read.
+			onigiriPricing =
+				existingProduct.category === 'onigiri'
+					? existingPricing
+					: await readOnigiriPricing(ctx);
+			if (onigiriPricing) {
+				if (onigiriPricing.price <= 0) {
+					// A corrupt or legacy zero-price row would zero every
+					// onigiri product at POS.
+					throw new Error(
+						'The shared Onigiri regular price is not above 0. ' +
+							'Fix the Shared Onigiri prices in Inventory ' +
+							'before changing an Onigiri product.',
+					);
+				}
+				// Shared pricing wins for the regular price; conflicting
+				// helper-price input is rejected, never applied globally or
+				// silently discarded.
+				if (updates.helperPrice !== undefined) {
+					const entered =
+						updates.helperPrice === null
+							? undefined
+							: updates.helperPrice;
+					if (entered !== onigiriPricing.helperPrice) {
+						throw new Error(
+							'Onigiri prices are shared by every Onigiri ' +
+								'product and currently exist. Change the ' +
+								'helper price in the Shared Onigiri prices ' +
+								'card in Inventory; the product was not ' +
+								'changed.',
+						);
+					}
+					helperPrice = entered;
+				} else {
+					helperPrice = onigiriPricing.helperPrice;
+				}
+				price = onigiriPricing.price;
+			} else if (price <= 0) {
+				// This update would seed the shared pricing row; a zero
+				// regular price would zero every onigiri product.
+				throw new Error(
+					'Onigiri regular price must be a number above 0. ' +
+						'The product was not changed.',
 				);
-				pricing = await ctx.db.get(pricingId);
 			}
-			if (!pricing)
-				throw new Error('Could not initialize Onigiri pricing');
-			price = pricing.price;
-			helperPrice = pricing.helperPrice;
 		}
 
 		if (price < 0 || !Number.isFinite(price)) {
@@ -304,6 +428,16 @@ export const update = mutation({
 			throw new Error(
 				'Helper price cannot be higher than the regular price',
 			);
+		}
+
+		if (category === 'onigiri' && !onigiriPricing) {
+			// Seed the shared pricing row from this update.
+			await ctx.db.insert('productCategoryPricing', {
+				category: 'onigiri',
+				price,
+				...(helperPrice === undefined ? {} : { helperPrice }),
+				updatedAt: Date.now(),
+			});
 		}
 
 		const productUpdates: Record<string, unknown> = {};
