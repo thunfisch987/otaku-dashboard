@@ -133,8 +133,11 @@
 									variant="subtle"
 									class="gap-2 py-1.5"
 								>
-									{{ item.productname }} ·
-									{{ formatCurrency(item.price) }}
+									{{ item.productname }}
+									<template v-if="item.price !== undefined">
+										·
+										{{ formatCurrency(item.price) }}
+									</template>
 									<UButton
 										size="xs"
 										color="neutral"
@@ -170,7 +173,9 @@
 						</section>
 					</div>
 					<div
-						v-if="!productsDone"
+						v-if="
+							!productsDone && !productsPending && !productsError
+						"
 						class="flex justify-center"
 					>
 						<UButton
@@ -414,7 +419,7 @@
 				</UCard>
 			</div>
 			<div
-				v-if="!formsDone"
+				v-if="!formsDone && !formsPending && !formsError"
 				class="mt-4 flex justify-center"
 			>
 				<UButton
@@ -451,6 +456,22 @@
 					>
 						Loading quantities…
 					</div>
+					<div
+						v-else-if="preparationError"
+						class="space-y-2"
+					>
+						<UAlert
+							title="Preparation totals could not be loaded"
+							description="Retry to load quantities for this form."
+							color="error"
+							icon="i-lucide-circle-alert"
+						/>
+						<UButton
+							variant="outline"
+							@click="retryPreparationTotals"
+							>Retry preparation totals</UButton
+						>
+					</div>
 					<p
 						v-else-if="!preparationTotals?.length"
 						class="text-sm text-gray-500"
@@ -482,6 +503,23 @@
 						class="text-sm text-gray-500"
 					>
 						Loading orders…
+					</div>
+					<div
+						v-else-if="submissionsError"
+						class="space-y-2"
+					>
+						<UAlert
+							title="Submitted orders could not be loaded"
+							description="Retry to load the preorder submissions for this form."
+							color="error"
+							icon="i-lucide-circle-alert"
+						/>
+						<UButton
+							variant="outline"
+							:disabled="submissionsPending"
+							@click="resetSubmissionsQuery"
+							>Retry submitted orders</UButton
+						>
 					</div>
 					<p
 						v-else-if="!submissions?.length"
@@ -526,7 +564,11 @@
 						</UCard>
 					</div>
 					<div
-						v-if="!submissionsDone"
+						v-if="
+							!submissionsDone &&
+							!submissionsPending &&
+							!submissionsError
+						"
 						class="mt-3"
 					>
 						<UButton
@@ -685,7 +727,7 @@ function itemsFor(section: Section) {
 				...item,
 				productname:
 					product?.productname ?? 'Product no longer available',
-				price: product?.price ?? 0,
+				price: product?.price,
 			};
 		});
 }
@@ -1001,19 +1043,35 @@ function selectForm(formId: Id<'preorderForms'>) {
 const reviewArgs = computed(() =>
 	selectedFormId.value ? { formId: selectedFormId.value } : 'skip',
 );
+// Plain queries have no reset; changing the args object identity makes
+// the composable re-subscribe, where the tick enters the args computed
+// while the backend keeps receiving only the unchanged formId.
+const preparationRetryTick = ref(0);
+const preparationArgs = computed(() => {
+	void preparationRetryTick.value;
+	return selectedFormId.value ? { formId: selectedFormId.value } : 'skip';
+});
+function retryPreparationTotals() {
+	preparationRetryTick.value++;
+}
 const {
 	data: submissions,
 	isPending: submissionsPending,
 	isDone: submissionsDone,
 	isLoadingMore: loadingMoreSubmissions,
 	loadMore: loadMoreSubmissions,
+	error: submissionsError,
+	reset: resetSubmissionsQuery,
 } = useConvexPaginatedQuery(api.preorders.listSubmissions, reviewArgs, {
 	numItems: 25,
 });
-const { data: preparationTotals, isPending: preparationPending } =
-	useConvexQuery(api.preorders.preparationTotals, reviewArgs, {
-		server: false,
-	});
+const {
+	data: preparationTotals,
+	isPending: preparationPending,
+	error: preparationError,
+} = useConvexQuery(api.preorders.preparationTotals, preparationArgs, {
+	server: false,
+});
 
 const formatCurrency = (amount: number) =>
 	new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(
