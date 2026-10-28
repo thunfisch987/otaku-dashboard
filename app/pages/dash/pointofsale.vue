@@ -29,9 +29,23 @@
 		<UAlert
 			v-else-if="isCheckingOut && !convexConnected"
 			title="Connection lost"
-			description="The checkout has not been confirmed yet. It will be sent automatically when the connection returns — keep this page open."
+			description="The checkout has not been confirmed yet. It will be sent automatically when the connection returns — keep this page open. If the connection does not come back, reloading is safe: rebuilding the same cart and completing checkout again cannot create a duplicate sale."
 			color="warning"
 			icon="i-lucide-wifi-off"
+		/>
+		<UAlert
+			v-if="unresolvedCheckout"
+			title="Earlier checkout unconfirmed"
+			description="A checkout attempt was interrupted before its result arrived — it may or may not have been recorded. Rebuilding the exact same cart and completing checkout again resolves it safely; a different cart starts a new sale. Check the sales records to confirm what was recorded."
+			color="warning"
+			icon="i-lucide-triangle-alert"
+		/>
+		<UAlert
+			v-if="tokenStorageAvailable === false"
+			title="Retry protection unavailable"
+			description="This browser is not keeping the checkout retry token, so reloading during a checkout could record a sale twice. Avoid reloading until checkout is confirmed."
+			color="warning"
+			icon="i-lucide-shield-alert"
 		/>
 		<Transition
 			enter-active-class="transition duration-200 ease-out"
@@ -188,10 +202,19 @@
 									)
 								}}
 							</p>
-							<p class="text-sm text-muted">
+							<p
+								v-if="item.quantity <= item.product.amount"
+								class="text-sm text-muted"
+							>
 								Leaves
 								{{ item.product.amount - item.quantity }}
 								in stock after checkout
+							</p>
+							<p
+								v-else
+								class="text-sm text-warning"
+							>
+								Not enough stock left for this quantity
 							</p>
 						</div>
 						<div class="flex shrink-0 items-center gap-2">
@@ -279,6 +302,9 @@ import type { Id } from '~~/convex/_generated/dataModel';
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
 	useAppConvexAuth();
 const connection = useConvexConnectionState();
+// Assume connected while the state is unknown: vue-convex defaults its own
+// helper to false, which would show a false "Connection lost" warning before
+// the client has ever subscribed.
 const convexConnected = computed(
 	() => connection.state.value?.isWebSocketConnected ?? true,
 );
@@ -330,6 +356,7 @@ function addToCart(id: Id<'products'>) {
 	const product = availableProducts.value.find((item) => item._id === id);
 	if (!product || (cart[id] ?? 0) >= product.amount) return;
 	cart[id] = (cart[id] ?? 0) + 1;
+	checkoutErrorTitle.value = '';
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
@@ -338,6 +365,7 @@ function removeFromCart(id: Id<'products'>) {
 	const quantity = cart[id] ?? 0;
 	if (quantity <= 1) cart[id] = 0;
 	else cart[id] = quantity - 1;
+	checkoutErrorTitle.value = '';
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
@@ -345,6 +373,7 @@ function removeFromCart(id: Id<'products'>) {
 function clearCart() {
 	for (const id of Object.keys(cart)) cart[id] = 0;
 	isHelperCheckout.value = false;
+	checkoutErrorTitle.value = '';
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
@@ -392,17 +421,19 @@ function readStoredCheckoutToken(): StoredCheckoutToken | null {
 	}
 }
 
-function writeStoredCheckoutToken(token: StoredCheckoutToken) {
-	if (!import.meta.client) return;
+function writeStoredCheckoutToken(token: StoredCheckoutToken): boolean {
+	if (!import.meta.client) return false;
 	try {
 		sessionStorage.setItem(
 			CHECKOUT_TOKEN_STORAGE_KEY,
 			JSON.stringify(token),
 		);
+		return true;
 	} catch {
 		// sessionStorage can be unavailable (e.g. strict privacy settings).
 		// Checkout still works; only reload protection for an interrupted
-		// checkout is lost.
+		// checkout is lost — surfaced to the operator via an alert.
+		return false;
 	}
 }
 
@@ -424,24 +455,44 @@ function describeCheckoutError(error: unknown): {
 	// rejection aborts the whole transaction, so nothing was recorded.
 	const message = error instanceof Error ? error.message : String(error);
 	const reason = /Uncaught Error: ([^\n]+)/.exec(message)?.[1];
-	if (reason !== undefined) {
+	if (reason !== undefined || message.includes('[CONVEX ')) {
 		return {
 			title: 'Checkout rejected — nothing was recorded',
-			message: `${reason}. The cart was not changed.`,
+			message: `${reason ?? 'The server rejected the checkout'}. The cart was not changed.`,
 		};
 	}
+	// Anything else cannot be attributed to the server: do not claim either
+	// outcome.
 	return {
-		title: 'Connection lost — the sale may or may not be recorded',
+		title: 'Checkout unconfirmed — the sale may or may not be recorded',
 		message:
-			'The connection was interrupted before the checkout result arrived. Do not change the cart: completing checkout again with the same cart is safe — if the sale was already recorded, it is not duplicated.',
+			'The checkout result did not arrive. Do not change the cart: completing checkout again with the same cart is safe — if the sale was already recorded, it is not duplicated.',
 	};
 }
+
+// Mirrors the checkout token stored in sessionStorage (which is not reactive)
+// so the UI can warn whenever a stored token is no longer covered by the
+// current cart — e.g. after a reload with an empty cart, or after the cart
+// was changed following an ambiguous failure.
+const tokenStorageAvailable = ref<boolean | null>(null);
+const storedCheckoutSignature = ref<string | null>(null);
+
+const unresolvedCheckout = computed(
+	() =>
+		storedCheckoutSignature.value !== null &&
+		storedCheckoutSignature.value !== cartSignature.value,
+);
+
+onMounted(() => {
+	const stored = readStoredCheckoutToken();
+	storedCheckoutSignature.value = stored ? stored.signature : null;
+});
 
 async function completeCheckout() {
 	if (isCheckingOut.value || cartItems.value.length === 0) return;
 	isCheckingOut.value = true;
-	checkoutError.value = '';
 	checkoutErrorTitle.value = '';
+	checkoutError.value = '';
 	checkoutSuccess.value = '';
 	const signature = cartSignature.value;
 	const stored = readStoredCheckoutToken();
@@ -451,7 +502,13 @@ async function completeCheckout() {
 			: createRequestId();
 	// Persist the token before the request so a page reload during the
 	// checkout keeps the retry idempotent.
-	writeStoredCheckoutToken({ signature, checkoutId });
+	if (writeStoredCheckoutToken({ signature, checkoutId })) {
+		tokenStorageAvailable.value = true;
+		storedCheckoutSignature.value = signature;
+	} else {
+		tokenStorageAvailable.value = false;
+		storedCheckoutSignature.value = null;
+	}
 	try {
 		const result = await checkout({
 			checkoutId,
@@ -463,6 +520,7 @@ async function completeCheckout() {
 		});
 		clearCart();
 		clearStoredCheckoutToken();
+		storedCheckoutSignature.value = null;
 		// Assigned last so nothing cleared above can hide the confirmation.
 		checkoutSuccess.value = `Checkout complete. Sale total: ${formatCurrency(result.total)}${result.duplicate ? ' (already recorded)' : ''}.`;
 	} catch (error) {
