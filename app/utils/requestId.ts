@@ -9,12 +9,33 @@ export function createRequestId() {
 	if (typeof webCrypto?.getRandomValues === 'function') {
 		webCrypto.getRandomValues(bytes);
 	} else {
-		for (let index = 0; index < bytes.length; index += 1) {
-			bytes[index] = Math.floor(Math.random() * 256);
-		}
+		fallbackRandomBytes(bytes);
 	}
 
 	return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join(
 		'',
 	);
+}
+
+let fallbackCounter = 0;
+
+/**
+ * Crypto-free fallback used on non-HTTPS venue LANs, where this token dedupes
+ * submissions. Math.random alone can repeat across concurrently opened pages,
+ * so mix in the current timestamp and a monotonic counter: the first six bytes
+ * come from the clock, the next two from a per-page counter, and only the
+ * remaining bytes from Math.random.
+ */
+function fallbackRandomBytes(bytes: Uint8Array) {
+	fallbackCounter = (fallbackCounter + 1) % 0x1_0000;
+	let timestamp = Date.now();
+	for (let index = 5; index >= 0; index -= 1) {
+		bytes[index] = timestamp % 256;
+		timestamp = Math.floor(timestamp / 256);
+	}
+	bytes[6] = Math.floor(fallbackCounter / 256) % 256;
+	bytes[7] = fallbackCounter % 256;
+	for (let index = 8; index < bytes.length; index += 1) {
+		bytes[index] = Math.floor(Math.random() * 256);
+	}
 }

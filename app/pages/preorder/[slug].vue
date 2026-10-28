@@ -334,8 +334,9 @@
 					class="text-sm text-gray-500"
 					role="status"
 				>
-					The order limit has been reached. You can order up to 300
-					items and 100 different products.
+					The order limit has been reached. You can order up to
+					{{ maxOrderTotal }} items and {{ maxOrderLines }} different
+					products.
 				</p>
 				<p class="text-xs text-gray-500">
 					Prices are per item. Images may differ from the actual
@@ -492,6 +493,11 @@
 // ---------------------------------------------------------------------------
 import { api } from '#convex/api';
 import { createRequestId } from '~/utils/requestId';
+import {
+	MAX_ORDER_LINES,
+	MAX_QUANTITY_PER_LINE,
+	MAX_TOTAL_QUANTITY,
+} from '~~/convex/preorderLimits';
 
 type PreorderSection = 'onigiri' | 'food' | 'snacks';
 
@@ -678,9 +684,11 @@ const fullName = computed(() => {
 });
 
 // Quantities, keyed by section+product. Nothing touches inventory here.
-const maxQuantity = 20;
-const maxOrderLines = 100;
-const maxOrderTotal = 300;
+// Limits are shared with the backend (convex/preorderLimits.ts) so the UI
+// can never drift from what the server actually enforces.
+const maxQuantity = MAX_QUANTITY_PER_LINE;
+const maxOrderLines = MAX_ORDER_LINES;
+const maxOrderTotal = MAX_TOTAL_QUANTITY;
 const quantities = reactive<Record<string, number>>({});
 
 const totalSelectedQuantity = computed(() =>

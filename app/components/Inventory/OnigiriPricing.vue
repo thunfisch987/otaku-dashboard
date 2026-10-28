@@ -32,11 +32,12 @@
 				<UFormField
 					label="Regular price (€)"
 					required
+					hint="Defaults to €3.00 when left empty"
 				>
 					<UInput
 						v-model="state.price"
 						type="number"
-						min="0"
+						min="0.01"
 						step="0.01"
 					/>
 				</UFormField>
@@ -60,6 +61,33 @@
 					color="error"
 					icon="i-lucide-circle-alert"
 				/>
+				<div
+					v-if="impactPending || impactError || impactStatement"
+					class="rounded-lg border p-3 text-sm sm:col-span-2"
+					role="status"
+				>
+					<p
+						v-if="impactPending"
+						class="text-muted"
+					>
+						Calculating how many products and forms this would
+						reprice…
+					</p>
+					<p
+						v-else-if="impactError"
+						class="text-muted"
+					>
+						Could not load how many products and forms are affected.
+						Saving still reprices every Onigiri product at POS and
+						in preorders.
+					</p>
+					<p
+						v-else-if="impactStatement"
+						class="text-default"
+					>
+						{{ impactStatement }}
+					</p>
+				</div>
 				<div class="sm:col-span-2">
 					<UButton
 						label="Save Onigiri prices"
@@ -76,6 +104,7 @@
 
 <script setup lang="ts">
 import { api } from '#convex/api';
+import { ONIGIRI_DEFAULT_PRICE } from '~~/convex/preorderLimits';
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
 	useAppConvexAuth();
@@ -87,6 +116,13 @@ const {
 	isPending: pricingPending,
 	error: pricingError,
 } = useConvexQuery(api.products.getOnigiriPricing, queryArgs, {
+	server: false,
+});
+const {
+	data: impact,
+	isPending: impactPending,
+	error: impactError,
+} = useConvexQuery(api.products.getOnigiriPricingImpact, queryArgs, {
 	server: false,
 });
 const {
@@ -114,15 +150,35 @@ const errorMessage = computed(() => {
 		: 'Please try again.';
 });
 
+/** Pre-save statement of what saving these prices affects. */
+const impactStatement = computed<string | null>(() => {
+	const result = impact.value;
+	if (!result) return null;
+	const { onigiriProductCount, activeFormCount } = result;
+	if (onigiriProductCount === 0 && activeFormCount === 0) {
+		return 'Saving sets the shared prices. There are no Onigiri products or active preorder forms yet.';
+	}
+	return `Saving reprices ${onigiriProductCount} Onigiri product${
+		onigiriProductCount === 1 ? '' : 's'
+	} at POS and in ${activeFormCount} active preorder form${
+		activeFormCount === 1 ? '' : 's'
+	}.`;
+});
+
 async function savePricing() {
-	const price = Number(String(state.price).trim().replace(',', '.'));
+	const regularInput = String(state.price).trim();
+	// An empty field uses the documented €3 default instead of parsing to
+	// 0 and zeroing every Onigiri product.
+	const price = regularInput
+		? Number(regularInput.replace(',', '.'))
+		: ONIGIRI_DEFAULT_PRICE;
 	const helperPriceInput = String(state.helperPrice).trim();
 	const helperPrice = helperPriceInput
 		? Number(helperPriceInput.replace(',', '.'))
 		: null;
-	if (!Number.isFinite(price) || price < 0) {
+	if (!Number.isFinite(price) || price <= 0) {
 		return toast.add({
-			title: 'Enter a valid non-negative Onigiri price',
+			title: 'Enter an Onigiri regular price above €0',
 			color: 'error',
 		});
 	}
@@ -143,7 +199,16 @@ async function savePricing() {
 	}
 	try {
 		await updatePricing({ price, helperPrice });
-		toast.add({ title: 'Shared Onigiri prices saved', color: 'success' });
+		const onigiriProductCount = impact.value?.onigiriProductCount;
+		toast.add({
+			title:
+				onigiriProductCount === undefined
+					? 'Shared Onigiri prices saved — every Onigiri product now uses these prices'
+					: `Shared Onigiri prices saved — ${onigiriProductCount} Onigiri product${
+							onigiriProductCount === 1 ? '' : 's'
+						} repriced at POS and in preorders`,
+			color: 'success',
+		});
 	} catch {
 		// The mutation error is shown above the save button.
 	}

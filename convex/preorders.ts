@@ -7,6 +7,11 @@ import {
 import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import schema, { preorderSectionValidator } from './schema';
+import {
+	MAX_ORDER_LINES,
+	MAX_QUANTITY_PER_LINE,
+	MAX_TOTAL_QUANTITY,
+} from './preorderLimits';
 
 const MAX_FORM_NAME_LENGTH = 120;
 const MAX_PERSON_NAME_LENGTH = 80;
@@ -18,10 +23,8 @@ const MAX_FORM_ITEMS = 200;
 const MAX_FORM_TOTALS = 400;
 
 // Submission bounds. These protect the unauthenticated endpoint from oversized
-// payloads; they are intentionally generous for a real event.
-const MAX_ORDER_LINES = 100;
-const MAX_QUANTITY_PER_LINE = 20;
-const MAX_TOTAL_QUANTITY = 300;
+// payloads; they are intentionally generous for a real event. The public page
+// reads the same values from ./preorderLimits so the two cannot drift.
 const MAX_SUBMISSIONS_PER_FORM = 2_000;
 
 const sectionValidator = preorderSectionValidator;
@@ -414,12 +417,14 @@ export const publicForm = query({
 			let price = product.price;
 			if (product.category === 'onigiri') {
 				if (!onigiriPricingLoaded) {
+					// .first() instead of .unique(): a stray duplicate pricing row
+					// (import/repair) must not break the public form.
 					onigiriPricing = await ctx.db
 						.query('productCategoryPricing')
 						.withIndex('by_category', (q) =>
 							q.eq('category', 'onigiri'),
 						)
-						.unique();
+						.first();
 					onigiriPricingLoaded = true;
 				}
 				if (onigiriPricing) price = onigiriPricing.price;
