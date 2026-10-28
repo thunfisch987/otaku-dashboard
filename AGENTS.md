@@ -47,13 +47,15 @@ or `.opencode/skills/`.
 ## Design / UI guidelines (extends "UI conventions" above)
 
 - Make the flow obvious: clear next action, visible system state, and explicit
-  confirmation before committing stock/money. Especially `order/` checkout (show
+  confirmation before committing stock/money. Especially the
+  `dash/pointofsale.vue` checkout (show
   items/qty/total/stock impact; disable the button while committing; a double-tap
   must never create a second sale) and `dash/` reconciliation. Apply the same to
   destructive actions (stock edits, deletions, reconciliation status changes):
   confirmations must name the specific product and quantity affected.
 - Prefer simple systems; avoid decorative and architectural complexity. Keep
-  feature-specific UI local (e.g., `order/` product selection, `Inventory/`
+  feature-specific UI local (e.g., `dash/pointofsale` product selection,
+  `Inventory/`
   display); extract a shared component only when genuinely reused. Small local
   duplication in the POS grid is preferable to a premature abstraction.
 - Extend `@nuxt/ui` via variants, sizes, slots, and semantic design tokens
@@ -64,7 +66,7 @@ or `.opencode/skills/`.
   selection (Modal vs Slideover, tables, dashboard layout) — consult it rather
   than guessing component APIs.
 - Shared components own their appearance (`OtakuNav.vue`, `OtakuFooter.vue`);
-  pages own layout and composition (`index.vue`, `dash/`, `order/`, `preorder/`,
+  pages own layout and composition (`index.vue`, `dash/`, `preorder/`,
   `privacy.vue`). The app shell lives in `app.vue`; there is no `app/layouts/`.
 - Prefer local Tailwind utility classes. Add global CSS only for app-wide rules
   or unavoidable third-party styling.
@@ -74,8 +76,8 @@ or `.opencode/skills/`.
   In `dash/`, loading ≠ empty ≠ zero: never render a "$0 / No sales" frame before
   the query resolves, and never present partial paginated results as totals.
 - Know each surface's device: `preorder/[slug].vue` is a public page used on
-  phones (compact, narrow, larger text); `dash/` and `order/` are operator
-  surfaces used on tablets (generous touch targets). Review both, but don't
+  phones (compact, narrow, larger text); `dash/` is the operator surface
+  used on tablets (generous touch targets). Review both, but don't
   judge one against the other's sizing.
 - Assume flaky venue Wi-Fi: writes (especially checkout) need a retry path and
   clear "connection lost, not committed" feedback — never optimistically show a

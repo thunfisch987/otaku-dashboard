@@ -1,6 +1,6 @@
 ---
 name: Council Review
-description: Post-change review for medium-to-big code changes. Collects the diff, has the four-model council review it, and reports a merged verdict plus top issues. Read-only by default — it does not apply fixes until the user picks which issues to address. Use when changes are already made.
+description: Post-change review for medium-to-big code changes. Collects the diff, has the three-model council review it, and reports a merged verdict plus top issues. Read-only by default — it does not apply fixes until the user picks which issues to address. Use when changes are already made.
 ---
 
 # Council Review

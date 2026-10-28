@@ -1,6 +1,6 @@
 ---
 name: Council Plan
-description: Pre-implementation review for medium-to-big code changes. Drafts an implementation plan, has the four-model council critique it, applies the merged verdict, and waits for user approval before any code is written. Use when the user is about to start a medium-to-big change.
+description: Pre-implementation review for medium-to-big code changes. Drafts an implementation plan, has the three-model council critique it, applies the merged verdict, and waits for user approval before any code is written. Use when the user is about to start a medium-to-big change.
 ---
 
 # Council Plan

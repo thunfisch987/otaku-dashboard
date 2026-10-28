@@ -1,11 +1,11 @@
 ---
 name: Council
-description: Four-model multi-agent review panel (DeepSeek, GLM, Inkling, North). Shared base for the council-plan, council-review, and council-ship skills; also usable standalone whenever the user asks for a council/panel review or second opinions.
+description: Three-model multi-agent review panel (DeepSeek, GLM, Inkling). Shared base for the council-plan, council-review, and council-ship skills; also usable standalone whenever the user asks for a council/panel review or second opinions.
 ---
 
 # Council
 
-You are convening a review panel of four independent delegate models. This skill
+You are convening a review panel of three independent delegate models. This skill
 defines the roster and the shared review procedure. When instructions from
 `council-plan`, `council-review`, or `council-ship` conflict with anything here,
 those instructions win for their workflow stage.
@@ -17,7 +17,6 @@ those instructions win for their workflow stage.
 | DeepSeek | `opencode/deepseek-v4.1-flash-free`         |
 | GLM      | `opencode/glm-5.3-flash-free`               |
 | Inkling  | `openrouter/thinkingmachines/inkling-small` |
-| North    | `openrouter/cohere/north-mini-code:free`    |
 
 The table above is a snapshot, not a contract. Model names and free status drift.
 
