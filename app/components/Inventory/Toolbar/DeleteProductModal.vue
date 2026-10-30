@@ -2,7 +2,7 @@
 	<UModal
 		v-model:open="deleteProductOpen"
 		title="Delete selected products"
-		description="This will delete the selected products"
+		:description="deleteDescription"
 		:ui="{ footer: 'justify-end' }"
 	>
 		<UButton
@@ -60,6 +60,21 @@ const table = useState<{
 } | null>('table');
 
 const deleteProductOpen = ref<boolean>(false);
+const selectedProducts = computed(
+	() =>
+		table.value?.tableApi
+			.getFilteredSelectedRowModel()
+			.rows.map((row) => row.original) ?? [],
+);
+const deleteDescription = computed(() => {
+	if (selectedProducts.value.length === 0) {
+		return 'No products are selected.';
+	}
+	const affected = selectedProducts.value
+		.map((product) => `${product.productname} (stock: ${product.amount})`)
+		.join(', ');
+	return `This will permanently delete ${selectedProducts.value.length} selected ${selectedProducts.value.length === 1 ? 'product' : 'products'} and its stock records: ${affected}.`;
+});
 
 const {
 	mutate: mutateMany,

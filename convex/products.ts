@@ -464,6 +464,19 @@ export const remove = mutation({
 			throw new Error('Not authenticated!');
 		}
 
+		const product = await ctx.db.get(args.id);
+		if (!product) {
+			throw new Error('Product no longer exists');
+		}
+		const saleItem = await ctx.db
+			.query('saleItems')
+			.withIndex('by_productsId', (q) => q.eq('productsId', args.id))
+			.first();
+		if (saleItem) {
+			throw new Error(
+				`${product.productname} has sale history and cannot be deleted. Keep it in inventory so related sales can be reverted.`,
+			);
+		}
 		await ctx.db.delete(args.id);
 		return null;
 	},
@@ -476,6 +489,23 @@ export const removeMany = mutation({
 		const userId = await ctx.auth.getUserIdentity();
 		if (!userId) {
 			throw new Error('Not authenticated!');
+		}
+		const products = await Promise.all(
+			args.ids.map((id) => ctx.db.get(id)),
+		);
+		for (const product of products) {
+			if (!product) continue;
+			const saleItem = await ctx.db
+				.query('saleItems')
+				.withIndex('by_productsId', (q) =>
+					q.eq('productsId', product._id),
+				)
+				.first();
+			if (saleItem) {
+				throw new Error(
+					`${product.productname} has sale history and cannot be deleted. No selected products were deleted. Keep it in inventory so related sales can be reverted.`,
+				);
+			}
 		}
 		await Promise.all(args.ids.map((id) => ctx.db.delete(id)));
 		return null;

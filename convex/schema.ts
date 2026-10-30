@@ -86,7 +86,9 @@ const applicationTables = {
 		unitPrice: v.number(),
 		quantity: v.number(),
 		lineTotal: v.number(),
-	}).index('by_saleId', ['saleId']),
+	})
+		.index('by_saleId', ['saleId'])
+		.index('by_productsId', ['productsId']),
 
 	preorderForms: defineTable({
 		name: v.string(),

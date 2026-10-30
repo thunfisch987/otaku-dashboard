@@ -243,9 +243,12 @@ const revertSaleTotal = computed(() =>
 		sales.value.find((sale) => sale._id === revertSaleId.value)?.total ?? 0,
 	),
 );
+const revertSaleRecord = computed(() =>
+	sales.value.find((sale) => sale._id === revertSaleId.value),
+);
 const revertDescription = computed(() =>
-	revertSaleId.value
-		? `This will delete sale ${revertSaleId.value} (${revertSaleTotal.value}), remove its items, and restore the sold stock to inventory.`
+	revertSaleRecord.value
+		? `This will delete sale ${revertSaleId.value} (${revertSaleTotal.value}), remove its items, and restore this stock to inventory: ${revertSaleRecord.value.items.map((item) => `${item.productName} × ${item.quantity}`).join(', ')}.`
 		: '',
 );
 const revertErrorMessage = computed(() =>

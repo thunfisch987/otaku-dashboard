@@ -118,6 +118,8 @@
 					<UButton
 						variant="outline"
 						leading
+						:disabled="exporting"
+						:loading="exporting && exportingOption === 'all'"
 						:icon="
 							exportAllOpen
 								? 'i-lucide-chevron-up'
@@ -135,7 +137,8 @@
 					<UButton
 						variant="outline"
 						leading
-						:disabled="!exportFilteredEnabled"
+						:disabled="!exportFilteredEnabled || exporting"
+						:loading="exporting && exportingOption === 'filtered'"
 						:title="
 							!exportFilteredEnabled ? 'Apply a filter first' : ''
 						"
@@ -153,8 +156,11 @@
 						variant="outline"
 						leading
 						:disabled="
-							selectedRowCount === 0 || productRowCount === 0
+							selectedRowCount === 0 ||
+							productRowCount === 0 ||
+							exporting
 						"
+						:loading="exporting && exportingOption === 'selected'"
 						:title="
 							selectedRowCount === 0 || productRowCount === 0
 								? 'Select at least one product first'
@@ -189,13 +195,18 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Table } from '@tanstack/vue-table';
 import { api } from '#convex/api';
 
-const json2csv = (data: ProductSchema[]) => {
-	const csv = [
-		Object.keys(data[0] ?? {}),
-		data.map((item) => Object.values(item).join(',')).join('\n'),
-	].join('\n');
-	return csv;
-};
+function csvCell(value: unknown) {
+	let text = String(value ?? '');
+	if (/^[=+@\-\t\r]/.test(text)) text = `'${text}`;
+	return `"${text.replaceAll('"', '""')}"`;
+}
+
+function formatDateInput(date: Date) {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0');
+	const day = String(date.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+}
 
 const toast = useToast();
 
@@ -214,6 +225,8 @@ const productRowCount = computed(
 const selectedRowCount = computed(
 	() => table.value?.tableApi.getFilteredSelectedRowModel().rows.length ?? 0,
 );
+const exporting = ref(false);
+const exportingOption = ref<'all' | 'filtered' | 'selected' | null>(null);
 
 const pagination = useState('pagination', () => ({
 	pageIndex: 0,
@@ -306,40 +319,77 @@ function getMyRowModel(
 }
 
 async function downloadFile(option: 'all' | 'filtered' | 'selected') {
-	if (table.value) {
-		if (table.value.tableApi.getCoreRowModel().rows.length > 0) {
-			const rows = json2csv(getMyRowModel(option, table.value.tableApi));
-			const filterName =
-				globalFilter.value ||
-				(stockFilter.value !== 'all' ? stockFilter.value : '') ||
-				(facetedSelectValue.value !== 'Alle'
-					? facetedSelectValue.value
-					: '');
-			const filename = `export${option === 'filtered' ? `_${filterName || 'filtered'}` : ''}.csv`;
-			const element = document.createElement('a');
-			element.setAttribute(
-				'href',
-				'data:text/csv;charset=utf-8,' + encodeURIComponent(rows),
-			);
-			element.setAttribute('download', filename);
+	if (!table.value || exporting.value) return;
+	exporting.value = true;
+	exportingOption.value = option;
+	try {
+		let consecutiveNoProgressPages = 0;
+		while (!productsDone.value && !productsError.value) {
+			const loadedProductCount = productos.value?.length ?? 0;
+			await loadMoreProducts(200);
+			await nextTick();
 
-			element.style.display = 'none';
-			document.body.appendChild(element);
+			if (productsDone.value || productsError.value) continue;
 
-			element.click();
-			document.body.removeChild(element);
-		} else {
+			const currentProductCount = productos.value?.length ?? 0;
+			if (currentProductCount <= loadedProductCount) {
+				consecutiveNoProgressPages += 1;
+				if (consecutiveNoProgressPages >= 2) {
+					throw new Error(
+						'Product loading stopped before all stock records were loaded.',
+					);
+				}
+			} else {
+				consecutiveNoProgressPages = 0;
+			}
+		}
+		if (productsError.value) throw productsError.value;
+
+		const tableApi = table.value.tableApi;
+		const rows = getMyRowModel(option, tableApi);
+		if (rows.length === 0) {
 			toast.add({
 				title: 'No products available to export',
-				description: 'Create or import products before exporting.',
+				description:
+					option === 'selected'
+						? 'Select at least one product to export.'
+						: 'No products match this export.',
 				color: 'error',
-				duration: 0,
-				close: { color: 'error', variant: 'outline' },
-				ui: {
-					root: 'ring-(--ui-error)',
-				},
 			});
+			return;
 		}
+		const headers = Object.keys(rows[0]);
+		const csv = [
+			headers.map(csvCell).join(','),
+			...rows.map((row) =>
+				headers
+					.map((key) => csvCell(row[key as keyof ProductSchema]))
+					.join(','),
+			),
+		].join('\r\n');
+		const blob = new Blob(['\ufeff', csv], {
+			type: 'text/csv;charset=utf-8',
+		});
+		const url = URL.createObjectURL(blob);
+		const anchor = document.createElement('a');
+		anchor.href = url;
+		anchor.download = `stock-${formatDateInput(new Date())}.csv`;
+		anchor.click();
+		setTimeout(() => URL.revokeObjectURL(url), 1000);
+	} catch (error) {
+		toast.add({
+			title: 'Could not export stock',
+			description:
+				error instanceof Error &&
+				error.message ===
+					'Product loading stopped before all stock records were loaded.'
+					? 'Product pages stopped advancing before all stock records were loaded. Check your connection and retry the export.'
+					: 'Check your connection and try again.',
+			color: 'error',
+		});
+	} finally {
+		exporting.value = false;
+		exportingOption.value = null;
 	}
 }
 
