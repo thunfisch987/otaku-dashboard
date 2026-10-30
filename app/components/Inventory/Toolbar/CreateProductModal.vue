@@ -2,7 +2,6 @@
 	<UModal
 		v-model:open="createProductOpen"
 		title="Create Product"
-		description="Create a new product"
 		:ui="{ footer: 'justify-end' }"
 		@update:open="(isOpen: boolean) => isOpen && resetFormState()"
 	>

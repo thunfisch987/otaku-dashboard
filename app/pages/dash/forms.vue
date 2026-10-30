@@ -2,10 +2,6 @@
 	<main class="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
 		<header>
 			<h1 class="text-3xl font-semibold">Preorder forms</h1>
-			<p class="mt-2 text-muted">
-				Create event menus, share a public preorder link, and review
-				preparation totals.
-			</p>
 		</header>
 
 		<UAlert

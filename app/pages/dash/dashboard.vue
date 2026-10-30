@@ -6,10 +6,6 @@
 			<div>
 				<p class="text-sm font-medium text-muted">Event operations</p>
 				<h1 class="text-3xl font-semibold tracking-tight">Dashboard</h1>
-				<p class="mt-1 text-muted">
-					Quick access to your tools, today's sales, and current
-					stock.
-				</p>
 			</div>
 			<UButton
 				to="pointofsale"

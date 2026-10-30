@@ -46,6 +46,9 @@ or `.opencode/skills/`.
 
 ## Design / UI guidelines (extends "UI conventions" above)
 
+- Use concise, descriptive UI copy. Avoid marketing language in headings,
+  subheadings, and labels; make the interface intuitive enough that descriptions
+  are only needed to explain a decision, next step, or meaningful state.
 - Make the flow obvious: clear next action, visible system state, and explicit
   confirmation before committing stock/money. Especially the
   `dash/pointofsale.vue` checkout (show
@@ -122,6 +125,7 @@ this project. Treat them as standing decisions, not gaps in these guidelines:
 
 - Before saying frontend work is done, state which relevant surfaces you
   checked.
+- Keep final responses short and precise, especially bullet points.
 - If a repository rule conflicts with the requested task, say so clearly and
   get human approval before breaking it.
 
