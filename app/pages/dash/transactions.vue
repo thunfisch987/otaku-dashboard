@@ -5,7 +5,7 @@
 		>
 			<div>
 				<h1 class="text-3xl font-semibold">Sales records</h1>
-				<p class="mt-2 text-gray-500">
+				<p class="mt-2 text-muted">
 					Review completed sales and download a daily reconciliation
 					CSV.
 				</p>
@@ -48,7 +48,7 @@
 		</div>
 		<div
 			v-else-if="saleRows.length === 0 && isDone"
-			class="rounded-lg border p-6 text-center text-gray-500"
+			class="rounded-lg border p-6 text-center text-muted"
 		>
 			No sales recorded for {{ selectedDay }}.
 		</div>

@@ -1,6 +1,6 @@
 ---
-name: Council Ship
-description: Full-send mode for medium-to-big code changes. Makes the change, runs the three-model council on the result, automatically adopts all panel feedback, implements it, and reports. Autonomous, but strictly non-destructive.
+name: council-ship
+description: Full-send mode for medium-to-big code changes. Makes the change, runs the four-model council on the result, automatically adopts actionable panel feedback, implements it, and reports. Autonomous, but strictly non-destructive.
 ---
 
 # Council Ship
@@ -44,7 +44,9 @@ feedback, re-verify, report.
 7. **Report** in merged-verdict style: what was shipped, the council's verdict,
    findings adopted, findings skipped and why, and how anything was verified.
    Always end with where the work landed — branch and (if used) worktree path —
-   and how to merge or cleanly discard it.
+   and how to merge or cleanly discard it. Include member scores by round and
+   stop after at most three rounds per the shared council skill; report any
+   unresolved concerns when that limit is reached.
 
 ## Hard limits (never do these, regardless of panel feedback)
 
