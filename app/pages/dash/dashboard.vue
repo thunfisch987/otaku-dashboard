@@ -46,7 +46,6 @@
 							{ key: 'I', page: 'Inventory' },
 							{ key: 'P', page: 'Point of sale' },
 							{ key: 'T', page: 'Transactions' },
-							{ key: 'U', page: 'Users' },
 						]"
 						:key="shortcut.key"
 						class="inline-flex items-center gap-1.5 text-sm"
