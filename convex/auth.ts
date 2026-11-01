@@ -2,10 +2,15 @@
 import type { GenericCtx } from '@convex-dev/better-auth';
 import type { DataModel } from './_generated/dataModel';
 import type { Id } from './_generated/dataModel';
+import type { User } from 'better-auth';
 import { passkey } from '@better-auth/passkey';
+import { dash } from '@better-auth/infra';
 import { createClient } from '@convex-dev/better-auth';
 import { convex, crossDomain } from '@convex-dev/better-auth/plugins';
 import { betterAuth } from 'better-auth/minimal';
+import { admin } from 'better-auth/plugins';
+import { createAccessControl } from 'better-auth/plugins/access';
+import { defaultStatements } from 'better-auth/plugins/admin/access';
 import { components, internal } from './_generated/api';
 import {
 	internalAction,
@@ -27,6 +32,19 @@ const passkeyRpID = new URL(siteUrl).hostname;
 const enableGoogleAuth = isGoogleAuthEnabled();
 const useSecureCookies = siteUrl.startsWith('https://');
 const allowedHosts = getAuthAllowedHosts();
+const initialAdminEmail =
+	process.env.BETTER_AUTH_INITIAL_ADMIN_EMAIL?.trim().toLowerCase();
+const infrastructureApiKey = process.env.BETTER_AUTH_API_KEY;
+
+const approvalAccessControl = createAccessControl(defaultStatements);
+const operatorRole = approvalAccessControl.newRole({
+	user: [],
+	session: [],
+});
+const approvalAdminRole = approvalAccessControl.newRole({
+	user: ['list', 'get', 'ban'],
+	session: [],
+});
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 const AVATAR_TIMEOUT_MS = 10_000;
@@ -133,7 +151,45 @@ export function createAuthOptions(ctx: GenericCtx<DataModel>) {
 					},
 				}
 			: {}),
+		databaseHooks: {
+			user: {
+				create: {
+					before: async (user: User & Record<string, unknown>) => {
+						const isInitialAdmin =
+							user.emailVerified &&
+							!!initialAdminEmail &&
+							user.email.trim().toLowerCase() ===
+								initialAdminEmail;
+
+						return {
+							data: {
+								...user,
+								role: isInitialAdmin ? 'admin' : 'user',
+								banned: !isInitialAdmin,
+								banReason: isInitialAdmin
+									? null
+									: 'Waiting for operator approval',
+								banExpires: null,
+							},
+						};
+					},
+				},
+			},
+		},
 		plugins: [
+			admin({
+				ac: approvalAccessControl,
+				roles: {
+					admin: approvalAdminRole,
+					user: operatorRole,
+				},
+				defaultRole: 'user',
+				bannedUserMessage:
+					'Your account is waiting for operator approval.',
+			}),
+			...(infrastructureApiKey
+				? [dash({ apiKey: infrastructureApiKey })]
+				: []),
 			passkey({
 				rpID: passkeyRpID,
 				rpName: 'Otaku Dashboard',
@@ -159,6 +215,10 @@ export const getCurrentUser = query({
 		image: v.optional(v.union(v.null(), v.string())),
 		createdAt: v.number(),
 		updatedAt: v.number(),
+		role: v.optional(v.union(v.null(), v.string())),
+		banned: v.optional(v.union(v.null(), v.boolean())),
+		banReason: v.optional(v.union(v.null(), v.string())),
+		banExpires: v.optional(v.union(v.null(), v.number())),
 		userId: v.optional(v.union(v.null(), v.string())),
 	}),
 	handler: async (ctx) => {
