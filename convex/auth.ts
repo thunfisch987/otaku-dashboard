@@ -139,6 +139,12 @@ export function createAuthOptions(ctx: GenericCtx<DataModel>) {
 			allowedHosts,
 			protocol: 'auto' as const,
 		},
+		advanced: {
+			ipAddress: {
+				// Vercel sets this header from the connecting client IP.
+				ipAddressHeaders: ['x-vercel-forwarded-for'],
+			},
+		},
 		useSecureCookies,
 		database: authComponent.adapter(ctx),
 		...(enableGoogleAuth
