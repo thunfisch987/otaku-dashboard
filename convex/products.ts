@@ -493,19 +493,24 @@ export const removeMany = mutation({
 		const products = await Promise.all(
 			args.ids.map((id) => ctx.db.get(id)),
 		);
-		for (const product of products) {
-			if (!product) continue;
-			const saleItem = await ctx.db
-				.query('saleItems')
-				.withIndex('by_productsId', (q) =>
-					q.eq('productsId', product._id),
-				)
-				.first();
-			if (saleItem) {
-				throw new Error(
-					`${product.productname} has sale history and cannot be deleted. No selected products were deleted. Keep it in inventory so related sales can be reverted.`,
-				);
-			}
+		const saleItems = await Promise.all(
+			products.map((product) =>
+				product
+					? ctx.db
+							.query('saleItems')
+							.withIndex('by_productsId', (q) =>
+								q.eq('productsId', product._id),
+							)
+							.first()
+					: null,
+			),
+		);
+		for (const [index, saleItem] of saleItems.entries()) {
+			const product = products[index];
+			if (!product || !saleItem) continue;
+			throw new Error(
+				`${product.productname} has sale history and cannot be deleted. No selected products were deleted. Keep it in inventory so related sales can be reverted.`,
+			);
 		}
 		await Promise.all(args.ids.map((id) => ctx.db.delete(id)));
 		return null;

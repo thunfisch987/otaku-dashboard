@@ -203,13 +203,21 @@ type SaleRow = {
 	_isFirstRow: boolean;
 };
 
+const timeFormatter = new Intl.DateTimeFormat('en', {
+	hour: '2-digit',
+	minute: '2-digit',
+});
+const currencyFormatter = new Intl.NumberFormat('en', {
+	style: 'currency',
+	currency: 'EUR',
+});
+
 const saleRows = computed<SaleRow[]>(() =>
-	sales.value.flatMap((sale) =>
-		sale.items.map((item, itemIndex) => ({
-			Time: new Date(sale.timestamp).toLocaleTimeString('en', {
-				hour: '2-digit',
-				minute: '2-digit',
-			}),
+	sales.value.flatMap((sale) => {
+		const time = timeFormatter.format(sale.timestamp);
+		const saleTotal = currencyFormatter.format(sale.total);
+		return sale.items.map((item, itemIndex) => ({
+			Time: time,
 			'Sale ID': sale._id,
 			Operator: sale.operatorName,
 			Helper:
@@ -222,13 +230,13 @@ const saleRows = computed<SaleRow[]>(() =>
 					: '',
 			Product: item.productName,
 			Quantity: item.quantity,
-			'Unit price': formatCurrency(item.unitPrice),
-			'Line total': formatCurrency(item.lineTotal),
-			'Sale total': itemIndex === 0 ? formatCurrency(sale.total) : '',
+			'Unit price': currencyFormatter.format(item.unitPrice),
+			'Line total': currencyFormatter.format(item.lineTotal),
+			'Sale total': itemIndex === 0 ? saleTotal : '',
 			_saleId: sale._id as Id<'sales'>,
 			_isFirstRow: itemIndex === 0,
-		})),
-	),
+		}));
+	}),
 );
 
 const {
@@ -343,10 +351,7 @@ const totalQuantity = computed(() =>
 const totalSales = computed(() =>
 	sales.value.reduce((total, sale) => total + sale.total, 0),
 );
-const formatCurrency = (amount: number) =>
-	new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(
-		amount,
-	);
+const formatCurrency = (amount: number) => currencyFormatter.format(amount);
 
 function formatDateInput(date: Date) {
 	const year = date.getFullYear();

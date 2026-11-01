@@ -75,6 +75,19 @@ const applicationTables = {
 		total: v.number(),
 		// Optional so legacy sales remain readable. New sales always record it.
 		isHelper: v.optional(v.boolean()),
+		// Bounded snapshot for list views; saleItems remains the source for
+		// product history and reverts. Older sales fall back to that child table.
+		itemsSnapshot: v.optional(
+			v.array(
+				v.object({
+					productsId: v.id('products'),
+					productName: v.string(),
+					unitPrice: v.number(),
+					quantity: v.number(),
+					lineTotal: v.number(),
+				}),
+			),
+		),
 	})
 		.index('by_checkoutId', ['checkoutId'])
 		.index('by_timestamp', ['timestamp']),
@@ -119,6 +132,18 @@ const applicationTables = {
 		lastName: v.string(),
 		isHelper: v.boolean(),
 		confirmed: v.boolean(),
+		// Bounded read snapshot for submission lists. preorderSubmissionItems
+		// remains authoritative for removal/totals; older submissions fall back
+		// to that child table.
+		itemsSnapshot: v.optional(
+			v.array(
+				v.object({
+					_id: v.id('preorderSubmissionItems'),
+					productName: v.string(),
+					quantity: v.number(),
+				}),
+			),
+		),
 	})
 		.index('by_formId', ['formId'])
 		.index('by_formId_and_submissionToken', ['formId', 'submissionToken']),

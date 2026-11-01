@@ -41,18 +41,6 @@ const MAX_WINDOW_DOCS = 8;
 
 const sectionValidator = preorderSectionValidator;
 
-const adminFormItemValidator = v.object({
-	_id: v.id('preorderFormItems'),
-	productId: v.id('products'),
-	productName: v.string(),
-	section: sectionValidator,
-	totalQuantity: v.number(),
-});
-
-const adminFormValidator = schema.doc('preorderForms').extend({
-	items: v.array(adminFormItemValidator),
-});
-
 const publicFormItemValidator = v.object({
 	productId: v.id('products'),
 	// Match the inventory product field name used by the public page.
@@ -81,9 +69,16 @@ const preparationTotalValidator = v.object({
 	totalQuantity: v.number(),
 });
 
-const submissionWithItemsValidator = schema.doc('preorderSubmissions').extend({
-	items: v.array(schema.doc('preorderSubmissionItems')),
+const submissionItemValidator = v.object({
+	_id: v.id('preorderSubmissionItems'),
+	productName: v.string(),
+	quantity: v.number(),
 });
+
+const submissionWithItemsValidator = schema
+	.doc('preorderSubmissions')
+	.omit('itemsSnapshot')
+	.extend({ items: v.array(submissionItemValidator) });
 
 function requireFormName(value: string): string {
 	const name = value.trim();
@@ -218,12 +213,11 @@ async function createUniqueSlug(ctx: MutationCtx): Promise<string> {
 }
 
 /**
- * Authenticated operator view of forms in reverse creation order, with their
- * configured products and preparation totals.
+ * Authenticated operator view of forms in reverse creation order.
  */
 export const listForms = query({
 	args: { paginationOpts: paginationOptsValidator },
-	returns: paginationResultValidator(adminFormValidator),
+	returns: paginationResultValidator(schema.doc('preorderForms')),
 	handler: async (ctx, args) => {
 		const identity = await ctx.auth.getUserIdentity();
 		if (!identity) {
@@ -241,50 +235,7 @@ export const listForms = query({
 				),
 			});
 
-		return {
-			...formsPage,
-			page: await Promise.all(
-				formsPage.page.map(async (form) => {
-					const [items, totals] = await Promise.all([
-						ctx.db
-							.query('preorderFormItems')
-							.withIndex('by_formId', (q) =>
-								q.eq('formId', form._id),
-							)
-							.take(MAX_FORM_ITEMS),
-						ctx.db
-							.query('preorderFormTotals')
-							.withIndex('by_formId', (q) =>
-								q.eq('formId', form._id),
-							)
-							.take(MAX_FORM_TOTALS),
-					]);
-
-					// Sum instead of assuming one counter document per product so any
-					// concurrent first-submission inserts still produce a correct total.
-					const totalByProduct = new Map<Id<'products'>, number>();
-					for (const total of totals) {
-						totalByProduct.set(
-							total.productId,
-							(totalByProduct.get(total.productId) ?? 0) +
-								total.quantity,
-						);
-					}
-
-					return {
-						...form,
-						items: items.map((item) => ({
-							_id: item._id,
-							productId: item.productId,
-							productName: item.productName,
-							section: item.section,
-							totalQuantity:
-								totalByProduct.get(item.productId) ?? 0,
-						})),
-					};
-				}),
-			),
-		};
+		return formsPage;
 	},
 });
 
@@ -745,14 +696,24 @@ export const submit = mutation({
 			confirmed: true,
 		});
 
+		const itemsSnapshot: {
+			_id: Id<'preorderSubmissionItems'>;
+			productName: string;
+			quantity: number;
+		}[] = [];
 		for (const [productId, quantity] of requested) {
 			const item = configured.get(productId)!;
-			await ctx.db.insert('preorderSubmissionItems', {
+			const itemId = await ctx.db.insert('preorderSubmissionItems', {
 				formId: form._id,
 				submissionId,
 				productId,
 				productName: item.productName,
 				section: item.section,
+				quantity,
+			});
+			itemsSnapshot.push({
+				_id: itemId,
+				productName: item.productName,
 				quantity,
 			});
 
@@ -777,6 +738,7 @@ export const submit = mutation({
 				});
 			}
 		}
+		await ctx.db.patch(submissionId, { itemsSnapshot });
 		if (formStats) {
 			await ctx.db.patch(formStats._id, {
 				submissionCount: formStats.submissionCount + 1,
@@ -819,15 +781,24 @@ export const listSubmissions = query({
 		return {
 			...results,
 			page: await Promise.all(
-				results.page.map(async (submission) => ({
-					...submission,
-					items: await ctx.db
-						.query('preorderSubmissionItems')
-						.withIndex('by_submissionId', (q) =>
-							q.eq('submissionId', submission._id),
-						)
-						.take(MAX_FORM_ITEMS),
-				})),
+				results.page.map(async (submission) => {
+					const { itemsSnapshot, ...submissionFields } = submission;
+					const items =
+						itemsSnapshot ??
+						(
+							await ctx.db
+								.query('preorderSubmissionItems')
+								.withIndex('by_submissionId', (q) =>
+									q.eq('submissionId', submission._id),
+								)
+								.take(MAX_FORM_ITEMS)
+						).map(({ _id, productName, quantity }) => ({
+							_id,
+							productName,
+							quantity,
+						}));
+					return { ...submissionFields, items };
+				}),
 			),
 		};
 	},

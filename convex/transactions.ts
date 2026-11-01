@@ -135,6 +135,15 @@ export const checkout = mutation({
 			timestamp,
 			total,
 			isHelper,
+			itemsSnapshot: checkoutItems.map(
+				({ product, quantity, unitPrice, lineTotal }) => ({
+					productsId: product._id,
+					productName: product.productname,
+					unitPrice,
+					quantity,
+					lineTotal,
+				}),
+			),
 		});
 
 		for (const {
@@ -206,6 +215,14 @@ export const revertSale = mutation({
 	},
 });
 
+const saleLineValidator = v.object({
+	productsId: v.id('products'),
+	productName: v.string(),
+	unitPrice: v.number(),
+	quantity: v.number(),
+	lineTotal: v.number(),
+});
+
 export const listSalesForDay = query({
 	args: {
 		dayStart: v.number(),
@@ -213,9 +230,12 @@ export const listSalesForDay = query({
 		paginationOpts: paginationOptsValidator,
 	},
 	returns: paginationResultValidator(
-		schema.doc('sales').extend({
-			items: v.array(schema.doc('saleItems')),
-		}),
+		schema
+			.doc('sales')
+			.omit('itemsSnapshot')
+			.extend({
+				items: v.array(saleLineValidator),
+			}),
 	),
 	handler: async (ctx, args) => {
 		const identity = await ctx.auth.getUserIdentity();
@@ -241,13 +261,26 @@ export const listSalesForDay = query({
 		return {
 			...results,
 			page: await Promise.all(
-				results.page.map(async (sale) => ({
-					...sale,
-					items: await ctx.db
-						.query('saleItems')
-						.withIndex('by_saleId', (q) => q.eq('saleId', sale._id))
-						.take(100),
-				})),
+				results.page.map(async (sale) => {
+					const { itemsSnapshot, ...saleFields } = sale;
+					const items =
+						itemsSnapshot ??
+						(
+							await ctx.db
+								.query('saleItems')
+								.withIndex('by_saleId', (q) =>
+									q.eq('saleId', sale._id),
+								)
+								.take(100)
+						).map((item) => ({
+							productsId: item.productsId,
+							productName: item.productName,
+							unitPrice: item.unitPrice,
+							quantity: item.quantity,
+							lineTotal: item.lineTotal,
+						}));
+					return { ...saleFields, items };
+				}),
 			),
 		};
 	},

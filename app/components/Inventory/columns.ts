@@ -4,6 +4,11 @@ import type { ProductSchema } from './types';
 import { UButton, UDropdownMenu, UCheckbox, UBadge } from '#components';
 import { prepareEditForm } from './forms';
 
+const currencyFormatter = new Intl.NumberFormat('en', {
+	style: 'currency',
+	currency: 'EUR',
+});
+
 type RowActionHandlers = {
 	deleteProduct: (product: ProductSchema) => void;
 };
@@ -96,10 +101,9 @@ export function createColumns(
 			accessorKey: 'price',
 			header: ({ column }) => getSortHeader(column, 'Price'),
 			cell: ({ row }) =>
-				new Intl.NumberFormat('en', {
-					style: 'currency',
-					currency: 'EUR',
-				}).format(Number.parseFloat(row.getValue('price'))),
+				currencyFormatter.format(
+					Number.parseFloat(row.getValue('price')),
+				),
 			enableHiding: false,
 		},
 		{
@@ -109,10 +113,7 @@ export function createColumns(
 				const price = row.original.helperPrice;
 				return price === undefined
 					? '—'
-					: new Intl.NumberFormat('en', {
-							style: 'currency',
-							currency: 'EUR',
-						}).format(price);
+					: currencyFormatter.format(price);
 			},
 			enableHiding: true,
 		},
