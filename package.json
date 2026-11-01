@@ -31,6 +31,7 @@
 		"@vite-pwa/nuxt": "^1.1.1",
 		"better-auth": "1.6.22",
 		"convex": "^1.48.0",
+		"ipx": "4.1.0",
 		"maska": "^3.2.2",
 		"nuxt": "^4.6.3",
 		"nuxt-convex": "https://github.com/thunfisch987/onmax-nuxt-convex/releases/download/otaku-dashboard-convex-0.0.7-r2/nuxt-convex-0.0.7.tgz",
