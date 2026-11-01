@@ -390,18 +390,23 @@ const checkoutSuccess = ref('');
 // checkout — even after a page reload — is recognized by the server as the
 // same sale instead of deducting stock twice. A different cart gets a fresh
 // token.
+// NOTE: sessionStorage is tab-scoped and not synchronized across tabs;
+// a reload in a new tab loses protection and the ~15 min TTL limits
+// persistence across long pauses.
 const CHECKOUT_TOKEN_STORAGE_KEY = 'pos-checkout-token';
 
 type StoredCheckoutToken = {
 	signature: string;
 	checkoutId: string;
+	storedAt: number; // ms since epoch; TTL ~15 min
 };
 
-const cartSignature = computed(() =>
-	cartItems.value
-		.map((item) => `${item.product._id}:${item.quantity}`)
-		.sort()
-		.join('|'),
+const cartSignature = computed(
+	() =>
+		cartItems.value
+			.map((item) => `${item.product._id}:${item.quantity}`)
+			.sort()
+			.join('|') + `|isHelper:${isHelperCheckout.value}`,
 );
 
 function readStoredCheckoutToken(): StoredCheckoutToken | null {
@@ -411,11 +416,21 @@ function readStoredCheckoutToken(): StoredCheckoutToken | null {
 		if (!raw) return null;
 		const parsed: unknown = JSON.parse(raw);
 		if (typeof parsed !== 'object' || parsed === null) return null;
-		const { signature, checkoutId } = parsed as Record<string, unknown>;
-		if (typeof signature !== 'string' || typeof checkoutId !== 'string') {
+		const { signature, checkoutId, storedAt } = parsed as Record<
+			string,
+			unknown
+		>;
+		if (
+			typeof signature !== 'string' ||
+			typeof checkoutId !== 'string' ||
+			typeof storedAt !== 'number'
+		) {
 			return null;
 		}
-		return { signature, checkoutId };
+		// sessionStorage is per-tab/session; token expires after ~15 min so
+		// reload protection doesn't persist indefinitely across long breaks.
+		if (Date.now() - storedAt > 15 * 60 * 1000) return null;
+		return { signature, checkoutId, storedAt };
 	} catch {
 		return null;
 	}
@@ -426,7 +441,7 @@ function writeStoredCheckoutToken(token: StoredCheckoutToken): boolean {
 	try {
 		sessionStorage.setItem(
 			CHECKOUT_TOKEN_STORAGE_KEY,
-			JSON.stringify(token),
+			JSON.stringify({ ...token, storedAt: Date.now() }),
 		);
 		return true;
 	} catch {
@@ -454,7 +469,11 @@ function describeCheckoutError(error: unknown): {
 	// connection keeps the checkout pending (and retried) instead. A server
 	// rejection aborts the whole transaction, so nothing was recorded.
 	const message = error instanceof Error ? error.message : String(error);
-	const reason = /Uncaught Error: ([^\n]+)/.exec(message)?.[1];
+	const match =
+		/Uncaught Error: ([^\n]+)|\[CONVEX M\([^)]*\)\]\s*([^\n]+)/.exec(
+			message,
+		);
+	const reason = match ? (match[1] ?? match[2]) : undefined;
 	if (reason !== undefined || message.includes('[CONVEX ')) {
 		return {
 			title: 'Checkout rejected — nothing was recorded',

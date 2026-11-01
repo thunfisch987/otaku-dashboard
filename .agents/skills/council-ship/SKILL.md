@@ -1,6 +1,6 @@
 ---
 name: council-ship
-description: Full-send mode for medium-to-big code changes. Makes the change, runs the four-model council on the result, automatically adopts actionable panel feedback, implements it, and reports. Autonomous, but strictly non-destructive.
+description: Full-send mode for medium-to-big code changes. Makes the change, runs the council on the result, automatically adopts actionable panel feedback, implements it, and reports. Autonomous, but strictly non-destructive.
 ---
 
 # Council Ship
@@ -31,7 +31,8 @@ feedback, re-verify, report.
 3. **Implement** the change with focused edits following the project's existing
    style. Verify as you go (build/tests where available).
 4. **Review.** Load the `council` skill and run the panel on the diff, with a
-   short statement of intent.
+   short statement of intent. Follow its runtime roster and parallel launch
+   procedure.
 5. **Adopt everything.** Work through the merged findings:
     - Implement every non-conflicting, actionable finding.
     - If members conflict on the same point, go with the majority/higher
