@@ -13,7 +13,7 @@ export default defineNuxtConfig({
 	convex: {
 		url: process.env.CONVEX_URL,
 	},
-	devtools: { enabled: true },
+	devtools: { enabled: process.env.NODE_ENV !== 'production' },
 	app: {
 		head: {
 			charset: 'utf-8',
@@ -84,6 +84,7 @@ export default defineNuxtConfig({
 		registerWebManifestInRouteRules: true,
 	},
 	vite: {
+		devtools: process.env.NODE_ENV !== 'production',
 		server: {
 			allowedHosts: process.env.NUXT_DEV_ALLOWED_HOSTS?.split(',')
 				.map((host) => host.trim())
