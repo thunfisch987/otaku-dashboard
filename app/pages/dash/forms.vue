@@ -23,6 +23,7 @@
 			/>
 			<UButton
 				variant="outline"
+				icon="i-lucide-refresh-cw"
 				:disabled="productsPending"
 				@click="resetProductsQuery"
 				>Retry inventory loading</UButton
@@ -177,6 +178,7 @@
 					>
 						<UButton
 							variant="outline"
+							icon="i-lucide-chevrons-down"
 							:loading="productsLoadingMore"
 							:disabled="productsLoadingMore"
 							@click="loadMoreProducts"
@@ -269,6 +271,7 @@
 						</p>
 						<UButton
 							class="min-h-11"
+							icon="i-lucide-package-plus"
 							:loading="createProductPending"
 							:disabled="
 								!newProduct.productname.trim() ||
@@ -283,6 +286,7 @@
 				<div class="flex flex-wrap gap-3">
 					<UButton
 						type="submit"
+						icon="i-lucide-save"
 						size="lg"
 						:loading="savePending"
 						:disabled="!canSave || savePending"
@@ -291,6 +295,7 @@
 					<UButton
 						color="neutral"
 						variant="outline"
+						icon="i-lucide-rotate-ccw"
 						size="lg"
 						@click="resetForm"
 						>Reset</UButton
@@ -321,6 +326,7 @@
 				/>
 				<UButton
 					variant="outline"
+					icon="i-lucide-refresh-cw"
 					:disabled="formsPending"
 					@click="resetFormsQuery"
 					>Retry forms</UButton
