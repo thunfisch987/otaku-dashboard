@@ -150,7 +150,6 @@
 				>
 					<UButton
 						variant="outline"
-						icon="i-lucide-download"
 						leading
 						:disabled="exporting"
 						:loading="exporting && exportingOption === 'all'"
@@ -170,7 +169,6 @@
 				>
 					<UButton
 						variant="outline"
-						icon="i-lucide-download"
 						leading
 						:disabled="!exportFilteredEnabled || exporting"
 						:loading="exporting && exportingOption === 'filtered'"
@@ -189,7 +187,6 @@
 				>
 					<UButton
 						variant="outline"
-						icon="i-lucide-download"
 						leading
 						:disabled="
 							selectedRowCount === 0 ||

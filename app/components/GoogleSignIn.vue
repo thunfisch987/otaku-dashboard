@@ -55,6 +55,10 @@ async function signInWithGoogle() {
 			'/dash/dashboard',
 			window.location.origin,
 		).toString(),
+		errorCallbackURL: new URL(
+			'/auth/error',
+			window.location.origin,
+		).toString(),
 	});
 }
 </script>

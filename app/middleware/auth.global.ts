@@ -2,6 +2,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 	if (
 		import.meta.server ||
 		to.path === '/' ||
+		to.path === '/auth/error' ||
 		to.path === '/privacy' ||
 		to.path.startsWith('/preorder/')
 	) {

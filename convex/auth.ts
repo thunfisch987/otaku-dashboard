@@ -135,6 +135,10 @@ export const authComponent = createClient<DataModel, typeof authSchema>(
 
 export function createAuthOptions(ctx: GenericCtx<DataModel>) {
 	return {
+		appName: 'Otaku Dashboard',
+		onAPIError: {
+			errorURL: '/auth/error',
+		},
 		baseURL: {
 			allowedHosts,
 			protocol: 'auto' as const,
