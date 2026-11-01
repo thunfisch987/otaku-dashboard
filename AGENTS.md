@@ -61,11 +61,14 @@
 
 ## Agent communication
 
+- A progress update is not completion: after announcing intended work, continue
+  executing it in the same task. Do not end on a future-tense promise; report
+  the completed result or the concrete blocker.
 - When a subagent implements a change and council review is requested, assign
   the review to that same subagent for its isolated change. It owns the review
   and report; the parent should not duplicate it.
 - Before reporting frontend work as done, state which relevant surfaces you
-  checked. Keep final responses short and precise.
+  checked. Keep final reports short and precise after completing the task.
 - If a repository rule conflicts with the requested task, explain the conflict
   and get human approval before breaking the rule.
 
