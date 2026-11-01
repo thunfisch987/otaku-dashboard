@@ -30,9 +30,12 @@ feedback, re-verify, report.
    an excuse to skip comprehension. Draft a brief plan as you go.
 3. **Implement** the change with focused edits following the project's existing
    style. Verify as you go (build/tests where available).
-4. **Review.** Load the `council` skill and run the panel on the diff, with a
-   short statement of intent. Follow its runtime roster and parallel launch
-   procedure.
+4. **Review.** The agent that implemented the change owns this review. If this
+   workflow is delegated, the implementing subagent must load the `council`
+   skill and run the panel on its own isolated diff, with a short statement of
+   intent, following the runtime roster and parallel launch procedure. The
+   parent assigns that responsibility in the task and does not run a duplicate
+   panel for the same change.
 5. **Adopt everything.** Work through the merged findings:
     - Implement every non-conflicting, actionable finding.
     - If members conflict on the same point, go with the majority/higher

@@ -22,6 +22,18 @@ The table above is a snapshot, not a contract. Model names and free status drift
 
 ## Procedure
 
+0. **Keep review ownership with the authoring agent.** When a subagent is
+   assigned both implementation and council review of a change, that subagent
+   must load and run this skill on its own change. The parent should make this
+   explicit in the task, including that the subagent owns preparing the review
+   material, launching the panel in parallel, merging feedback, applying any
+   required revisions within scope, and reporting scores/findings back. The
+   parent should not take over or duplicate that council run. If the parent is
+   assigned only to review completed work, or the user explicitly asks the
+   parent to run the council, the parent owns the review. For multiple isolated
+   subagent changes, each authoring subagent reviews its own change separately;
+   do not combine their diffs unless the user asks for a combined review.
+
 1. **Check the roster at runtime.** In T3 Code, use `orchestrator_capabilities`
    to confirm the OpenRouter connection, model IDs, and delegate tool before
    launching. Treat a model as _free_ only when the live catalog confirms the

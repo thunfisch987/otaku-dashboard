@@ -1,12 +1,18 @@
 /* eslint-disable node/prefer-global/process */
 import type { GenericCtx } from '@convex-dev/better-auth';
 import type { DataModel } from './_generated/dataModel';
+import type { Id } from './_generated/dataModel';
 import { passkey } from '@better-auth/passkey';
 import { createClient } from '@convex-dev/better-auth';
 import { convex, crossDomain } from '@convex-dev/better-auth/plugins';
 import { betterAuth } from 'better-auth/minimal';
-import { components } from './_generated/api';
-import { query } from './_generated/server';
+import { components, internal } from './_generated/api';
+import {
+	internalAction,
+	internalMutation,
+	mutation,
+	query,
+} from './_generated/server';
 import authConfig from './auth.config';
 import authSchema from './betterAuth/schema';
 import {
@@ -21,6 +27,84 @@ const passkeyRpID = new URL(siteUrl).hostname;
 const enableGoogleAuth = isGoogleAuthEnabled();
 const useSecureCookies = siteUrl.startsWith('https://');
 const allowedHosts = getAuthAllowedHosts();
+
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+const AVATAR_TIMEOUT_MS = 10_000;
+const GOOGLE_IMAGE_HOST = /(^|\.)googleusercontent\.com$/i;
+const ALLOWED_IMAGE_TYPES = new Set([
+	'image/avif',
+	'image/gif',
+	'image/jpeg',
+	'image/png',
+	'image/webp',
+]);
+
+function validateGoogleAvatarUrl(sourceUrl: string): URL {
+	const url = new URL(sourceUrl);
+	if (
+		url.protocol !== 'https:' ||
+		!GOOGLE_IMAGE_HOST.test(url.hostname) ||
+		url.username ||
+		url.password
+	) {
+		throw new Error(
+			'The profile image URL is not an allowed Google image URL',
+		);
+	}
+	return url;
+}
+
+async function readBoundedImage(response: Response): Promise<Blob> {
+	if (!response.ok) {
+		throw new Error(
+			`Google profile image request failed (${response.status})`,
+		);
+	}
+
+	const contentType = response.headers
+		.get('content-type')
+		?.split(';', 1)[0]
+		?.trim()
+		.toLowerCase();
+	if (!contentType || !ALLOWED_IMAGE_TYPES.has(contentType)) {
+		throw new Error('Google returned an unsupported profile image type');
+	}
+
+	const declaredLength = Number(response.headers.get('content-length'));
+	if (Number.isFinite(declaredLength) && declaredLength > MAX_AVATAR_BYTES) {
+		throw new Error('Google profile image is too large');
+	}
+	if (!response.body)
+		throw new Error('Google returned an empty profile image');
+
+	const reader = response.body.getReader();
+	const chunks: Uint8Array[] = [];
+	let totalBytes = 0;
+	try {
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) break;
+			totalBytes += value.byteLength;
+			if (totalBytes > MAX_AVATAR_BYTES) {
+				await reader.cancel();
+				throw new Error('Google profile image is too large');
+			}
+			chunks.push(value);
+		}
+	} finally {
+		reader.releaseLock();
+	}
+
+	if (totalBytes === 0)
+		throw new Error('Google returned an empty profile image');
+	const bytes = new Uint8Array(totalBytes);
+	let offset = 0;
+	for (const chunk of chunks) {
+		bytes.set(chunk, offset);
+		offset += chunk.byteLength;
+	}
+	return new Blob([bytes.buffer as ArrayBuffer], { type: contentType });
+}
 
 export const authComponent = createClient<DataModel, typeof authSchema>(
 	components.betterAuth,
@@ -79,5 +163,166 @@ export const getCurrentUser = query({
 	}),
 	handler: async (ctx) => {
 		return authComponent.getAuthUser(ctx);
+	},
+});
+
+export const getCachedAvatarUrl = query({
+	args: {},
+	returns: v.union(v.string(), v.null()),
+	handler: async (ctx) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) return null;
+
+		const authUser = await authComponent.getAuthUser(ctx);
+		const sourceUrl = authUser.image;
+		if (!sourceUrl) return null;
+
+		const cache = await ctx.db
+			.query('userAvatarCache')
+			.withIndex('by_authId', (q) =>
+				q.eq('authId', identity.tokenIdentifier),
+			)
+			.unique();
+
+		if (!cache || cache.sourceUrl !== sourceUrl || !cache.storageId)
+			return null;
+		return (await ctx.storage.getUrl(cache.storageId)) ?? null;
+	},
+});
+
+export const ensureCachedAvatar = mutation({
+	args: {},
+	returns: v.null(),
+	handler: async (ctx) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) return null;
+
+		const authUser = await authComponent.getAuthUser(ctx);
+		const sourceUrl = authUser.image;
+		if (!sourceUrl) return null;
+
+		try {
+			validateGoogleAvatarUrl(sourceUrl);
+		} catch {
+			return null;
+		}
+
+		const existing = await ctx.db
+			.query('userAvatarCache')
+			.withIndex('by_authId', (q) =>
+				q.eq('authId', identity.tokenIdentifier),
+			)
+			.unique();
+		const currentStorageUrl = existing?.storageId
+			? await ctx.storage.getUrl(existing.storageId)
+			: null;
+
+		if (
+			existing?.sourceUrl === sourceUrl &&
+			(currentStorageUrl || existing.pendingUrl === sourceUrl)
+		) {
+			return null;
+		}
+
+		if (existing?.storageId) await ctx.storage.delete(existing.storageId);
+		if (existing) {
+			await ctx.db.patch(existing._id, {
+				sourceUrl,
+				storageId: undefined,
+				pendingUrl: sourceUrl,
+			});
+		} else {
+			await ctx.db.insert('userAvatarCache', {
+				authId: identity.tokenIdentifier,
+				sourceUrl,
+				pendingUrl: sourceUrl,
+			});
+		}
+
+		await ctx.scheduler.runAfter(0, internal.auth.cacheGoogleAvatar, {
+			authId: identity.tokenIdentifier,
+			sourceUrl,
+		});
+		return null;
+	},
+});
+
+export const cacheGoogleAvatar = internalAction({
+	args: { authId: v.string(), sourceUrl: v.string() },
+	returns: v.null(),
+	handler: async (ctx, args) => {
+		let storageId: Id<'_storage'> | undefined;
+		try {
+			const url = validateGoogleAvatarUrl(args.sourceUrl);
+			const response = await fetch(url, {
+				redirect: 'error',
+				signal: AbortSignal.timeout(AVATAR_TIMEOUT_MS),
+			});
+			const image = await readBoundedImage(response);
+			storageId = await ctx.storage.store(image);
+			await ctx.runMutation(internal.auth.saveCachedAvatar, {
+				authId: args.authId,
+				sourceUrl: args.sourceUrl,
+				storageId,
+			});
+		} catch (error) {
+			if (storageId) await ctx.storage.delete(storageId);
+			await ctx.runMutation(internal.auth.markAvatarCacheFailed, {
+				authId: args.authId,
+				sourceUrl: args.sourceUrl,
+			});
+			console.warn(
+				'Could not cache a Google avatar',
+				error instanceof Error ? error.message : 'Unknown error',
+			);
+		}
+		return null;
+	},
+});
+
+export const saveCachedAvatar = internalMutation({
+	args: {
+		authId: v.string(),
+		sourceUrl: v.string(),
+		storageId: v.id('_storage'),
+	},
+	returns: v.boolean(),
+	handler: async (ctx, args) => {
+		const cache = await ctx.db
+			.query('userAvatarCache')
+			.withIndex('by_authId', (q) => q.eq('authId', args.authId))
+			.unique();
+		if (
+			!cache ||
+			cache.sourceUrl !== args.sourceUrl ||
+			cache.pendingUrl !== args.sourceUrl
+		) {
+			await ctx.storage.delete(args.storageId);
+			return false;
+		}
+
+		if (cache.storageId && cache.storageId !== args.storageId) {
+			await ctx.storage.delete(cache.storageId);
+		}
+		await ctx.db.patch(cache._id, {
+			storageId: args.storageId,
+			pendingUrl: undefined,
+		});
+		return true;
+	},
+});
+
+export const markAvatarCacheFailed = internalMutation({
+	args: { authId: v.string(), sourceUrl: v.string() },
+	returns: v.null(),
+	handler: async (ctx, args) => {
+		const cache = await ctx.db
+			.query('userAvatarCache')
+			.withIndex('by_authId', (q) => q.eq('authId', args.authId))
+			.unique();
+		if (cache?.pendingUrl === args.sourceUrl) {
+			await ctx.db.patch(cache._id, { pendingUrl: undefined });
+		}
+		return null;
 	},
 });

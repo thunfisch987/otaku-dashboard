@@ -37,7 +37,6 @@ const navigationShortcuts: Record<string, string> = {
 	i: '/dash/inventory',
 	p: '/dash/pointofsale',
 	t: '/dash/transactions',
-	u: '/dash/users',
 };
 
 const navigationShortcutLabels = [
@@ -46,7 +45,6 @@ const navigationShortcutLabels = [
 	{ key: 'I', page: 'Inventory' },
 	{ key: 'P', page: 'Point of sale' },
 	{ key: 'T', page: 'Transactions' },
-	{ key: 'U', page: 'Users' },
 ];
 
 const awaitingNavigationKey = ref(false);

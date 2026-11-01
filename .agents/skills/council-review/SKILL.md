@@ -14,8 +14,11 @@ on its own.
    `git status` — untracked files). If the user names a branch, commit range, or
    PR, collect that instead. State plainly what you reviewed. Address known
    issues and run relevant checks when appropriate before asking for review.
-2. **Load the `council` skill** and follow its runtime roster and parallel
-   launch procedure. Material: the diff (or the important hunks, if it is huge)
+2. **The reviewer owns the council run.** If this review task is delegated,
+   the reviewing subagent loads the `council` skill and runs the panel itself;
+   the parent must assign that responsibility explicitly and should not duplicate
+   the same review. Follow the council's runtime roster and parallel launch
+   procedure. Material: the diff (or the important hunks, if it is huge)
    plus one short paragraph of intent/context. Never send secrets, env files, or
    large generated artifacts to delegates. Ask each reviewer for a score out of
    10 and a brief rationale; include scores by round in the final report and

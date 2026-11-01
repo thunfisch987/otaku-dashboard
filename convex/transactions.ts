@@ -51,16 +51,6 @@ export const checkout = mutation({
 			};
 		}
 
-		const user = await ctx.db
-			.query('users')
-			.withIndex('by_authId', (q) =>
-				q.eq('authId', identity.tokenIdentifier),
-			)
-			.unique();
-		if (!user) {
-			throw new Error('User profile not found');
-		}
-
 		const quantities = new Map<Id<'products'>, number>();
 		for (const item of args.items) {
 			if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
@@ -129,9 +119,7 @@ export const checkout = mutation({
 		const timestamp = Date.now();
 		const saleId = await ctx.db.insert('sales', {
 			checkoutId: args.checkoutId,
-			user: user._id,
-			operatorName:
-				user.name || identity.name || identity.email || 'Operator',
+			operatorName: identity.name || identity.email || 'Operator',
 			timestamp,
 			total,
 			isHelper,

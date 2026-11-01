@@ -6,7 +6,7 @@
 		>
 			<template #leading>
 				<UAvatar
-					:src="cachedAvatarUrl ?? undefined"
+					:src="cachedAvatarUrl ?? user?.image ?? undefined"
 					:text="user?.name?.slice(0, 2).toUpperCase()"
 					size="xl"
 					crossorigin="anonymous"
@@ -32,9 +32,21 @@ const avatarQueryArgs = computed(() =>
 	convexAuthLoading.value || !convexAuthenticated.value ? 'skip' : {},
 );
 const { data: cachedAvatarUrl } = useConvexQuery(
-	api.users.getCachedAvatarUrl,
+	api.auth.getCachedAvatarUrl,
 	avatarQueryArgs,
 	{ server: false },
+);
+const { mutate: ensureCachedAvatar } = useConvexMutation(
+	api.auth.ensureCachedAvatar,
+);
+
+watch(
+	[convexAuthLoading, convexAuthenticated, () => user?.image],
+	([isLoading, isAuthenticated, image]) => {
+		if (isLoading || !isAuthenticated || !image) return;
+		void ensureCachedAvatar({}).catch(() => undefined);
+	},
+	{ immediate: true },
 );
 
 const toast = useToast();

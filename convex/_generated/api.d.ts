@@ -11,13 +11,10 @@
 import type * as auth from "../auth.js";
 import type * as env from "../env.js";
 import type * as http from "../http.js";
-import type * as order from "../order.js";
 import type * as preorders from "../preorders.js";
 import type * as products from "../products.js";
-import type * as profilepics from "../profilepics.js";
 import type * as sharedConstants from "../sharedConstants.js";
 import type * as transactions from "../transactions.js";
-import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -29,13 +26,10 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   env: typeof env;
   http: typeof http;
-  order: typeof order;
   preorders: typeof preorders;
   products: typeof products;
-  profilepics: typeof profilepics;
   sharedConstants: typeof sharedConstants;
   transactions: typeof transactions;
-  users: typeof users;
 }>;
 
 /**

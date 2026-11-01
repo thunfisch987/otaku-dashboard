@@ -125,11 +125,6 @@ const items = computed<MaguroNavLink[]>(() => [
 		to: '/dash/transactions',
 		active: route.path === '/dash/transactions',
 	},
-	{
-		label: 'Benutzer',
-		to: '/dash/users',
-		active: route.path === '/dash/users',
-	},
 ]);
 </script>
 

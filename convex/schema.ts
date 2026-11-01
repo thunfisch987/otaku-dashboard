@@ -39,21 +39,17 @@ const applicationTables = {
 		updatedAt: v.number(),
 	}).index('by_category', ['category']),
 
-	users: defineTable({
+	// Cached avatar bytes and the source URL only; Better Auth remains the
+	// source of truth for user profile data.
+	userAvatarCache: defineTable({
 		authId: v.string(),
-		name: v.string(),
-		email: v.string(),
-		avatar: v.optional(v.string()),
-		avatarStorageId: v.optional(v.id('_storage')),
-		avatarCachePendingUrl: v.optional(v.union(v.string(), v.null())),
-	})
-		.index('by_authId', ['authId'])
-		.index('by_name', ['name'])
-		.index('by_email', ['email']),
+		sourceUrl: v.string(),
+		storageId: v.optional(v.id('_storage')),
+		pendingUrl: v.optional(v.string()),
+	}).index('by_authId', ['authId']),
 
 	sales: defineTable({
 		checkoutId: v.string(),
-		user: v.id('users'),
 		operatorName: v.string(),
 		timestamp: v.number(),
 		total: v.number(),
