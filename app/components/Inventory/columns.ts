@@ -4,6 +4,10 @@ import type { ProductSchema } from './types';
 import { UButton, UDropdownMenu, UCheckbox, UBadge } from '#components';
 import { prepareEditForm } from './forms';
 
+type RowActionHandlers = {
+	deleteProduct: (product: ProductSchema) => void;
+};
+
 function getSortHeader(column: Column<ProductSchema>, label: string) {
 	const isSorted = column.getIsSorted();
 
@@ -21,13 +25,16 @@ function getSortHeader(column: Column<ProductSchema>, label: string) {
 	});
 }
 
-function getRowItems(row: Row<ProductSchema>): DropdownMenuItem[] {
+function getRowItems(
+	row: Row<ProductSchema>,
+	actions: RowActionHandlers,
+): DropdownMenuItem[] {
 	return [
 		{
 			label: 'Delete product',
 			icon: 'i-lucide-trash',
 			onSelect() {
-				deleteProduct(row).catch(() => {});
+				actions.deleteProduct(row.original);
 			},
 		},
 		{
@@ -42,124 +49,132 @@ function getRowItems(row: Row<ProductSchema>): DropdownMenuItem[] {
 		},
 	];
 }
-export const columns: TableColumn<ProductSchema>[] = [
-	{
-		accessorKey: '_id',
-		header: ({ column }) => getSortHeader(column, 'ID'),
-		cell: ({ row }) => `#${row.getValue<string>('_id')}`,
-		enableHiding: true,
-	},
-	{
-		id: 'select',
-		header: ({ table }) =>
-			h(UCheckbox, {
-				modelValue: table.getIsSomePageRowsSelected()
-					? 'indeterminate'
-					: table.getIsAllPageRowsSelected(),
-				'onUpdate:modelValue': (value) =>
-					table.toggleAllPageRowsSelected(!!value),
-				ariaLabel: 'Select all',
-			}),
-		cell: ({ row }) =>
-			h(UCheckbox, {
-				modelValue: row.getIsSelected(),
-				'onUpdate:modelValue': (value) => row.toggleSelected(!!value),
-				ariaLabel: 'Select row',
-			}),
-		enableHiding: false,
-	},
-	{
-		accessorKey: 'productname',
-		header: ({ column }) => getSortHeader(column, 'Product name'),
-		cell: ({ row }) => row.getValue('productname'),
-		enableHiding: false,
-	},
-	{
-		accessorKey: 'category',
-		header: ({ column }) => getSortHeader(column, 'Category'),
-		cell: ({ row }) => productCategoryLabel(row.original.category),
-		enableHiding: false,
-	},
-	{
-		accessorKey: 'price',
-		header: ({ column }) => getSortHeader(column, 'Price'),
-		cell: ({ row }) =>
-			new Intl.NumberFormat('en', {
-				style: 'currency',
-				currency: 'EUR',
-			}).format(Number.parseFloat(row.getValue('price'))),
-		enableHiding: false,
-	},
-	{
-		accessorKey: 'helperPrice',
-		header: 'Helper price',
-		cell: ({ row }) => {
-			const price = row.original.helperPrice;
-			return price === undefined
-				? '—'
-				: new Intl.NumberFormat('en', {
-						style: 'currency',
-						currency: 'EUR',
-					}).format(price);
+
+export function createColumns(
+	actions: RowActionHandlers,
+): TableColumn<ProductSchema>[] {
+	return [
+		{
+			accessorKey: '_id',
+			header: ({ column }) => getSortHeader(column, 'ID'),
+			cell: ({ row }) => `#${row.getValue<string>('_id')}`,
+			enableHiding: true,
 		},
-		enableHiding: true,
-	},
-	{
-		accessorKey: 'supplier',
-		header: 'Supplier',
-		cell: ({ row }) => row.getValue('supplier'),
-		enableHiding: false,
-	},
-	{
-		accessorKey: 'amount',
-		header: ({ column }) => getSortHeader(column, 'Stock'),
-		cell: ({ row }) => {
-			const amount = Number(row.getValue('amount'));
-			return h(
-				UBadge,
-				{
-					color: amount === 0 ? 'error' : 'success',
-					variant: 'subtle',
-				},
-				() => (amount === 0 ? 'Out of stock' : `${amount} in stock`),
-			);
+		{
+			id: 'select',
+			header: ({ table }) =>
+				h(UCheckbox, {
+					modelValue: table.getIsSomePageRowsSelected()
+						? 'indeterminate'
+						: table.getIsAllPageRowsSelected(),
+					'onUpdate:modelValue': (value) =>
+						table.toggleAllPageRowsSelected(!!value),
+					ariaLabel: 'Select all',
+				}),
+			cell: ({ row }) =>
+				h(UCheckbox, {
+					modelValue: row.getIsSelected(),
+					'onUpdate:modelValue': (value) =>
+						row.toggleSelected(!!value),
+					ariaLabel: 'Select row',
+				}),
+			enableHiding: false,
 		},
-		filterFn: (row, columnId, value: string) => {
-			const amount = Number(row.getValue(columnId));
-			return (
-				value === 'all' || (value === 'out' ? amount === 0 : amount > 0)
-			);
+		{
+			accessorKey: 'productname',
+			header: ({ column }) => getSortHeader(column, 'Product name'),
+			cell: ({ row }) => row.getValue('productname'),
+			enableHiding: false,
 		},
-		enableHiding: false,
-	},
-	{
-		id: 'actions',
-		cell: ({ row }) => {
-			return h(
-				'div',
-				{ class: 'text-right' },
-				h(
-					UDropdownMenu,
+		{
+			accessorKey: 'category',
+			header: ({ column }) => getSortHeader(column, 'Category'),
+			cell: ({ row }) => productCategoryLabel(row.original.category),
+			enableHiding: false,
+		},
+		{
+			accessorKey: 'price',
+			header: ({ column }) => getSortHeader(column, 'Price'),
+			cell: ({ row }) =>
+				new Intl.NumberFormat('en', {
+					style: 'currency',
+					currency: 'EUR',
+				}).format(Number.parseFloat(row.getValue('price'))),
+			enableHiding: false,
+		},
+		{
+			accessorKey: 'helperPrice',
+			header: 'Helper price',
+			cell: ({ row }) => {
+				const price = row.original.helperPrice;
+				return price === undefined
+					? '—'
+					: new Intl.NumberFormat('en', {
+							style: 'currency',
+							currency: 'EUR',
+						}).format(price);
+			},
+			enableHiding: true,
+		},
+		{
+			accessorKey: 'supplier',
+			header: 'Supplier',
+			cell: ({ row }) => row.getValue('supplier'),
+			enableHiding: false,
+		},
+		{
+			accessorKey: 'amount',
+			header: ({ column }) => getSortHeader(column, 'Stock'),
+			cell: ({ row }) => {
+				const amount = Number(row.getValue('amount'));
+				return h(
+					UBadge,
 					{
-						content: {
-							align: 'end',
-						},
-						items: getRowItems(row),
+						color: amount === 0 ? 'error' : 'success',
+						variant: 'subtle',
 					},
 					() =>
-						h(UButton, {
-							icon: 'i-lucide-ellipsis-vertical',
-							color: 'neutral',
-							variant: 'ghost',
-							class: 'ml-auto min-h-11 min-w-11',
-							'aria-label': `Actions for ${row.original.productname}`,
-						}),
-				),
-			);
+						amount === 0 ? 'Out of stock' : `${amount} in stock`,
+				);
+			},
+			filterFn: (row, columnId, value: string) => {
+				const amount = Number(row.getValue(columnId));
+				return (
+					value === 'all' ||
+					(value === 'out' ? amount === 0 : amount > 0)
+				);
+			},
+			enableHiding: false,
 		},
-		enableHiding: false,
-	},
-];
+		{
+			id: 'actions',
+			cell: ({ row }) => {
+				return h(
+					'div',
+					{ class: 'text-right' },
+					h(
+						UDropdownMenu,
+						{
+							content: {
+								align: 'end',
+							},
+							items: getRowItems(row, actions),
+						},
+						() =>
+							h(UButton, {
+								icon: 'i-lucide-ellipsis-vertical',
+								color: 'neutral',
+								variant: 'ghost',
+								class: 'ml-auto min-h-11 min-w-11',
+								'aria-label': `Actions for ${row.original.productname}`,
+							}),
+					),
+				);
+			},
+			enableHiding: false,
+		},
+	];
+}
 
 function productCategoryLabel(category: ProductSchema['category']) {
 	const labels: Record<

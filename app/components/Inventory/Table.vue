@@ -23,6 +23,39 @@
 					class="min-w-[42rem]"
 				/>
 			</div>
+			<UModal
+				v-model:open="rowDeleteOpen"
+				title="Delete product"
+				:description="rowDeleteDescription"
+				:dismissible="!rowDeletePending"
+				:ui="{ footer: 'justify-end' }"
+			>
+				<template #body>
+					<UAlert
+						v-if="rowDeleteError"
+						title="Could not delete product"
+						:description="rowDeleteErrorMessage"
+						color="error"
+						icon="i-lucide-circle-alert"
+					/>
+				</template>
+				<template #footer>
+					<UButton
+						label="Cancel"
+						color="neutral"
+						variant="outline"
+						:disabled="rowDeletePending"
+						@click="rowDeleteOpen = false"
+					/>
+					<UButton
+						label="Delete product"
+						color="error"
+						:loading="rowDeletePending"
+						:disabled="rowDeletePending"
+						@click="confirmRowDelete"
+					/>
+				</template>
+			</UModal>
 			<div
 				v-if="
 					!pendingos &&
@@ -190,10 +223,11 @@ import {
 	getFacetedRowModel,
 	getFacetedUniqueValues,
 } from '@tanstack/vue-table';
-import { columns } from './columns';
+import { createColumns } from './columns';
 import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Table } from '@tanstack/vue-table';
 import { api } from '#convex/api';
+import type { Id } from '~~/convex/_generated/dataModel';
 
 function csvCell(value: unknown) {
 	let text = String(value ?? '');
@@ -218,6 +252,46 @@ const table = useState<{
 	tableApi: Table<ProductSchema>;
 	tableRef: Ref<HTMLTableElement | null>;
 } | null>('table');
+
+const rowDeleteOpen = ref(false);
+const rowDeleteTarget = ref<ProductSchema | null>(null);
+const {
+	mutate: removeProduct,
+	isPending: rowDeletePending,
+	error: rowDeleteError,
+} = useConvexMutation(api.products.remove);
+const rowDeleteDescription = computed(() => {
+	const product = rowDeleteTarget.value;
+	return product
+		? `This will permanently delete ${product.productname} and its ${product.amount} ${product.amount === 1 ? 'unit' : 'units'} of stock.`
+		: '';
+});
+const rowDeleteErrorMessage = computed(() =>
+	rowDeleteError.value instanceof Error
+		? rowDeleteError.value.message
+		: 'Check your connection and try again.',
+);
+
+function askDeleteProduct(product: ProductSchema) {
+	rowDeleteError.value = null;
+	rowDeleteTarget.value = product;
+	rowDeleteOpen.value = true;
+}
+
+async function confirmRowDelete() {
+	const product = rowDeleteTarget.value;
+	if (!product || rowDeletePending.value) return;
+	rowDeleteError.value = null;
+	try {
+		await removeProduct({ id: product._id as Id<'products'> });
+		rowDeleteOpen.value = false;
+		rowDeleteTarget.value = null;
+	} catch {
+		// Keep the confirmation open so the operator can read the error and retry.
+	}
+}
+
+const columns = createColumns({ deleteProduct: askDeleteProduct });
 
 const productRowCount = computed(
 	() => table.value?.tableApi.getCoreRowModel().rows.length ?? 0,
