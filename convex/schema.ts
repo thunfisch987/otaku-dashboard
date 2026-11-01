@@ -39,22 +39,6 @@ const applicationTables = {
 		updatedAt: v.number(),
 	}).index('by_category', ['category']),
 
-	// Legacy table kept for existing data. New preorder functionality lives in
-	// the preorder* tables below and never writes sales or stock.
-	orders: defineTable({
-		orderName: v.string(),
-		productsId: v.id('products'),
-		amount: v.number(),
-		date: v.number(),
-	})
-		.index('by_product', ['productsId'])
-		.index('by_date', ['date']),
-
-	images: defineTable({
-		storageId: v.id('_storage'),
-		url: v.string(),
-	}).index('by_url', ['url']),
-
 	users: defineTable({
 		authId: v.string(),
 		name: v.string(),
