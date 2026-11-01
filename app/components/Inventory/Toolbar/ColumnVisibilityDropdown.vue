@@ -22,6 +22,7 @@
 	>
 		<UButton
 			label="Columns"
+			icon="i-lucide-columns-3"
 			color="neutral"
 			variant="outline"
 			trailing-icon="i-lucide-chevron-down"

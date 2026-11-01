@@ -25,6 +25,7 @@
 				</label>
 				<UButton
 					class="min-h-12 justify-center"
+					icon="i-lucide-download"
 					:disabled="isLoading || !isDone || saleRows.length === 0"
 					@click="downloadCsv"
 				>
@@ -113,6 +114,7 @@
 					/>
 					<UButton
 						label="Revert sale"
+						icon="i-lucide-rotate-ccw"
 						color="error"
 						:loading="isReverting"
 						:disabled="isReverting"
@@ -326,6 +328,7 @@ const saleColumns: TableColumn<SaleRow>[] = [
 			if (!original._isFirstRow) return '';
 			return h(UButton, {
 				label: 'Revert',
+				icon: 'i-lucide-rotate-ccw',
 				color: 'error',
 				variant: 'subtle',
 				size: 'sm',

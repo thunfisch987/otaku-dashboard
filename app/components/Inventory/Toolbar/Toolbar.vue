@@ -15,6 +15,7 @@
 			:items="supplierItems"
 			class="w-full sm:min-w-40"
 			aria-label="Filter by supplier"
+			leading-icon="i-lucide-truck"
 			size="lg"
 		/>
 		<USelect
@@ -22,6 +23,7 @@
 			:items="stockItems"
 			class="w-full sm:min-w-44"
 			aria-label="Filter by stock status"
+			leading-icon="i-lucide-boxes"
 			size="lg"
 		/>
 		<ColumnVisibilityDropdown />

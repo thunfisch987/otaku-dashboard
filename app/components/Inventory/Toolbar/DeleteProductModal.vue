@@ -8,6 +8,7 @@
 		<UButton
 			v-if="table"
 			label="Delete selected products"
+			icon="i-lucide-trash-2"
 			color="neutral"
 			variant="subtle"
 			:disabled="

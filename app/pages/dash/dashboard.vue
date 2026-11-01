@@ -62,9 +62,9 @@
 			<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
 				<UCard class="h-full">
 					<div class="flex h-full flex-col gap-4">
-						<div class="flex items-start gap-3">
+						<div class="flex items-center gap-3">
 							<span
-								class="rounded-lg bg-primary/10 p-3 text-primary"
+								class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
 								><UIcon
 									name="i-lucide-shopping-cart"
 									class="size-6"
@@ -78,6 +78,7 @@
 						</div>
 						<UButton
 							to="pointofsale"
+							icon="i-lucide-shopping-cart"
 							variant="soft"
 							size="lg"
 							class="mt-auto min-h-12 justify-center"
@@ -87,9 +88,9 @@
 				</UCard>
 				<UCard class="h-full">
 					<div class="flex h-full flex-col gap-4">
-						<div class="flex items-start gap-3">
+						<div class="flex items-center gap-3">
 							<span
-								class="rounded-lg bg-primary/10 p-3 text-primary"
+								class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
 								><UIcon
 									name="i-lucide-boxes"
 									class="size-6"
@@ -104,6 +105,7 @@
 						</div>
 						<UButton
 							to="inventory"
+							icon="i-lucide-boxes"
 							variant="soft"
 							size="lg"
 							class="mt-auto min-h-12 justify-center"
@@ -113,9 +115,9 @@
 				</UCard>
 				<UCard class="h-full">
 					<div class="flex h-full flex-col gap-4">
-						<div class="flex items-start gap-3">
+						<div class="flex items-center gap-3">
 							<span
-								class="rounded-lg bg-primary/10 p-3 text-primary"
+								class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
 								><UIcon
 									name="i-lucide-clipboard-list"
 									class="size-6"
@@ -130,6 +132,7 @@
 						</div>
 						<UButton
 							to="forms"
+							icon="i-lucide-clipboard-list"
 							variant="soft"
 							size="lg"
 							class="mt-auto min-h-12 justify-center"

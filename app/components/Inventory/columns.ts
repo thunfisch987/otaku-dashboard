@@ -152,7 +152,7 @@ export function createColumns(
 			cell: ({ row }) => {
 				return h(
 					'div',
-					{ class: 'text-right' },
+					{ class: 'flex justify-end' },
 					h(
 						UDropdownMenu,
 						{
@@ -166,7 +166,7 @@ export function createColumns(
 								icon: 'i-lucide-ellipsis-vertical',
 								color: 'neutral',
 								variant: 'ghost',
-								class: 'ml-auto min-h-11 min-w-11',
+								class: 'ml-auto min-h-11 min-w-11 justify-center',
 								'aria-label': `Actions for ${row.original.productname}`,
 							}),
 					),

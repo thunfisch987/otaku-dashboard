@@ -8,6 +8,7 @@
 		<UButton
 			id="createProductButton"
 			label="Create Product"
+			icon="i-lucide-package-plus"
 			color="neutral"
 			variant="subtle"
 			class="min-h-11"

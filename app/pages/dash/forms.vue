@@ -159,6 +159,7 @@
 								/>
 								<UButton
 									class="min-h-11"
+									icon="i-lucide-plus"
 									:disabled="!selectedProduct[section.key]"
 									@click="addItem(section.key)"
 									>Add
@@ -401,6 +402,7 @@
 						<UButton
 							class="min-h-11"
 							variant="soft"
+							icon="i-lucide-copy"
 							@click="copyFormLink(form.slug, formStatus(form))"
 							>Copy public link</UButton
 						>
@@ -408,6 +410,7 @@
 							class="min-h-11"
 							color="neutral"
 							variant="outline"
+							icon="i-lucide-clipboard-list"
 							@click="selectForm(form._id)"
 							>View preparation</UButton
 						>
@@ -420,6 +423,7 @@
 			>
 				<UButton
 					variant="outline"
+					icon="i-lucide-chevrons-down"
 					:loading="formsLoadingMore"
 					:disabled="formsLoadingMore"
 					@click="loadMoreForms"
