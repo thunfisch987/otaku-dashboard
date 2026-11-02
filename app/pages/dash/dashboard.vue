@@ -482,10 +482,41 @@ type SaleWithItems = {
 	}[];
 };
 
-const dayRange = computed(() => {
+const today = ref(new Date());
+let todayRefreshTimer: ReturnType<typeof setInterval> | undefined;
+
+function refreshToday() {
 	const now = new Date();
-	const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-	const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+	if (
+		now.getFullYear() !== today.value.getFullYear() ||
+		now.getMonth() !== today.value.getMonth() ||
+		now.getDate() !== today.value.getDate()
+	) {
+		today.value = now;
+	}
+}
+
+onMounted(() => {
+	todayRefreshTimer = setInterval(refreshToday, 60_000);
+	window.addEventListener('focus', refreshToday);
+});
+
+onBeforeUnmount(() => {
+	if (todayRefreshTimer) clearInterval(todayRefreshTimer);
+	window.removeEventListener('focus', refreshToday);
+});
+
+const dayRange = computed(() => {
+	const start = new Date(
+		today.value.getFullYear(),
+		today.value.getMonth(),
+		today.value.getDate(),
+	);
+	const end = new Date(
+		today.value.getFullYear(),
+		today.value.getMonth(),
+		today.value.getDate() + 1,
+	);
 	return { dayStart: start.getTime(), dayEnd: end.getTime() };
 });
 const salesQueryArgs = computed(() =>

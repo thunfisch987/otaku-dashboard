@@ -26,7 +26,12 @@
 				<UButton
 					class="min-h-12 justify-center"
 					icon="i-lucide-download"
-					:disabled="isLoading || !isDone || saleRows.length === 0"
+					:disabled="
+						isLoading ||
+						!dayRange ||
+						!isDone ||
+						saleRows.length === 0
+					"
 					@click="downloadCsv"
 				>
 					Download CSV
@@ -171,7 +176,14 @@ const dayRange = computed(() => {
 	}
 	const start = new Date(year, month - 1, day);
 	const end = new Date(year, month - 1, day + 1);
-	if (!Number.isFinite(start.getTime())) return null;
+	if (
+		!Number.isFinite(start.getTime()) ||
+		start.getFullYear() !== year ||
+		start.getMonth() !== month - 1 ||
+		start.getDate() !== day
+	) {
+		return null;
+	}
 	return { dayStart: start.getTime(), dayEnd: end.getTime() };
 });
 const salesQueryArgs = computed(() =>
@@ -370,6 +382,10 @@ function csvCell(value: string | number) {
 }
 
 function downloadCsv() {
+	// The query is skipped for an empty or invalid date. Guard here as well as
+	// in the button so retained rows from the previous query cannot be exported.
+	if (!dayRange.value || isLoading.value || !isDone.value) return;
+
 	const headers = [
 		'Time',
 		'Sale ID',
