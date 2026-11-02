@@ -84,7 +84,6 @@ export default defineNuxtConfig({
 		registerWebManifestInRouteRules: true,
 	},
 	vite: {
-		devtools: process.env.NODE_ENV !== 'production',
 		server: {
 			allowedHosts: process.env.NUXT_DEV_ALLOWED_HOSTS?.split(',')
 				.map((host) => host.trim())
@@ -94,8 +93,6 @@ export default defineNuxtConfig({
 			include: [
 				'@internationalized/date',
 				'@tanstack/vue-table',
-				'@vue/devtools-core',
-				'@vue/devtools-kit',
 				'convex/browser',
 				'convex/server',
 				'convex/values',
