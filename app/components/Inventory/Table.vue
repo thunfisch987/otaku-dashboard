@@ -88,8 +88,8 @@
 				/>
 				<p class="mt-2 font-medium">No products match these filters</p>
 				<p class="mt-1 text-sm text-muted">
-					Clear the search or choose a different stock or supplier
-					filter.
+					Clear the search or choose a different category, stock, or
+					supplier filter.
 				</p>
 			</div>
 			<div
@@ -321,6 +321,8 @@ const exportFilteredEnabled = computed((): boolean => {
 	} else {
 		if (
 			globalFilter.value !== '' ||
+			table.value?.tableApi.getColumn('category')?.getFilterValue() !==
+				undefined ||
 			table.value?.tableApi.getColumn('supplier')?.getFilterValue() !==
 				undefined ||
 			table.value?.tableApi.getColumn('amount')?.getFilterValue() !==

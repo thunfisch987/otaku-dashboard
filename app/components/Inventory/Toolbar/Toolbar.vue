@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="grid gap-3 rounded-xl border border-default bg-elevated/40 p-3 sm:grid-cols-2 xl:grid-cols-[minmax(16rem,1fr)_auto_auto_auto_auto] xl:items-center"
+		class="grid gap-3 rounded-xl border border-default bg-elevated/40 p-3 sm:grid-cols-2 xl:grid-cols-[minmax(16rem,1fr)_auto_auto_auto_auto_auto] xl:items-center"
 	>
 		<UInput
 			v-model="globalFilter"
@@ -16,6 +16,14 @@
 			class="w-full sm:min-w-40"
 			aria-label="Filter by supplier"
 			leading-icon="i-lucide-truck"
+			size="lg"
+		/>
+		<USelect
+			v-model="categoryFilter"
+			:items="categoryItems"
+			class="w-full sm:min-w-40"
+			aria-label="Filter by category"
+			leading-icon="i-lucide-tags"
 			size="lg"
 		/>
 		<USelect
@@ -36,7 +44,7 @@
 
 <script setup lang="ts">
 import type { Table } from '@tanstack/vue-table';
-import type { ProductSchema } from '../types';
+import { productCategories, type ProductSchema } from '../types';
 import DeleteProductModal from './DeleteProductModal.vue';
 import CreateProductModal from './CreateProductModal.vue';
 import ColumnVisibilityDropdown from './ColumnVisibilityDropdown.vue';
@@ -55,6 +63,16 @@ const supplierItems = computed<SelectItem[]>(() => [
 	{ label: `HDJ (${facets.value?.get('HDJ') ?? 0})`, value: 'HDJ' },
 	{ label: `Otaku (${facets.value?.get('Otaku') ?? 0})`, value: 'Otaku' },
 ]);
+const categoryFacets = computed(() =>
+	table.value?.tableApi.getColumn('category')?.getFacetedUniqueValues(),
+);
+const categoryItems = computed<SelectItem[]>(() => [
+	{ label: 'All categories', value: 'all' },
+	...productCategories.map(({ label, value }) => ({
+		label: `${label} (${categoryFacets.value?.get(value) ?? 0})`,
+		value,
+	})),
+]);
 const stockItems: SelectItem[] = [
 	{ label: 'All stock levels', value: 'all' },
 	{ label: 'In stock', value: 'in' },
@@ -63,6 +81,7 @@ const stockItems: SelectItem[] = [
 
 const globalFilter = useState('globalFilter', () => '');
 const supplierFilter = useState('facetedSelectValue', () => 'Alle');
+const categoryFilter = useState('inventoryCategoryFilter', () => 'all');
 const stockFilter = useState('inventoryStockFilter', () => 'all');
 
 watch(
@@ -71,6 +90,15 @@ watch(
 		table.value?.tableApi
 			.getColumn('supplier')
 			?.setFilterValue(value === 'Alle' ? undefined : value);
+	},
+	{ immediate: true },
+);
+watch(
+	[categoryFilter, table],
+	([value]) => {
+		table.value?.tableApi
+			.getColumn('category')
+			?.setFilterValue(value === 'all' ? undefined : value);
 	},
 	{ immediate: true },
 );
