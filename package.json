@@ -55,7 +55,7 @@
 		"oxlint": "1.90.0",
 		"oxlint-tsgolint": "7.0.2005",
 		"typescript": "npm:@typescript/typescript6@6.0.2",
-		"vue-tsc": "3.3.13"
+		"vue-tsc": "3.3.14"
 	},
 	"trustedDependencies": [
 		"@parcel/watcher",
