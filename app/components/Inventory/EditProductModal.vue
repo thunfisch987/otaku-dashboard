@@ -70,6 +70,20 @@
 						"
 					/>
 				</UFormField>
+				<UFormField
+					label="Supply cost per item"
+					name="supplyCost"
+					hint="Optional; used for preparation cost estimates on preorder forms."
+				>
+					<UInput
+						v-model="editProductState.supplyCost"
+						type="number"
+						min="0"
+						step="0.01"
+						placeholder="Unknown"
+						trailing-icon="i-lucide-euro"
+					/>
+				</UFormField>
 				<p
 					v-if="editProductState.category === 'onigiri'"
 					class="text-sm text-muted"
@@ -229,6 +243,9 @@ async function editProduct(
 				: null,
 			amount: formSubmitEvent.data.amount,
 			picture: formSubmitEvent.data.picture,
+			supplyCost: String(formSubmitEvent.data.supplyCost ?? '').trim()
+				? Number(formSubmitEvent.data.supplyCost)
+				: null,
 		});
 		table.value?.tableApi.toggleAllRowsSelected(false);
 		editProductOpen.value = false;

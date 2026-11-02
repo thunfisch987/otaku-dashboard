@@ -25,6 +25,7 @@ export const insertProductSchema = z.object({
 	amount: z._default(z.int().check(z.nonnegative()), 0),
 	picture: z.optional(z.string().check()),
 	helperPrice: z.optional(z.string().check()),
+	supplyCost: z.optional(z.string().check()),
 });
 
 export const productSchema = z.extend(insertProductSchema, {
@@ -32,6 +33,7 @@ export const productSchema = z.extend(insertProductSchema, {
 	price: z.number(),
 	category: productCategorySchema,
 	helperPrice: z.optional(z.number()),
+	supplyCost: z.optional(z.number()),
 });
 
 export const patchProductSchema = z.extend(insertProductSchema, {

@@ -17,6 +17,23 @@
 		<div class="grid gap-8 lg:grid-cols-2">
 			<section>
 				<h3 class="mb-3 font-semibold">Preparation totals</h3>
+				<p
+					v-if="
+						preparationTotals?.length &&
+						!preparationPending &&
+						!preparationError
+					"
+					class="mb-3 text-sm text-muted"
+				>
+					Supply cost total:
+					<strong v-if="allSupplyCostsKnown">{{
+						formatCurrency(totalSupplyCost)
+					}}</strong>
+					<strong v-else
+						>Incomplete — {{ formatCurrency(knownSupplyCost) }} for
+						items with known costs</strong
+					>
+				</p>
 				<div
 					v-if="preparationPending"
 					class="text-sm text-muted"
@@ -55,7 +72,22 @@
 						:key="item.productId"
 						class="flex items-center justify-between gap-3 px-4 py-3"
 					>
-						<span>{{ item.productName }}</span>
+						<div class="min-w-0">
+							<p>{{ item.productName }}</p>
+							<p class="text-sm text-muted">
+								<span v-if="item.unitSupplyCost !== null">
+									{{ formatCurrency(item.unitSupplyCost) }}
+									each ·
+									{{
+										formatCurrency(
+											item.totalSupplyCost ?? 0,
+										)
+									}}
+									total
+								</span>
+								<span v-else>Supply cost unknown</span>
+							</p>
+						</div>
 						<UBadge
 							color="primary"
 							variant="subtle"
@@ -264,6 +296,27 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ close: [] }>();
 const toast = useToast();
+const currencyFormatter = new Intl.NumberFormat('en-IE', {
+	style: 'currency',
+	currency: 'EUR',
+});
+const allSupplyCostsKnown = computed(
+	() =>
+		preparationTotals.value?.every(
+			(item) => item.totalSupplyCost !== null,
+		) ?? false,
+);
+const knownSupplyCost = computed(
+	() =>
+		preparationTotals.value?.reduce(
+			(sum, item) => sum + (item.totalSupplyCost ?? 0),
+			0,
+		) ?? 0,
+);
+const totalSupplyCost = computed(() => knownSupplyCost.value);
+function formatCurrency(value: number) {
+	return currencyFormatter.format(value);
+}
 
 const reviewArgs = computed(() => ({ formId: props.formId }));
 // Changing this tick changes the args object identity to re-subscribe the

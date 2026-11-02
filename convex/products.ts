@@ -204,6 +204,7 @@ export const create = mutation({
 		picture: v.optional(v.string()),
 		price: v.number(),
 		helperPrice: v.optional(v.number()),
+		supplyCost: v.optional(v.number()),
 		category: v.optional(productCategoryValidator),
 		supplier: v.union(v.literal('HDJ'), v.literal('Otaku')),
 		amount: v.number(),
@@ -227,6 +228,12 @@ export const create = mutation({
 			throw new Error(
 				'Helper price must be a finite non-negative number',
 			);
+		}
+		if (
+			args.supplyCost !== undefined &&
+			(!Number.isFinite(args.supplyCost) || args.supplyCost < 0)
+		) {
+			throw new Error('Supply cost must be a finite non-negative number');
 		}
 		if (!Number.isInteger(args.amount) || args.amount < 0) {
 			throw new Error('Amount must be a non-negative integer');
@@ -294,6 +301,9 @@ export const create = mutation({
 			category,
 			price,
 			...(helperPrice === undefined ? {} : { helperPrice }),
+			...(args.supplyCost === undefined
+				? {}
+				: { supplyCost: args.supplyCost }),
 			updatedAt: now,
 		});
 	},
@@ -306,6 +316,7 @@ export const update = mutation({
 		picture: v.optional(v.string()),
 		price: v.optional(v.number()),
 		helperPrice: v.optional(v.union(v.number(), v.null())),
+		supplyCost: v.optional(v.union(v.number(), v.null())),
 		category: v.optional(productCategoryValidator),
 		supplier: v.optional(v.union(v.literal('HDJ'), v.literal('Otaku'))),
 		amount: v.optional(v.number()),
@@ -337,6 +348,13 @@ export const update = mutation({
 			throw new Error(
 				'Helper price must be a finite non-negative number',
 			);
+		}
+		if (
+			updates.supplyCost !== undefined &&
+			updates.supplyCost !== null &&
+			(!Number.isFinite(updates.supplyCost) || updates.supplyCost < 0)
+		) {
+			throw new Error('Supply cost must be a finite non-negative number');
 		}
 		if (
 			updates.amount !== undefined &&
@@ -442,7 +460,10 @@ export const update = mutation({
 
 		const productUpdates: Record<string, unknown> = {};
 		for (const [key, value] of Object.entries(updates)) {
-			if (value !== undefined) productUpdates[key] = value;
+			if (value !== undefined) {
+				productUpdates[key] =
+					key === 'supplyCost' && value === null ? undefined : value;
+			}
 		}
 		await ctx.db.patch(id, {
 			...productUpdates,

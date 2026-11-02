@@ -23,6 +23,8 @@ const applicationTables = {
 		// Optional price used only for helper checkouts at the POS. Never
 		// exposed through the public preorder endpoints.
 		helperPrice: v.optional(v.number()),
+		// Optional cost to prepare one unit; absent costs remain unknown.
+		supplyCost: v.optional(v.number()),
 		// Optional while existing inventory products are being categorized.
 		category: v.optional(productCategoryValidator),
 		supplier: v.union(v.literal('HDJ'), v.literal('Otaku')),
@@ -100,6 +102,8 @@ const applicationTables = {
 		// Snapshot so historical forms remain readable if a product is renamed.
 		productName: v.string(),
 		section: preorderSectionValidator,
+		// Snapshot the operator's cost when this form is planned.
+		supplyCost: v.optional(v.number()),
 	})
 		.index('by_formId', ['formId'])
 		.index('by_formId_and_productId', ['formId', 'productId']),

@@ -15,6 +15,10 @@ export function prepareEditForm(row: Row<ProductSchema>) {
 		row.original.helperPrice === undefined
 			? ''
 			: String(row.original.helperPrice);
+	editProductState.value.supplyCost =
+		row.original.supplyCost === undefined
+			? ''
+			: String(row.original.supplyCost);
 	editProductState.value.price = row.original.price.toFixed(2);
 	editProductState.value.productname = row.original.productname;
 	editProductState.value.category = row.original.category;
@@ -35,6 +39,7 @@ export function resetFormState() {
 	editProductState.value.amount = 0;
 	editProductState.value.picture = '';
 	editProductState.value.helperPrice = '';
+	editProductState.value.supplyCost = '';
 	editProductState.value._id = '';
 	unmaskedProductEditValue.value = '';
 }

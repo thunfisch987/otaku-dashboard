@@ -67,6 +67,8 @@ const preparationTotalValidator = v.object({
 	productName: v.string(),
 	section: sectionValidator,
 	totalQuantity: v.number(),
+	unitSupplyCost: v.union(v.number(), v.null()),
+	totalSupplyCost: v.union(v.number(), v.null()),
 });
 
 const submissionItemValidator = v.object({
@@ -311,7 +313,7 @@ export const createForm = mutation({
 			throw new Error('At least one onigiri product is required');
 		}
 
-		const products = new Map<Id<'products'>, string>();
+		const products = new Map<Id<'products'>, Doc<'products'>>();
 		for (const item of args.items) {
 			const product = await ctx.db.get(item.productId);
 			if (!product) {
@@ -325,7 +327,7 @@ export const createForm = mutation({
 					`${product.productname} must be categorized as ${item.section} to appear in that preorder section`,
 				);
 			}
-			products.set(item.productId, product.productname);
+			products.set(item.productId, product);
 		}
 
 		const now = Date.now();
@@ -345,8 +347,15 @@ export const createForm = mutation({
 			await ctx.db.insert('preorderFormItems', {
 				formId,
 				productId: item.productId,
-				productName: products.get(item.productId) ?? 'Product',
+				productName:
+					products.get(item.productId)?.productname ?? 'Product',
 				section: item.section,
+				...(products.get(item.productId)?.supplyCost === undefined
+					? {}
+					: {
+							supplyCost: products.get(item.productId)
+								?.supplyCost,
+						}),
 			});
 			await ctx.db.insert('preorderFormTotals', {
 				formId,
@@ -924,6 +933,12 @@ export const preparationTotals = query({
 			productName: item.productName,
 			section: item.section,
 			totalQuantity: totalByProduct.get(item.productId) ?? 0,
+			unitSupplyCost: item.supplyCost ?? null,
+			totalSupplyCost:
+				item.supplyCost === undefined
+					? null
+					: (totalByProduct.get(item.productId) ?? 0) *
+						item.supplyCost,
 		}));
 	},
 });

@@ -76,6 +76,20 @@
 						"
 					/>
 				</UFormField>
+				<UFormField
+					label="Supply cost per item"
+					name="supplyCost"
+					hint="Optional; used for preparation cost estimates on preorder forms."
+				>
+					<UInput
+						v-model="state.supplyCost"
+						type="number"
+						min="0"
+						step="0.01"
+						placeholder="Unknown"
+						trailing-icon="i-lucide-euro"
+					/>
+				</UFormField>
 				<p
 					v-if="state.category === 'onigiri'"
 					class="text-sm text-muted"
@@ -171,6 +185,7 @@ function resetFormState() {
 	state.amount = 0;
 	state.picture = '';
 	state.helperPrice = '';
+	state.supplyCost = '';
 	unmaskedCreatePriceValue.value = '';
 }
 
@@ -196,6 +211,7 @@ const DEFAULT_STATE = {
 	amount: 0,
 	picture: '',
 	helperPrice: '',
+	supplyCost: '',
 } as const;
 
 const state = reactive<InsertProductSchema>(DEFAULT_STATE);
@@ -245,6 +261,9 @@ async function createProduct(
 				: {}),
 			supplier: formSubmitEvent.data.supplier,
 			amount: formSubmitEvent.data.amount,
+			...(String(formSubmitEvent.data.supplyCost ?? '').trim()
+				? { supplyCost: Number(formSubmitEvent.data.supplyCost) }
+				: {}),
 			picture: formSubmitEvent.data.picture,
 		});
 		table.value?.tableApi.toggleAllRowsSelected(false);
