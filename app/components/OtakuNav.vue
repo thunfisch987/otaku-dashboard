@@ -111,7 +111,7 @@ const items = computed<MaguroNavLink[]>(() => [
 		active: route.path === '/dash/forms',
 	},
 	{
-		label: 'Inventar',
+		label: 'Inventory',
 		to: '/dash/inventory',
 		active: route.path === '/dash/inventory',
 	},
