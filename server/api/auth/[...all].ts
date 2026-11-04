@@ -69,6 +69,22 @@ function toConvexSiteUrl(convexUrl: string): string {
 	return url.toString();
 }
 
+function getPublicProtocol(
+	headers: Headers,
+	requestUrl: URL,
+): 'http' | 'https' {
+	const forwardedProtocol = headers
+		.get('x-forwarded-proto')
+		?.split(',', 1)[0]
+		?.trim()
+		.toLowerCase();
+
+	if (forwardedProtocol === 'http' || forwardedProtocol === 'https') {
+		return forwardedProtocol;
+	}
+	return requestUrl.protocol === 'https:' ? 'https' : 'http';
+}
+
 export default defineEventHandler(async (event) => {
 	const requestUrl = event.url;
 	const convexUrl = (useRuntimeConfig().public.convex as { url?: string })
@@ -90,6 +106,7 @@ export default defineEventHandler(async (event) => {
 	for (const [key, value] of Object.entries(getRequestHeaders(event))) {
 		if (value !== undefined) headers.set(key, value);
 	}
+	const publicProtocol = getPublicProtocol(headers, requestUrl);
 
 	headers.delete('content-length');
 	headers.delete('host');
@@ -99,12 +116,9 @@ export default defineEventHandler(async (event) => {
 		headers.delete(header.trim());
 	}
 	headers.set('x-forwarded-host', requestUrl.host);
-	headers.set('x-forwarded-proto', requestUrl.protocol.replace(/:$/, ''));
+	headers.set('x-forwarded-proto', publicProtocol);
 	headers.set('x-better-auth-forwarded-host', requestUrl.host);
-	headers.set(
-		'x-better-auth-forwarded-proto',
-		requestUrl.protocol.replace(/:$/, ''),
-	);
+	headers.set('x-better-auth-forwarded-proto', publicProtocol);
 
 	const body = ['PATCH', 'POST', 'PUT', 'DELETE'].includes(event.req.method)
 		? await readRequestBody(event.req)
