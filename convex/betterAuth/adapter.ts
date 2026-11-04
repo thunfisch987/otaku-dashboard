@@ -4,8 +4,10 @@ import { createAuthOptions } from '../auth';
 
 export const {
 	create,
+	consumeOne,
 	findOne,
 	findMany,
+	incrementOne,
 	updateOne,
 	updateMany,
 	deleteOne,
