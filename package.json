@@ -21,7 +21,7 @@
 	},
 	"dependencies": {
 		"@better-auth/infra": "0.4.25",
-		"@better-auth/passkey": "1.6.33",
+		"@better-auth/passkey": "1.7.15",
 		"@convex-dev/better-auth": "0.12.6",
 		"@nuxt/eslint": "^1.17.0",
 		"@nuxt/image": "^2.2.1",
@@ -30,7 +30,7 @@
 		"@onmax/nuxt-better-auth": "0.1.2",
 		"@tanstack/vue-table": "^8.21.3",
 		"@vite-pwa/nuxt": "^1.1.1",
-		"better-auth": "1.6.33",
+		"better-auth": "1.7.15",
 		"convex": "^1.48.0",
 		"ipx": "4.1.0",
 		"maska": "^3.2.2",
