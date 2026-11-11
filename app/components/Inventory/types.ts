@@ -19,13 +19,39 @@ const productCategorySchema = z._default(
 
 export const insertProductSchema = z.object({
 	productname: z.string().check(z.minLength(1, 'Please enter a Name')),
-	price: z.string().check(z.minLength(1, 'Please enter a price')),
+	price: z
+		.string()
+		.check(
+			z.minLength(1, 'Please enter a price'),
+			z.regex(
+				/^\d+(?:[.,]\d{0,2})?$/,
+				'Enter a valid price with up to two decimal places.',
+			),
+		),
 	category: productCategorySchema,
 	supplier: z._default(z.enum(['HDJ', 'Otaku']), 'Otaku'),
 	amount: z._default(z.int().check(z.nonnegative()), 0),
 	picture: z.optional(z.string().check()),
-	helperPrice: z.optional(z.string().check()),
-	supplyCost: z.optional(z.string().check()),
+	helperPrice: z.optional(
+		z
+			.string()
+			.check(
+				z.regex(
+					/^(?:\d+(?:[.,]\d{0,2})?)?$/,
+					'Enter a valid helper price or leave it empty.',
+				),
+			),
+	),
+	supplyCost: z.optional(
+		z
+			.string()
+			.check(
+				z.regex(
+					/^(?:\d+(?:[.,]\d{0,2})?)?$/,
+					'Enter a valid supply cost or leave it empty.',
+				),
+			),
+	),
 });
 
 export const productSchema = z.extend(insertProductSchema, {
@@ -48,4 +74,26 @@ export type ProductArraySchema = z.infer<typeof productArraySchema>;
 
 export type InsertProductSchema = z.infer<typeof insertProductSchema>;
 
+export type ProductCreationFormState = Pick<
+	InsertProductSchema,
+	| 'productname'
+	| 'price'
+	| 'category'
+	| 'supplier'
+	| 'amount'
+	| 'helperPrice'
+	| 'supplyCost'
+>;
+
 export type PatchProductSchema = z.infer<typeof patchProductSchema>;
+
+const productMoneyPattern = /^(?:\d+(?:[.,]\d{0,2})?)?$/;
+
+export function parseProductMoney(
+	value: string | undefined,
+): number | undefined {
+	const input = String(value ?? '').trim();
+	if (!input || !productMoneyPattern.test(input)) return undefined;
+	const amount = Number(input.replace(',', '.'));
+	return Number.isFinite(amount) ? amount : undefined;
+}

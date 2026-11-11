@@ -22,120 +22,28 @@
 				class="space-y-4"
 				@submit="createProduct"
 			>
-				<UFormField
-					label="Product name"
-					name="productname"
-					required
-				>
-					<UInput
-						v-model="state.productname"
-						placeholder="Product name"
-						autocomplete="off"
-						autofocus
-					/>
-				</UFormField>
-				<UFormField
-					label="Category"
-					name="category"
-					required
-				>
-					<USelect
-						v-model="state.category"
-						:items="productCategories"
-					/>
-				</UFormField>
-				<UFormField
-					label="Price"
-					name="price"
-					required
-					class=""
-				>
-					<UInput
-						v-model="state.price"
-						v-maska:unmaskedCreatePriceValue.unmasked="maskOptions"
-						inputmode="numeric"
-						trailing-icon="i-lucide-euro"
-						:disabled="
-							state.category === 'onigiri' && !!onigiriPricing
-						"
-					/>
-				</UFormField>
-				<UFormField
-					label="Helper price"
-					name="helperPrice"
-					hint="Optional. Helper checkouts use the regular price when this is empty."
-				>
-					<UInput
-						v-model="state.helperPrice"
-						type="number"
-						min="0"
-						step="0.01"
-						placeholder="Use regular price"
-						:disabled="
-							state.category === 'onigiri' && !!onigiriPricing
-						"
-					/>
-				</UFormField>
-				<UFormField
-					label="Supply cost per item"
-					name="supplyCost"
-					hint="Optional; used for preparation cost estimates on preorder forms."
-				>
-					<UInput
-						v-model="state.supplyCost"
-						type="number"
-						min="0"
-						step="0.01"
-						placeholder="Unknown"
-						trailing-icon="i-lucide-euro"
-					/>
-				</UFormField>
-				<p
-					v-if="state.category === 'onigiri'"
-					class="text-sm text-muted"
-				>
-					{{
-						onigiriPricing
-							? 'Onigiri prices are shared across all products in this category.'
-							: 'These prices will initialize the shared Onigiri prices.'
-					}}
-				</p>
-				<UFormField
-					label="Supplier"
-					name="supplier"
-					required
-				>
-					<USelect
-						v-model="state.supplier"
-						:items="items"
-					/>
-				</UFormField>
-				<UFormField
-					label="Amount"
-					name="amount"
-					required
-				>
-					<UInputNumber
-						v-model="state.amount"
-						placeholder="Amount"
-					/>
-				</UFormField>
+				<InventoryProductFormFields
+					v-model:state="state"
+					:onigiri-pricing="onigiriPricing"
+					form-validation
+					show-supply-cost
+				/>
 				<UButton
 					label="Create product"
 					color="primary"
 					type="submit"
 					:loading="isPending"
-					:disabled="isPending || form?.getErrors().length !== 0"
+					:disabled="isPending || (form?.getErrors().length ?? 0) > 0"
 					class="min-h-11"
 				/>
 				<UAlert
-					v-if="error"
-					title="Could not create product"
-					:description="
-						error instanceof Error
-							? error.message
-							: 'Please try again.'
+					v-if="creationError"
+					:title="
+						validationError
+							? 'Check the product details'
+							: 'Could not create product'
 					"
+					:description="creationError"
 					color="error"
 					icon="i-lucide-circle-alert"
 				/>
@@ -147,14 +55,12 @@
 <script setup lang="ts">
 import {
 	insertProductSchema,
-	productCategories,
+	parseProductMoney,
 	type InsertProductSchema,
 	type ProductSchema,
 } from '../types';
 import type { Table } from '@tanstack/vue-table';
-import { vMaska } from 'maska/vue';
 import type { FormSubmitEvent } from '@nuxt/ui';
-import type { MaskInputOptions } from 'maska';
 import { api } from '#convex/api';
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
@@ -168,14 +74,23 @@ const { data: onigiriPricing } = useConvexQuery(
 	{ server: false },
 );
 
-const maskOptions: MaskInputOptions = {
-	eager: true,
-	number: {
-		unsigned: true,
-		fraction: 2,
-		locale: 'en-US',
-	},
-};
+const form = useTemplateRef('form');
+const table = useState<{
+	tableApi: Table<ProductSchema>;
+	tableRef: Ref<HTMLTableElement | null>;
+} | null>('table');
+
+const createProductOpen = useState('createProductOpen', () => false);
+const state = reactive<InsertProductSchema>({
+	productname: '',
+	price: '',
+	category: 'other',
+	supplier: 'Otaku',
+	amount: 0,
+	picture: '',
+	helperPrice: '',
+	supplyCost: '',
+});
 
 function resetFormState() {
 	state.productname = '';
@@ -186,84 +101,63 @@ function resetFormState() {
 	state.picture = '';
 	state.helperPrice = '';
 	state.supplyCost = '';
-	unmaskedCreatePriceValue.value = '';
+	validationError.value = null;
 }
 
-const form = useTemplateRef('form');
-
-const table = useState<{
-	tableApi: Table<ProductSchema>;
-	tableRef: Ref<HTMLTableElement | null>;
-} | null>('table');
-
-const unmaskedCreatePriceValue = useState(
-	'unmaskedCreateProductValue',
-	() => '',
-);
-defineExpose({ unmaskedCreatePriceValue });
-
-const createProductOpen = useState('createProductOpen', () => false);
-const DEFAULT_STATE = {
-	productname: '',
-	price: '',
-	category: 'other',
-	supplier: 'Otaku',
-	amount: 0,
-	picture: '',
-	helperPrice: '',
-	supplyCost: '',
-} as const;
-
-const state = reactive<InsertProductSchema>(DEFAULT_STATE);
-
-watch(
-	() =>
-		[
-			state.category,
-			onigiriPricing.value?.price,
-			onigiriPricing.value?.helperPrice,
-		] as const,
-	([category, sharedPrice, sharedHelperPrice]) => {
-		if (category !== 'onigiri' || sharedPrice === undefined) return;
-		state.price = sharedPrice.toFixed(2);
-		unmaskedCreatePriceValue.value = String(sharedPrice);
-		state.helperPrice =
-			sharedHelperPrice === undefined ? '' : String(sharedHelperPrice);
-	},
-);
-
-const items: {
-	label: ProductSchema['supplier'];
-	value: ProductSchema['supplier'];
-}[] = [
-	{ label: 'HDJ', value: 'HDJ' },
-	{ label: 'Otaku', value: 'Otaku' },
-];
 const toast = useToast();
 const { mutate, isPending, error } = useConvexMutation(api.products.create);
+const validationError = ref<string | null>(null);
+const creationError = computed(
+	() => validationError.value ?? error.value?.message ?? null,
+);
+
 async function createProduct(
 	formSubmitEvent: FormSubmitEvent<InsertProductSchema>,
 ) {
+	validationError.value = null;
+	const price = parseProductMoney(formSubmitEvent.data.price);
+	if (price === undefined) {
+		validationError.value =
+			'Enter a valid price with up to two decimal places.';
+		return;
+	}
+
+	const helperPriceInput = String(
+		formSubmitEvent.data.helperPrice ?? '',
+	).trim();
+	const helperPrice = helperPriceInput
+		? parseProductMoney(helperPriceInput)
+		: undefined;
+	if (helperPriceInput && helperPrice === undefined) {
+		validationError.value = 'Enter a valid helper price or leave it empty.';
+		return;
+	}
+	if (helperPrice !== undefined && helperPrice > price) {
+		validationError.value =
+			'The helper price cannot be higher than the regular price.';
+		return;
+	}
+
+	const supplyCostInput = String(
+		formSubmitEvent.data.supplyCost ?? '',
+	).trim();
+	const supplyCost = supplyCostInput
+		? parseProductMoney(supplyCostInput)
+		: undefined;
+	if (supplyCostInput && supplyCost === undefined) {
+		validationError.value = 'Enter a valid supply cost or leave it empty.';
+		return;
+	}
+
 	try {
 		await mutate({
 			productname: formSubmitEvent.data.productname,
-			price: Number.parseFloat(unmaskedCreatePriceValue.value),
+			price,
 			category: formSubmitEvent.data.category,
-			...(String(formSubmitEvent.data.helperPrice ?? '').trim()
-				? {
-						helperPrice: Number(
-							String(formSubmitEvent.data.helperPrice).replace(
-								',',
-								'.',
-							),
-						),
-					}
-				: {}),
+			...(helperPrice === undefined ? {} : { helperPrice }),
 			supplier: formSubmitEvent.data.supplier,
 			amount: formSubmitEvent.data.amount,
-			...(String(formSubmitEvent.data.supplyCost ?? '').trim()
-				? { supplyCost: Number(formSubmitEvent.data.supplyCost) }
-				: {}),
+			...(supplyCost === undefined ? {} : { supplyCost }),
 			picture: formSubmitEvent.data.picture,
 		});
 		table.value?.tableApi.toggleAllRowsSelected(false);

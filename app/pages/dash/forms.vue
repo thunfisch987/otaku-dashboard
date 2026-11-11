@@ -202,73 +202,12 @@
 							</p>
 						</div>
 					</template>
-					<div class="grid gap-3 md:grid-cols-6">
-						<UFormField
-							label="Product name"
-							class="md:col-span-2"
-							><UInput
-								v-model="newProduct.productname"
-								class="w-full"
-								placeholder="Product name"
-						/></UFormField>
-						<UFormField label="Category">
-							<USelect
-								v-model="newProduct.category"
-								:items="productCategories"
-							/>
-						</UFormField>
-						<UFormField label="Regular price (€)"
-							><UInput
-								v-model="newProduct.price"
-								type="number"
-								min="0"
-								step="0.01"
-								:disabled="
-									newProduct.category === 'onigiri' &&
-									!!onigiriPricing
-								"
-						/></UFormField>
-						<UFormField label="Supplier"
-							><USelect
-								v-model="newProduct.supplier"
-								:items="supplierOptions"
-						/></UFormField>
-						<UFormField label="Initial stock"
-							><UInputNumber
-								v-model="newProduct.amount"
-								:min="0"
-						/></UFormField>
-					</div>
-					<div
-						class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end"
-					>
-						<UFormField
-							label="Helper price (€)"
-							hint="Optional; used only for helper checkouts in the POS."
-							class="w-full sm:max-w-xs"
-						>
-							<UInput
-								v-model="newProduct.helperPrice"
-								type="number"
-								min="0"
-								step="0.01"
-								placeholder="Leave empty for regular price"
-								:disabled="
-									newProduct.category === 'onigiri' &&
-									!!onigiriPricing
-								"
-							/>
-						</UFormField>
-						<p
-							v-if="newProduct.category === 'onigiri'"
-							class="text-sm text-muted sm:self-center"
-						>
-							{{
-								onigiriPricing
-									? 'Uses shared Onigiri prices.'
-									: 'Initializes shared Onigiri prices.'
-							}}
-						</p>
+					<InventoryProductFormFields
+						v-model:state="newProduct"
+						:onigiri-pricing="onigiriPricing"
+						compact
+					/>
+					<div class="mt-3 flex flex-wrap items-end gap-3">
 						<UButton
 							class="min-h-11"
 							icon="i-lucide-package-plus"
@@ -453,7 +392,8 @@ import PreorderReview from '~/components/Preorder/Review.vue';
 import type { Id } from '~~/convex/_generated/dataModel';
 import { CalendarDateTime, type CalendarDate } from '@internationalized/date';
 import {
-	productCategories,
+	parseProductMoney,
+	type ProductCreationFormState,
 	type ProductCategory,
 } from '~/components/Inventory/types';
 
@@ -509,7 +449,7 @@ const selectedProduct = reactive<Record<Section, Id<'products'> | undefined>>({
 	food: undefined,
 	snacks: undefined,
 });
-const newProduct = reactive({
+const newProduct = reactive<ProductCreationFormState>({
 	productname: '',
 	price: '',
 	helperPrice: '',
@@ -517,10 +457,6 @@ const newProduct = reactive({
 	supplier: 'Otaku' as 'HDJ' | 'Otaku',
 	amount: 0,
 });
-const supplierOptions = [
-	{ label: 'HDJ', value: 'HDJ' },
-	{ label: 'Otaku', value: 'Otaku' },
-];
 const pageError = ref<{ title: string; message: string } | null>(null);
 const toast = useToast();
 const runtimeConfig = useRuntimeConfig();
@@ -548,20 +484,6 @@ const { data: onigiriPricing } = useConvexQuery(
 	api.products.getOnigiriPricing,
 	productsQueryArgs,
 	{ server: false },
-);
-watch(
-	() =>
-		[
-			newProduct.category,
-			onigiriPricing.value?.price,
-			onigiriPricing.value?.helperPrice,
-		] as const,
-	([category, sharedPrice, sharedHelperPrice]) => {
-		if (category !== 'onigiri' || sharedPrice === undefined) return;
-		newProduct.price = String(sharedPrice);
-		newProduct.helperPrice =
-			sharedHelperPrice === undefined ? '' : String(sharedHelperPrice);
-	},
 );
 const productsPending = computed(
 	() =>
@@ -736,31 +658,22 @@ function resetForm() {
 		selectedProduct[section] = undefined;
 }
 
-function parseOptionalPrice(value: unknown): number | undefined {
-	const input = String(value ?? '').trim();
-	if (!input) return undefined;
-	const price = Number(input.replace(',', '.'));
-	return Number.isFinite(price) && price >= 0 ? price : undefined;
-}
 const { mutate: createProduct, isPending: createProductPending } =
 	useConvexMutation(api.products.create);
 async function createInventoryProduct() {
-	const productPriceInput = String(newProduct.price ?? '').trim();
-	const price = Number(productPriceInput.replace(',', '.'));
-	if (
-		!newProduct.productname.trim() ||
-		!productPriceInput ||
-		!Number.isFinite(price) ||
-		price < 0
-	) {
+	const price = parseProductMoney(newProduct.price);
+	if (!newProduct.productname.trim() || price === undefined) {
 		pageError.value = {
 			title: 'Check the product details',
-			message: 'Enter a product name and a valid regular price.',
+			message:
+				'Enter a product name and a valid price with up to two decimal places.',
 		};
 		return;
 	}
 	const helperPriceInput = String(newProduct.helperPrice ?? '').trim();
-	const helperPrice = parseOptionalPrice(helperPriceInput);
+	const helperPrice = helperPriceInput
+		? parseProductMoney(helperPriceInput)
+		: undefined;
 	if (helperPriceInput && helperPrice === undefined) {
 		pageError.value = {
 			title: 'Check the helper price',
