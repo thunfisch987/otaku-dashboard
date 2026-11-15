@@ -1,17 +1,38 @@
 <template>
 	<UCard>
 		<template #header>
-			<div class="flex items-center justify-between gap-3">
+			<div class="flex flex-wrap items-center justify-between gap-3">
 				<h2 class="text-xl font-semibold">
 					Preorders — {{ formName }}
 				</h2>
-				<UButton
-					color="neutral"
-					variant="ghost"
-					icon="i-lucide-x"
-					aria-label="Close preorder review"
-					@click="emit('close')"
-				/>
+				<div class="flex flex-wrap items-center justify-end gap-2">
+					<UButton
+						color="neutral"
+						variant="outline"
+						icon="i-lucide-download"
+						class="min-h-11"
+						:disabled="exporting !== null || !canExportTotals"
+						@click="downloadTotalsCsv"
+						>Download totals CSV</UButton
+					>
+					<UButton
+						color="neutral"
+						variant="outline"
+						icon="i-lucide-download"
+						class="min-h-11"
+						:loading="exporting === 'orders'"
+						:disabled="exporting !== null || !canExportOrders"
+						@click="downloadOrdersCsv"
+						>Download orders CSV</UButton
+					>
+					<UButton
+						color="neutral"
+						variant="ghost"
+						icon="i-lucide-x"
+						aria-label="Close preorder review"
+						@click="emit('close')"
+					/>
+				</div>
 			</div>
 		</template>
 		<div class="grid gap-8 lg:grid-cols-2">
@@ -411,4 +432,232 @@ const formatDateTime = (timestamp: number) =>
 		timeStyle: 'short',
 		timeZone: 'Europe/Berlin',
 	}).format(timestamp);
+
+const SUBMISSIONS_PAGE_SIZE = 25;
+const SUBMISSIONS_PAGE_TIMEOUT_MS = 20_000;
+const SUBMISSIONS_PAGE_RETRIES = 2;
+const exporting = ref<'totals' | 'orders' | null>(null);
+// Watchers started from the export button live outside the setup effect
+// scope, so they are stopped explicitly when the panel unmounts.
+const pendingStops = new Set<() => void>();
+onBeforeUnmount(() => {
+	for (const stop of pendingStops) stop();
+	pendingStops.clear();
+});
+const canExportTotals = computed(
+	() =>
+		!preparationPending.value &&
+		!preparationError.value &&
+		(preparationTotals.value?.length ?? 0) > 0,
+);
+const canExportOrders = computed(
+	() =>
+		!submissionsPending.value &&
+		!submissionsError.value &&
+		(submissions.value?.length ?? 0) > 0,
+);
+
+function csvCell(value: string | number) {
+	let text = String(value);
+	if (/^[=+@\-\t\r]/.test(text)) text = `'${text}`;
+	return `"${text.replaceAll('"', '""')}"`;
+}
+
+function formatDateInput(date: Date) {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0');
+	const day = String(date.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+}
+
+const csvDateTimeFormatter = new Intl.DateTimeFormat('en-GB', {
+	year: 'numeric',
+	month: '2-digit',
+	day: '2-digit',
+	hour: '2-digit',
+	minute: '2-digit',
+	hourCycle: 'h23',
+	timeZone: 'Europe/Berlin',
+});
+function formatCsvDateTime(timestamp: number) {
+	const parts = new Map(
+		csvDateTimeFormatter
+			.formatToParts(timestamp)
+			.map((entry) => [entry.type, entry.value]),
+	);
+	return `${parts.get('year')}-${parts.get('month')}-${parts.get('day')} ${parts.get('hour')}:${parts.get('minute')}`;
+}
+
+function exportFileBase() {
+	const name = (props.formName ?? 'form')
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '')
+		.slice(0, 40)
+		.replace(/-+$/g, '');
+	return `preorder-${name || 'form'}-${formatDateInput(new Date())}`;
+}
+
+function downloadCsv(csv: string, filename: string) {
+	const blob = new Blob(['\ufeff', csv], { type: 'text/csv;charset=utf-8' });
+	const url = URL.createObjectURL(blob);
+	const anchor = document.createElement('a');
+	anchor.href = url;
+	anchor.download = filename;
+	anchor.click();
+	setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadTotalsCsv() {
+	if (exporting.value !== null || !canExportTotals.value) return;
+	const totals = preparationTotals.value ?? [];
+	exporting.value = 'totals';
+	try {
+		const headers = [
+			'Section',
+			'Product',
+			'Ordered quantity',
+			'Unit supply cost',
+			'Total supply cost',
+		];
+		const rows = totals.map((item) => [
+			item.section.charAt(0).toUpperCase() + item.section.slice(1),
+			item.productName,
+			item.totalQuantity,
+			item.unitSupplyCost === null
+				? 'Unknown'
+				: formatCurrency(item.unitSupplyCost),
+			item.totalSupplyCost === null
+				? 'Unknown'
+				: formatCurrency(item.totalSupplyCost),
+		]);
+		const csv = [
+			headers.map(csvCell).join(','),
+			...rows.map((row) => row.map(csvCell).join(',')),
+		].join('\r\n');
+		downloadCsv(csv, `${exportFileBase()}-totals.csv`);
+	} finally {
+		exporting.value = null;
+	}
+}
+
+function submissionsSettled(previousCount: number) {
+	return () =>
+		submissionsDone.value ||
+		submissionsError.value !== null ||
+		(submissions.value?.length ?? 0) !== previousCount;
+}
+
+function waitForNextSubmissionsPage(previousCount: number) {
+	return new Promise<void>((resolve, reject) => {
+		const settled = submissionsSettled(previousCount);
+		if (settled()) {
+			resolve();
+			return;
+		}
+		const timeout: { handle?: ReturnType<typeof setTimeout> } = {};
+		const stop = watch(
+			[submissions, submissionsDone, submissionsError],
+			() => {
+				if (!settled()) return;
+				stop();
+				pendingStops.delete(stop);
+				if (timeout.handle) clearTimeout(timeout.handle);
+				resolve();
+			},
+		);
+		pendingStops.add(stop);
+		timeout.handle = setTimeout(() => {
+			stop();
+			pendingStops.delete(stop);
+			reject(
+				new Error(
+					'Orders stopped loading before every submission was available.',
+				),
+			);
+		}, SUBMISSIONS_PAGE_TIMEOUT_MS);
+	});
+}
+
+async function loadAllSubmissions() {
+	let retries = 0;
+	while (!submissionsDone.value) {
+		if (submissionsError.value) throw submissionsError.value;
+		const before = submissions.value?.length ?? 0;
+		const nextPage = waitForNextSubmissionsPage(before);
+		// vue-convex returns false when the query is done, has an error, or a
+		// page is already in flight; the awaited settle promise covers the
+		// in-flight case, so the return value needs no separate handling.
+		loadMoreSubmissions(SUBMISSIONS_PAGE_SIZE);
+		try {
+			await nextPage;
+			retries = 0;
+		} catch (error) {
+			// A page that stalls can be a transient subscription gap (for
+			// example, an order removed mid-export changed the page size).
+			// Retry a bounded number of times before giving up.
+			if (retries >= SUBMISSIONS_PAGE_RETRIES) throw error;
+			retries += 1;
+		}
+	}
+	if (submissionsError.value) throw submissionsError.value;
+}
+
+async function downloadOrdersCsv() {
+	if (exporting.value !== null || !canExportOrders.value) return;
+	exporting.value = 'orders';
+	try {
+		// Export the complete form, not just the pages already rendered.
+		await loadAllSubmissions();
+		const orders = submissions.value ?? [];
+		const headers = [
+			'Order time',
+			'First name',
+			'Last name',
+			'Helper',
+			'Product',
+			'Quantity',
+			'Items in order',
+		];
+		const rows = orders.flatMap((submission) => {
+			const itemsInOrder = submissionTotalQuantity(submission);
+			const helper = submission.isHelper ? 'Yes' : 'No';
+			const orderTime = formatCsvDateTime(submission._creationTime);
+			return submission.items.map((item) => [
+				orderTime,
+				submission.firstName,
+				submission.lastName,
+				helper,
+				item.productName,
+				item.quantity,
+				itemsInOrder,
+			]);
+		});
+		if (!rows.length) {
+			toast.add({
+				title: 'No ordered items to export',
+				description:
+					'This form has no submitted order lines. Preparation totals export is still available.',
+				color: 'error',
+			});
+			return;
+		}
+		const csv = [
+			headers.map(csvCell).join(','),
+			...rows.map((row) => row.map(csvCell).join(',')),
+		].join('\r\n');
+		downloadCsv(csv, `${exportFileBase()}-orders.csv`);
+	} catch (error) {
+		toast.add({
+			title: 'Could not export orders',
+			description:
+				error instanceof Error
+					? error.message
+					: 'Check your connection and retry the export.',
+			color: 'error',
+		});
+	} finally {
+		exporting.value = null;
+	}
+}
 </script>
