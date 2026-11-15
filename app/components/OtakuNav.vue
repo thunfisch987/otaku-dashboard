@@ -1,5 +1,6 @@
 <template>
 	<UHeader
+		v-model:open="menuOpen"
 		to="/"
 		title="Otaku Dashboard"
 		:toggle="signedIn"
@@ -102,6 +103,14 @@ interface MaguroNavLink extends NavigationMenuItem {
 // Operators only: signed-out visitors have nothing to navigate to, so the
 // header hides the menu toggle entirely until a session exists.
 const { loggedIn: signedIn } = useUserSession();
+
+// The toggle disappears when the session ends, so close the menu ourselves
+// instead of leaving an overlay that no longer has a close control.
+const menuOpen = ref(false);
+
+watch(signedIn, (isSignedIn) => {
+	if (!isSignedIn) menuOpen.value = false;
+});
 
 const route = useRoute();
 
