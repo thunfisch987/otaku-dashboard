@@ -5,6 +5,7 @@
 	"scripts": {
 		"build": "nuxt build",
 		"dev": "nuxt dev --dotenv .env.local",
+		"dev:tail": "tailscale serve --bg --https=8443 http://127.0.0.1:3001 && nuxt dev --dotenv .env.local --host 127.0.0.1",
 		"format": "bun fmt",
 		"format:check": "bun fmt --check",
 		"generate": "nuxt generate",
