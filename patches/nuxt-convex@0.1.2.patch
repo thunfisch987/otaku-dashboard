@@ -1,0 +1,30 @@
+diff --git a/dist/runtime/server/routes/auth-proxy.js b/dist/runtime/server/routes/auth-proxy.js
+index 8530db712d204147951dedf23fe184eecfe8f7ee..fe093477a9e0131a875572999132f9f0de778310 100644
+--- a/dist/runtime/server/routes/auth-proxy.js
++++ b/dist/runtime/server/routes/auth-proxy.js
+@@ -10,10 +10,22 @@ export default defineEventHandler(async (event) => {
+   const headers = new Headers(req.headers);
+   for (const name of DROPPED_REQUEST_HEADERS)
+     headers.delete(name);
+-  const proto = url.protocol.slice(0, -1);
+-  headers.set("x-forwarded-host", url.host);
++  // Prefer the reverse proxy's forwarded origin (Vercel sets both headers) over
++  // Nitro's portable `event.url`, which reports `http:` on serverless hosts that
++  // terminate TLS in front of the function; that made Better Auth emit
++  // `http://` OAuth callback URLs and Google reject them with
++  // redirect_uri_mismatch. Fall back to `event.url` when no proxy headers exist.
++  const firstForwardedHeader = (name) => {
++    const value = req.headers.get(name);
++    return value ? value.split(",")[0].trim() : void 0;
++  };
++  const forwardedHost = firstForwardedHeader("x-forwarded-host");
++  const forwardedProto = firstForwardedHeader("x-forwarded-proto");
++  const host = forwardedHost || url.host;
++  const proto = forwardedProto || url.protocol.slice(0, -1);
++  headers.set("x-forwarded-host", host);
+   headers.set("x-forwarded-proto", proto);
+-  headers.set("x-better-auth-forwarded-host", url.host);
++  headers.set("x-better-auth-forwarded-host", host);
+   headers.set("x-better-auth-forwarded-proto", proto);
+   if (!headers.has("x-forwarded-for")) {
+     const ip = getRequestIP(event);
