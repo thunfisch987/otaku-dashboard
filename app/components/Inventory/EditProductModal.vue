@@ -73,14 +73,14 @@
 				<UFormField
 					label="Supply cost per item"
 					name="supplyCost"
-					hint="Optional; used for preparation cost estimates on preorder forms."
+					hint="Optional. Used in preparation cost totals."
 				>
 					<UInput
 						v-model="editProductState.supplyCost"
 						type="number"
 						min="0"
 						step="0.01"
-						placeholder="Unknown"
+						placeholder="0.00"
 						trailing-icon="i-lucide-euro"
 					/>
 				</UFormField>
@@ -244,7 +244,12 @@ async function editProduct(
 			amount: formSubmitEvent.data.amount,
 			picture: formSubmitEvent.data.picture,
 			supplyCost: String(formSubmitEvent.data.supplyCost ?? '').trim()
-				? Number(formSubmitEvent.data.supplyCost)
+				? Number(
+						String(formSubmitEvent.data.supplyCost).replace(
+							',',
+							'.',
+						),
+					)
 				: null,
 		});
 		table.value?.tableApi.toggleAllRowsSelected(false);

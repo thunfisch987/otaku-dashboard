@@ -206,6 +206,7 @@
 						v-model:state="newProduct"
 						:onigiri-pricing="onigiriPricing"
 						compact
+						show-supply-cost
 					/>
 					<div class="mt-3 flex flex-wrap items-end gap-3">
 						<UButton
@@ -453,6 +454,7 @@ const newProduct = reactive<ProductCreationFormState>({
 	productname: '',
 	price: '',
 	helperPrice: '',
+	supplyCost: '',
 	category: 'onigiri' as ProductCategory,
 	supplier: 'Otaku' as 'HDJ' | 'Otaku',
 	amount: 0,
@@ -690,6 +692,18 @@ async function createInventoryProduct() {
 		};
 		return;
 	}
+	const supplyCostInput = String(newProduct.supplyCost ?? '').trim();
+	const supplyCost = supplyCostInput
+		? parseProductMoney(supplyCostInput)
+		: undefined;
+	if (supplyCostInput && supplyCost === undefined) {
+		pageError.value = {
+			title: 'Check the supply cost',
+			message:
+				'Enter a valid non-negative supply cost or leave it empty.',
+		};
+		return;
+	}
 	pageError.value = null;
 	try {
 		const createdId = await createProduct({
@@ -699,6 +713,7 @@ async function createInventoryProduct() {
 			supplier: newProduct.supplier,
 			amount: newProduct.amount,
 			...(helperPrice === undefined ? {} : { helperPrice }),
+			...(supplyCost === undefined ? {} : { supplyCost }),
 		});
 		if (newProduct.category !== 'other') {
 			if (newProduct.category === 'food') formState.includeFood = true;
@@ -719,6 +734,7 @@ async function createInventoryProduct() {
 			onigiriPricing.value?.helperPrice !== undefined
 				? String(onigiriPricing.value.helperPrice)
 				: '';
+		newProduct.supplyCost = '';
 		newProduct.amount = 0;
 		toast.add({ title: 'Inventory product created', color: 'success' });
 	} catch (error) {

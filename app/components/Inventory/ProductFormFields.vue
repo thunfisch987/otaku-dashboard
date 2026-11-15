@@ -89,12 +89,13 @@
 				v-if="showSupplyCost"
 				label="Supply cost per item (€)"
 				:name="formValidation ? 'supplyCost' : undefined"
-				hint="Optional; used for preparation cost estimates."
+				hint="Optional. Used in preparation cost totals."
+				:class="compact ? 'w-full sm:max-w-xs' : undefined"
 			>
 				<UInput
 					v-model="state.supplyCost"
 					inputmode="decimal"
-					placeholder="Unknown"
+					placeholder="0.00"
 					trailing-icon="i-lucide-euro"
 				/>
 			</UFormField>

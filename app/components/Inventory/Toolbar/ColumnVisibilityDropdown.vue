@@ -5,7 +5,7 @@
 				.getAllColumns()
 				.filter((column) => column.getCanHide())
 				.map((column) => ({
-					label: upperFirst(column.id),
+					label: columnLabel(column.id),
 					type: 'checkbox' as const,
 					checked: column.getIsVisible(),
 					onUpdateChecked(checked: boolean) {
@@ -40,4 +40,14 @@ const table = useState<{
 	tableApi: Table<ProductSchema>;
 	tableRef: Ref<HTMLTableElement | null>;
 } | null>('table');
+
+const columnLabels: Record<string, string> = {
+	_id: 'ID',
+	helperPrice: 'Helper price',
+	supplyCost: 'Supply cost',
+};
+
+function columnLabel(columnId: string) {
+	return columnLabels[columnId] ?? upperFirst(columnId);
+}
 </script>

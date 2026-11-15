@@ -235,6 +235,22 @@ function csvCell(value: unknown) {
 	return `"${text.replaceAll('"', '""')}"`;
 }
 
+// Fixed CSV column order so exports stay comparable between runs. Optional
+// fields (picture, helperPrice, supplyCost) only appear when at least one
+// exported product has a value, and any future field is appended after these.
+const stockCsvColumnOrder = [
+	'productname',
+	'price',
+	'category',
+	'supplier',
+	'amount',
+	'picture',
+	'helperPrice',
+	'supplyCost',
+	'_id',
+] as const;
+const stockCsvColumnKeys = new Set<string>(stockCsvColumnOrder);
+
 function formatDateInput(date: Date) {
 	const year = date.getFullYear();
 	const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -435,7 +451,13 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 			});
 			return;
 		}
-		const headers = Object.keys(firstRow);
+		const rowKeys = [...new Set(rows.flatMap((row) => Object.keys(row)))];
+		const headers = [
+			...stockCsvColumnOrder.filter((key) =>
+				rows.some((row) => key in row),
+			),
+			...rowKeys.filter((key) => !stockCsvColumnKeys.has(key)),
+		];
 		const csv = [
 			headers.map(csvCell).join(','),
 			...rows.map((row) =>

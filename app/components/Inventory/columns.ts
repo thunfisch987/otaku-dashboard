@@ -118,6 +118,18 @@ export function createColumns(
 			enableHiding: true,
 		},
 		{
+			accessorKey: 'supplyCost',
+			header: ({ column }) => getSortHeader(column, 'Supply cost'),
+			cell: ({ row }) => {
+				const supplyCost = row.original.supplyCost;
+				return supplyCost === undefined
+					? '—'
+					: currencyFormatter.format(supplyCost);
+			},
+			sortUndefined: 'last',
+			enableHiding: true,
+		},
+		{
 			accessorKey: 'supplier',
 			header: 'Supplier',
 			cell: ({ row }) => row.getValue('supplier'),
