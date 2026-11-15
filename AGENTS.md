@@ -23,9 +23,10 @@ environment variables, and the full dev-login walkthrough live in
   the button while generating, and use `sales-YYYY-MM-DD.csv` and
   `stock-YYYY-MM-DD.csv`.
 - Prices stay stable while a preorder form is live, so submissions do not need
-  price snapshots. Shared Onigiri defaults to €3. Expected revenue per
-  submission is not tracked; a future preparation feature may track supply
-  costs instead.
+  price snapshots. Shared Onigiri pricing comes from the
+  `productCategoryPricing` row; seed data uses €3. Supply costs are tracked per
+  product and per form item and totalled in the preparation view. Expected
+  revenue per submission is not tracked.
 
 ## Interface
 
@@ -64,37 +65,34 @@ environment variables, and the full dev-login walkthrough live in
 
 ## Setting up a new worktree
 
-A fresh worktree has no `node_modules` and no `.env.local`; both are ignored by
-git. Set it up before running any script, dev server, lint, or seed:
+A fresh worktree has no `node_modules` and no `.env.local`. Follow
+[README.md](./README.md#setup); do not substitute a copied `node_modules` or a
+committed `.env.local`.
 
-- Run `bun install --frozen-lockfile`. It installs from `bun.lock` using Bun's
-  shared package cache, so it takes a few seconds. Never copy `node_modules`
-  from another checkout: it is hundreds of megabytes, can be stale against the
-  branch's lockfile, and gains nothing over a warm install.
-- Copy `.env.local` from the primary checkout. It holds the Convex deployment,
-  auth secrets, and dev-login vars; without it the app cannot reach Convex or
-  sign in, and `bun run seed:dev` fails. Never commit it.
-- Every checkout points at the same dev Convex deployment, so run
-  `bunx convex dev` in one checkout at a time.
+## Dev servers
 
-Commands: [README.md](./README.md#setup).
+- If you leave the dev server running for me to check, start it with
+  `bun run dev:tail` so I can reach it from my phone. A server you only need
+  for your own verification can stay on `bun run dev`.
 
 ## Verifying signed-in surfaces in dev
 
-Operator pages sit behind a real Better Auth session and Convex checks the
-session-derived identity on every query. Bypassing the route guard yields a page
-that renders but cannot load or write data, so sign in for real at
-`http://localhost:3001/dev/login?next=/dash/dashboard`.
+Operator pages need a real Better Auth session; bypassing the route guard
+renders a page that cannot load or write data. Sign in through the dev login in
+[README.md](./README.md#verifying-signed-in-surfaces), including its
+`ENABLE_DEV_TOOLS` and `DEV_AUTH_*` setup and restart.
 
-- Never set `ENABLE_DEV_TOOLS` on a production deployment and never commit the
-  password.
-- Check the states the seed provides: zero and low stock, helper pricing, sales
-  history, and preorder submissions. Public `preorder/[slug].vue` pages need no
-  login; open them directly.
+- Never set `ENABLE_DEV_TOOLS` on a production deployment and never commit
+  `DEV_AUTH_PASSWORD`.
+- Public `preorder/[slug].vue` pages need no login; open them directly.
 - Drive pages with the T3 Code preview tools (`preview_*`); the OpenCode
   `browser.*` tools do not work in this setup.
 
-Walkthrough: [README.md](./README.md#verifying-signed-in-surfaces).
+## Git
+
+- Name branches with a conventional prefix and a short description, such as
+  `feat/`, `fix/`, `chore/`, `docs/`, `refactor/`, or `perf/`
+  (e.g. `fix/mobile-login-layout`).
 
 ## Agent communication
 
@@ -105,8 +103,16 @@ Walkthrough: [README.md](./README.md#verifying-signed-in-surfaces).
   preamble, and restating the request. Add detail only for decisions or risk.
 - Present lists and multi-part answers as bullet points, not comma-spliced
   prose.
-- For plans, research, and comparisons, write a self-contained HTML report and
-  show it with the HTML preview tools instead of a long chat reply.
+- Use emojis where they add meaning or make status easier to scan; skip purely
+  decorative ones.
+- For plans, research, and comparisons, render the report as inline HTML with
+  `html_preview` then `html_render`. Do not write a `.html` file and link it,
+  and do not dump the report as chat prose.
+- Only say a report is visible after `html_render` succeeds and the page
+  appears in the thread. If it fails or does not appear, say so and fall back to
+  short Markdown; never claim it rendered without the call.
+- In both HTML and Markdown output, embed images inline. Never hand over a bare
+  file link or path instead of showing the image.
 - For UI-visible changes, include before/after screenshots, or a short video
   when motion or timing matters, and name the surfaces checked.
 - Before reporting frontend work as done, state which relevant surfaces you

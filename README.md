@@ -31,7 +31,7 @@ app/
   pages/privacy.vue             privacy policy
   components/Inventory/         inventory table, modals, forms, toolbar
   components/Preorder/          preorder review UI
-  composables/useAppConvexAuth  session + Convex identity
+  composables/useAppConvexAuth.ts  session + Convex identity
   middleware/auth.global.ts     redirects signed-out users to /
   auth.config.ts                Better Auth browser client
 convex/
@@ -68,14 +68,20 @@ signs in, or seeds. The variables it needs, grouped by purpose:
   Never set these on a production deployment.
 - Optional: `NUXT_DEV_ALLOWED_HOSTS` for `dev:tail`.
 
+`.env.local` may also carry unused `DOPPLER_CONFIG`, `DOPPLER_ENVIRONMENT`, and
+`DOPPLER_PROJECT`; nothing reads them.
+
 ## Setup
 
 ```sh
 bun install --frozen-lockfile   # plain bun install only when changing deps
 cp /path/to/primary-checkout/.env.local .env.local
-bunx convex dev                 # one checkout at a time
-bun run dev                     # http://localhost:3001
+bunx convex dev                 # own terminal; syncs schema and functions
+bun run dev                     # own terminal; http://localhost:3001
 ```
+
+`bunx convex dev` is a long-running sync watcher. Run it in its own terminal,
+separate from `bun run dev`, while editing Convex code.
 
 A fresh worktree has neither `node_modules` nor `.env.local`, and both are
 git-ignored. Copy the environment from your primary checkout, which is the first
@@ -105,6 +111,8 @@ a few seconds.
 | `bun run seed:dev`       | Create/refresh the dev operator and demo data          |
 | `bun run seed:dev:reset` | Wipe demo rows first, then seed                        |
 
+`lint` and `lint:fix` are aliases of `lint:hybrid` and `lint:hybrid:fix`.
+
 ## Verifying signed-in surfaces
 
 Operator pages need a real Better Auth session because Convex checks the
@@ -114,11 +122,11 @@ page that cannot load or write data.
 1. Set `ENABLE_DEV_TOOLS=true`, `DEV_AUTH_EMAIL`, and `DEV_AUTH_PASSWORD` in
    `.env.local`, then restart `bun run dev` so the route reads them.
 2. Run `bun run seed:dev`. It creates the dev operator plus demo data:
-   products at zero and low stock, sales history, an active preorder form with
-   submissions. Demo rows use the `[demo] ` product prefix (the trailing space is
-   part of it), the `dev-seed-` checkout id, and the `dev-demo` form slug, so
-   they never touch real data. Re-seeding recreates the operator account, so
-   sign in again afterwards.
+   products at zero and low stock, helper pricing, sales history, an active
+   preorder form with submissions. Demo rows use the `[demo] ` product prefix
+   (the trailing space is part of it), the `dev-seed-` checkout id, and the
+   `dev-demo` form slug, so they never touch real data. Re-seeding recreates the
+   operator account, so sign in again afterwards.
 3. Open `http://localhost:3001/dev/login?next=/dash/dashboard`. The route exists
    only under `nuxt dev`, requires `ENABLE_DEV_TOOLS=true`, refuses a production
    site URL, and signs in through the normal `/api/auth` proxy so the cookie is
@@ -145,19 +153,19 @@ The auth server runs inside Convex, not in Nitro:
 
 ## Data model
 
-| Table                           | Purpose                                            |
-| ------------------------------- | -------------------------------------------------- |
-| `products`                      | stock, price, helper price, supply cost, supplier  |
-| `productCategoryPricing`        | shared Onigiri price and helper price              |
-| `sales` / `saleItems`           | committed checkout header + authoritative lines    |
-| `preorderForms`                 | slug, event date, close time, active flag          |
-| `preorderFormItems`             | curated form menu with price/cost snapshots        |
-| `preorderSubmissions`           | one row per submitter, with items snapshot         |
-| `preorderSubmissionItems`       | authoritative submission lines                     |
-| `preorderFormStats`             | per-form counters                                  |
-| `preorderFormSubmissionWindows` | rate/idempotency windows                           |
-| `preorderFormTotals`            | cached form totals                                 |
-| `userAvatarCache`               | cached avatar bytes; Better Auth owns profile data |
+| Table                           | Purpose                                                  |
+| ------------------------------- | -------------------------------------------------------- |
+| `products`                      | stock, price, helper price, supply cost, supplier        |
+| `productCategoryPricing`        | shared Onigiri price and helper price                    |
+| `sales` / `saleItems`           | committed checkout header + authoritative lines          |
+| `preorderForms`                 | slug, event date, close time, active flag                |
+| `preorderFormItems`             | curated menu with product-name and supply-cost snapshots |
+| `preorderSubmissions`           | one row per submitter, with items snapshot               |
+| `preorderSubmissionItems`       | authoritative submission lines                           |
+| `preorderFormStats`             | per-form counters                                        |
+| `preorderFormSubmissionWindows` | rate/idempotency windows                                 |
+| `preorderFormTotals`            | cached form totals                                       |
+| `userAvatarCache`               | cached avatar bytes; Better Auth owns profile data       |
 
 `sales.itemsSnapshot` and `preorderSubmissions.items` are bounded read
 snapshots for list views; the child tables stay authoritative for history,
