@@ -1,22 +1,21 @@
 ---
 name: council
-description: Three-model OpenRouter review panel (Inkling Small, North Mini Code, Nemotron 3.5 Lightning). Shared base for the council-plan, council-review, and council-ship skills; also usable standalone whenever the user asks for a council/panel review or second opinions.
+description: Two-model OpenRouter review panel (Ernie 5.5 Flash Preview, North Mini Code). Shared base for the council-plan, council-review, and council-ship skills; also usable standalone whenever the user asks for a council/panel review or second opinions.
 ---
 
 # Council
 
-You are convening a review panel of three independent delegate models. This skill
+You are convening a review panel of two independent delegate models. This skill
 defines the roster and the shared review procedure. When instructions from
 `council-plan`, `council-review`, or `council-ship` conflict with anything here,
 those instructions win for their workflow stage.
 
 ## Roster
 
-| Member                 | Preferred model ID                               |
-| ---------------------- | ------------------------------------------------ |
-| Inkling Small          | `openrouter/thinkingmachines/inkling-small:free` |
-| North Mini Code        | `openrouter/cohere/north-mini-code:free`         |
-| Nemotron 3.5 Lightning | `openrouter/nvidia/nemotron-3.5-lightning:free`  |
+| Member          | Preferred model ID                              |
+| --------------- | ----------------------------------------------- |
+| Ernie 5.5 Flash | `openrouter/baidu/ernie-5.5-flash-preview:free` |
+| North Mini Code | `openrouter/cohere/north-mini-code:free`        |
 
 The table above is a snapshot, not a contract. Model names and free status drift.
 
