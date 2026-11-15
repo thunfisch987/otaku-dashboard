@@ -2,6 +2,7 @@
 	<UHeader
 		to="/"
 		title="Otaku Dashboard"
+		:toggle="signedIn"
 	>
 		<template #title>
 			<NuxtImg
@@ -33,7 +34,9 @@
 							<LazyUserMenu :user="user" />
 						</template>
 						<template v-else>
-							<div class="ml-auto flex items-center gap-2">
+							<div
+								class="ml-auto hidden items-center gap-2 sm:flex"
+							>
 								<LazyGoogleSignIn />
 								<LazyPasskeySignIn />
 							</div>
@@ -79,10 +82,9 @@
 						orientation="vertical"
 						class="-mx-2.5"
 					/>
-					<p v-else>Please log in</p>
 				</BetterAuthState>
 				<template #fallback>
-					<p>Please log in</p>
+					<p class="py-2 text-muted">Checking your session…</p>
 				</template>
 			</ClientOnly>
 		</template>
@@ -96,6 +98,10 @@ import type { RoutePathSchema } from '@typed-router';
 interface MaguroNavLink extends NavigationMenuItem {
 	to: RoutePathSchema;
 }
+
+// Operators only: signed-out visitors have nothing to navigate to, so the
+// header hides the menu toggle entirely until a session exists.
+const { loggedIn: signedIn } = useUserSession();
 
 const route = useRoute();
 

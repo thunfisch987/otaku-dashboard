@@ -22,7 +22,7 @@
 			</span>
 			<span class="text-xs text-muted">Esc to cancel</span>
 		</div>
-		<main>
+		<main class="flex flex-1 flex-col">
 			<slot />
 		</main>
 		<USeparator class="mt-auto" />
