@@ -99,9 +99,10 @@ const DEMO_PRODUCTS: DemoProduct[] = [
 function requireDevTools() {
 	if (!isDevToolsEnabled()) {
 		throw new Error(
-			'Dev tools are disabled. Set ENABLE_DEV_TOOLS=true in .env.local ' +
-				'for a non-production site URL (see AGENTS.md, ' +
-				'"Verifying signed-in surfaces").',
+			'Dev tools are disabled. Set ENABLE_DEV_TOOLS=true on this Convex ' +
+				'deployment with `bunx convex env set ENABLE_DEV_TOOLS true` for ' +
+				'a non-production site URL (see AGENTS.md, "Verifying signed-in ' +
+				'surfaces").',
 		);
 	}
 }
@@ -537,8 +538,14 @@ export const clearDemoData = internalMutation({
 		requireDevTools();
 
 		let products = 0;
+		// Start each index at the demo prefix so ordinary rows can never push
+		// fixtures past the bounded scan. Reset runs before reseeding, so a
+		// missed fixture would keep edited stock or old sales around.
 		const productDocs = await ctx.db
 			.query('products')
+			.withIndex('by_productname', (q) =>
+				q.gte('productname', DEMO_PREFIX),
+			)
 			.take(SEED_SCAN_LIMIT);
 		for (const product of productDocs) {
 			if (!product.productname.startsWith(DEMO_PREFIX)) continue;
@@ -549,8 +556,9 @@ export const clearDemoData = internalMutation({
 		let sales = 0;
 		const saleDocs = await ctx.db
 			.query('sales')
-			.withIndex('by_timestamp')
-			.order('desc')
+			.withIndex('by_checkoutId', (q) =>
+				q.gte('checkoutId', DEMO_SALE_PREFIX),
+			)
 			.take(SEED_SCAN_LIMIT);
 		for (const sale of saleDocs) {
 			if (!sale.checkoutId.startsWith(DEMO_SALE_PREFIX)) continue;

@@ -21,7 +21,6 @@ import authConfig from './auth.config';
 import authSchema from './betterAuth/schema';
 import {
 	getAuthAllowedHosts,
-	getDevAuthEmailOrNull,
 	getPlaygroundSiteUrl,
 	isDevToolsEnabled,
 	isGoogleAuthEnabled,
@@ -162,6 +161,11 @@ export function createAuthOptions(ctx: GenericCtx<DataModel>) {
 		emailAndPassword: {
 			enabled: enableDevEmailAuth,
 			requireEmailVerification: false,
+			// Generic duplicate handling: with auto sign-in on, a new address
+			// returns a session while an existing one returns a duplicate
+			// error, which reveals whether an address is registered. The dev
+			// seed ignores the session and promotes its account explicitly.
+			autoSignIn: false,
 		},
 		...(enableGoogleAuth
 			? {
@@ -182,16 +186,12 @@ export function createAuthOptions(ctx: GenericCtx<DataModel>) {
 							user.emailVerified &&
 							!!initialAdminEmail &&
 							normalizedEmail === initialAdminEmail;
-						// The seeded dev operator exists for automated browser
-						// checks; without this it would be banned like any
-						// stranger's account and could not sign in.
-						const devOperatorEmail = isDevToolsEnabled()
-							? getDevAuthEmailOrNull()
-							: null;
-						const isDevOperator =
-							!!devOperatorEmail &&
-							normalizedEmail === devOperatorEmail;
-						const isTrusted = isInitialAdmin || isDevOperator;
+						// Public /sign-up/email requests also reach this hook, so
+						// matching DEV_AUTH_EMAIL must never grant admin here: an
+						// anonymous visitor could claim that address first. The
+						// dev seed promotes its own account explicitly through
+						// devSeed.markDevAuthUserReady instead.
+						const isTrusted = isInitialAdmin;
 
 						return {
 							data: {

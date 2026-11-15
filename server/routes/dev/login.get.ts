@@ -26,11 +26,21 @@ function safeNextPath(value: unknown): string {
 	if (typeof raw !== 'string') return DEFAULT_NEXT;
 	// Only same-origin paths. Reject absolute/protocol-relative URLs and
 	// backslashes, which browsers normalize to "/" in a Location header.
+	// Control characters such as tabs are stripped while browsers parse a
+	// URL, so "/<TAB>/host" would resolve to the external "//host".
 	if (!raw.startsWith('/') || raw.startsWith('//') || raw.includes('\\')) {
+		return DEFAULT_NEXT;
+	}
+	if ([...raw].some((char) => isControlCharacter(char))) {
 		return DEFAULT_NEXT;
 	}
 	if (raw.split('?')[0] === '/dev/login') return DEFAULT_NEXT;
 	return raw;
+}
+
+function isControlCharacter(char: string): boolean {
+	const code = char.charCodeAt(0);
+	return code <= 0x1f || code === 0x7f;
 }
 
 function isProductionSite(siteUrl: string | undefined): boolean {
