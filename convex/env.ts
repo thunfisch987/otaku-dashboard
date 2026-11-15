@@ -1,4 +1,3 @@
-/* eslint-disable node/prefer-global/process */
 // Convex-runtime compatible env helpers (no node:process import)
 const DEFAULT_DEV_SITE_URL = 'http://localhost:3001';
 const DEFAULT_SITE_URL = 'https://www.lilbitgay.de';

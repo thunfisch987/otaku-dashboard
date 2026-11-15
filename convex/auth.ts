@@ -1,7 +1,6 @@
-/* eslint-disable node/prefer-global/process */
+// Convex runs in a V8 isolate without node: imports, so `process` stays a global.
 import type { GenericCtx } from '@convex-dev/better-auth';
-import type { DataModel } from './_generated/dataModel';
-import type { Id } from './_generated/dataModel';
+import type { DataModel, Id } from './_generated/dataModel';
 import type { User } from 'better-auth';
 import { passkey } from '@better-auth/passkey';
 import { dash } from '@better-auth/infra';
