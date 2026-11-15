@@ -108,10 +108,9 @@ async function deletePasskey(id: string) {
 
 	deletingPasskeyId.value = id;
 	try {
-		const result = await client.$fetch('/passkey/delete-passkey', {
-			method: 'POST',
-			body: { id },
-		});
+		// Use the plugin endpoint rather than raw `$fetch` so better-auth's
+		// atom listeners refresh `useListPasskeys` after a successful delete.
+		const result = await client.passkey.deletePasskey({ id });
 
 		if (result.error) {
 			showPasskeyError(result.error);
