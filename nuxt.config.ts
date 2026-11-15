@@ -7,11 +7,18 @@ export default defineNuxtConfig({
 		'@nuxt/ui',
 		'nuxt-convex',
 		'@vite-pwa/nuxt',
-		'@onmax/nuxt-better-auth',
+		'@nuxtjs/better-auth',
 	],
 	css: ['~/assets/css/main.css'],
 	convex: {
 		url: process.env.CONVEX_URL,
+		// Upstream nuxt-convex's Better Auth integration: the auth server runs
+		// inside Convex (@convex-dev/better-auth), and nuxt-convex registers
+		// the built-in /api/auth/** proxy to it and exchanges session cookies
+		// for Convex JWTs (SSR + server routes + its client token plugin,
+		// which detects @nuxtjs/better-auth). @nuxtjs/better-auth itself runs
+		// in clientOnly mode so it adds no auth server route of its own.
+		auth: { provider: 'better-auth', proxy: true },
 	},
 	devtools: { enabled: process.env.NODE_ENV !== 'production' },
 	app: {

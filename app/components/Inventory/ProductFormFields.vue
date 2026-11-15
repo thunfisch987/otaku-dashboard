@@ -121,7 +121,8 @@ import {
 
 const props = withDefaults(
 	defineProps<{
-		onigiriPricing?: { price: number; helperPrice?: number };
+		/** Null means shared Onigiri pricing is not configured yet. */
+		onigiriPricing?: { price: number; helperPrice?: number } | null;
 		compact?: boolean;
 		formValidation?: boolean;
 		showSupplyCost?: boolean;

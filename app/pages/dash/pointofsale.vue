@@ -137,13 +137,15 @@
 					</UButton>
 				</div>
 				<div
-					v-if="convexAuthenticated && !productsDone"
+					v-if="
+						convexAuthenticated && !productsError && !productsDone
+					"
 					class="flex justify-center"
 				>
 					<UButton
 						:loading="loadingMoreProducts"
 						:disabled="loadingMoreProducts"
-						@click="loadMoreProducts"
+						@click="() => loadMoreProducts()"
 					>
 						Load more products
 					</UButton>

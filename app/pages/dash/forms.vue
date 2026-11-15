@@ -181,7 +181,7 @@
 							icon="i-lucide-chevrons-down"
 							:loading="productsLoadingMore"
 							:disabled="productsLoadingMore"
-							@click="loadMoreProducts"
+							@click="() => loadMoreProducts()"
 							>Load more inventory products</UButton
 						>
 					</div>
@@ -371,7 +371,7 @@
 					icon="i-lucide-chevrons-down"
 					:loading="formsLoadingMore"
 					:disabled="formsLoadingMore"
-					@click="loadMoreForms"
+					@click="() => loadMoreForms()"
 					>Load older forms</UButton
 				>
 			</div>
