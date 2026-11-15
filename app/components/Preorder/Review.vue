@@ -189,16 +189,15 @@
 				>
 					<UAlert
 						title="Additional orders could not be loaded"
-						description="An error occurred while loading more orders. The orders already loaded are kept."
+						description="An error occurred while loading more orders. The orders already loaded are kept; reloading starts again from the first page."
 						color="error"
 						icon="i-lucide-circle-alert"
 					/>
 					<UButton
 						variant="outline"
-						:loading="loadingMoreSubmissions"
 						:disabled="loadingMoreSubmissions"
-						@click="loadMoreSubmissions"
-						>Retry loading more orders</UButton
+						@click="() => resetSubmissionsQuery()"
+						>Reload orders from the first page</UButton
 					>
 				</div>
 				<div
@@ -213,7 +212,7 @@
 						variant="outline"
 						:loading="loadingMoreSubmissions"
 						:disabled="loadingMoreSubmissions"
-						@click="loadMoreSubmissions"
+						@click="() => loadMoreSubmissions()"
 						>Load more orders</UButton
 					>
 				</div>

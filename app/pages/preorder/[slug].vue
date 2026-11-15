@@ -506,6 +506,7 @@
 // as an operational flag for the POS.
 // ---------------------------------------------------------------------------
 import { api } from '#convex/api';
+import type { Id } from '~~/convex/_generated/dataModel';
 import { createRequestId } from '~/utils/requestId';
 import {
 	MAX_ORDER_LINES,
@@ -883,7 +884,9 @@ async function submitPreorder() {
 		const firstNameValue = firstName.value.trim();
 		const lastNameValue = lastName.value.trim();
 		const orderItems = selectedLines.value.map((line) => ({
-			productId: line.productId,
+			// Product ids come from the server-provided form doc, so they are
+			// valid Convex ids; the submit mutation re-validates them.
+			productId: line.productId as Id<'products'>,
 			quantity: line.quantity,
 		}));
 		await submitOrder({

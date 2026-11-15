@@ -106,7 +106,7 @@
 					icon="i-lucide-chevrons-down"
 					:loading="loadingMoreProducts"
 					:disabled="loadingMoreProducts"
-					@click="loadMoreProducts"
+					@click="() => loadMoreProducts()"
 				>
 					Load more products
 				</UButton>
