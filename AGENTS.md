@@ -55,11 +55,10 @@ environment variables, and the full dev-login walkthrough live in
 ## Tooling
 
 - Use Bun for package management and scripts. After dependency changes, run
-  `bun install`; use `bun run lint` for the hybrid lint suite and
-  `bun run format:check` to check formatting. `bun fmt` uses `bunfig.toml`;
-  the pre-commit hook runs `bun fmt --staged`.
-- Oxlint covers standalone JS/TS; Nuxt ESLint covers Vue SFCs. Run
-  `bun run lint:eslint` for a full Nuxt ESLint pass.
+  `bun install`.
+- Run `bun run lint` and `bun run format:check` before finishing. Oxlint covers
+  standalone JS/TS and Nuxt ESLint covers Vue SFCs; `bun run lint:eslint` runs
+  the full ESLint pass. The pre-commit hook runs `bun fmt --staged`.
 - Store shared agent skills in `.agents/skills/<name>/SKILL.md`; do not add
   tool-specific skill directories.
 
@@ -68,48 +67,34 @@ environment variables, and the full dev-login walkthrough live in
 A fresh worktree has no `node_modules` and no `.env.local`; both are ignored by
 git. Set it up before running any script, dev server, lint, or seed:
 
-- Run `bun install --frozen-lockfile` from the worktree root. It installs from
-  `bun.lock` using Bun's shared package cache, so it takes a few seconds. Do not
-  copy `node_modules` from another checkout: it is hundreds of megabytes, can be
-  stale against the branch's lockfile, and a warm install saves nothing.
-- Use plain `bun install` only when you intentionally change dependencies and
-  `bun.lock` must be updated.
-- Copy `.env.local` from the primary checkout, which is the first entry in
-  `git worktree list --porcelain`:
+- Run `bun install --frozen-lockfile`. It installs from `bun.lock` using Bun's
+  shared package cache, so it takes a few seconds. Never copy `node_modules`
+  from another checkout: it is hundreds of megabytes, can be stale against the
+  branch's lockfile, and gains nothing over a warm install.
+- Copy `.env.local` from the primary checkout. It holds the Convex deployment,
+  auth secrets, and dev-login vars; without it the app cannot reach Convex or
+  sign in, and `bun run seed:dev` fails. Never commit it.
+- Every checkout points at the same dev Convex deployment, so run
+  `bunx convex dev` in one checkout at a time.
 
-    ```sh
-    cp "$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')/.env.local" .env.local
-    ```
-
-    It holds the Convex deployment, auth secrets, and dev-login vars. Without it
-    the app cannot reach Convex or sign in, and `bun run seed:dev` fails. Never
-    commit it; install itself does not need it.
-
-- Every checkout points at the same dev Convex deployment, so run `convex dev`
-  in one checkout at a time.
+Commands: [README.md](./README.md#setup).
 
 ## Verifying signed-in surfaces in dev
 
 Operator pages sit behind a real Better Auth session and Convex checks the
-session-derived identity on every query. Bypassing the route guard alone yields
-a page that renders but cannot load or write data, so sign in for real:
+session-derived identity on every query. Bypassing the route guard yields a page
+that renders but cannot load or write data, so sign in for real at
+`http://localhost:3001/dev/login?next=/dash/dashboard`.
 
-- Use the dev login at `http://localhost:3001/dev/login?next=/dash/dashboard`
-  (any same-origin path works as `next`). It requires `ENABLE_DEV_TOOLS=true`
-  with the dev credentials in `.env.local`, exists only under `nuxt dev`, and
-  signs in through the normal `/api/auth` proxy so the cookie stays
-  first-party.
 - Never set `ENABLE_DEV_TOOLS` on a production deployment and never commit the
   password.
-- Seed demo data with `bun run seed:dev`; add `:reset` to wipe demo rows first.
-  Re-seeding recreates the operator account, so sign in again afterwards.
-- Public `preorder/[slug].vue` pages need no login; open them directly.
-- Drive pages with the T3 preview tools (never the OpenCode `browser.*` tools)
-  and check the states the seed provides: zero and low stock, helper pricing,
-  sales history, and preorder submissions.
+- Check the states the seed provides: zero and low stock, helper pricing, sales
+  history, and preorder submissions. Public `preorder/[slug].vue` pages need no
+  login; open them directly.
+- Drive pages with the T3 Code preview tools (`preview_*`); the OpenCode
+  `browser.*` tools do not work in this setup.
 
-See [README.md](./README.md#verifying-signed-in-surfaces) for the step-by-step
-walkthrough and what the seed inserts.
+Walkthrough: [README.md](./README.md#verifying-signed-in-surfaces).
 
 ## Agent communication
 

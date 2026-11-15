@@ -5,12 +5,13 @@ stock at the counter, track products and money, and publish public preorder
 forms. Used on-site by 1–3 trusted operators, so every signed-in user has
 access to every feature.
 
-Rules that must not be broken while changing this codebase live in
+Rules that must not be broken when changing this codebase are in
 [AGENTS.md](./AGENTS.md). This file covers layout, setup, and architecture.
 
 ## Stack
 
-- **Nuxt 4** (`app/`) with `@nuxt/ui` v4 and Tailwind, Vue 3, TypeScript.
+- **Nuxt 4** (`app/`) with Vue 3 and TypeScript, using `@nuxt/ui` v4 and
+  Tailwind.
 - **Convex** (`convex/`) for the database, queries, mutations, and actions.
 - **Better Auth** (passkey + Google) via `@convex-dev/better-auth`, reached
   through a same-origin `/api/auth` proxy.
@@ -27,7 +28,7 @@ app/
   pages/dash/*.vue              dashboard, inventory, POS, transactions, forms
   pages/preorder/[slug].vue     public preorder form (phone-first)
   pages/auth/error.vue          auth failure page
-  pages/privacy.vue
+  pages/privacy.vue             privacy policy
   components/Inventory/         inventory table, modals, forms, toolbar
   components/Preorder/          preorder review UI
   composables/useAppConvexAuth  session + Convex identity
@@ -57,7 +58,7 @@ server/
 ## Environment
 
 `.env.local` is git-ignored and required for anything that talks to Convex,
-signs in, or seeds. Groups of variables:
+signs in, or seeds. The variables it needs, grouped by purpose:
 
 - **Convex**: `CONVEX_URL`, `CONVEX_DEPLOYMENT`, `CONVEX_DEPLOY_KEY`,
   `CONVEX_SITE_URL`, `NUXT_PUBLIC_CONVEX_URL`, `NUXT_PUBLIC_CONVEX_SITE_URL`.
@@ -70,30 +71,39 @@ signs in, or seeds. Groups of variables:
 ## Setup
 
 ```sh
-bun install --frozen-lockfile   # plain `bun install` only when changing deps
+bun install --frozen-lockfile   # plain bun install only when changing deps
 cp /path/to/primary-checkout/.env.local .env.local
-bunx convex dev                 # in one checkout at a time; see AGENTS.md
+bunx convex dev                 # one checkout at a time
 bun run dev                     # http://localhost:3001
 ```
 
-A fresh worktree has neither `node_modules` nor `.env.local`; see
-[AGENTS.md](./AGENTS.md#setting-up-a-new-worktree) for the exact commands.
+A fresh worktree has neither `node_modules` nor `.env.local`, and both are
+git-ignored. Copy the environment from your primary checkout, which is the first
+entry in `git worktree list --porcelain`:
+
+```sh
+cp "$(git worktree list --porcelain | awk '/^worktree /{print $2; exit}')/.env.local" .env.local
+```
+
+Do not copy `node_modules` between checkouts: it is hundreds of megabytes, can be
+stale against the branch's lockfile, and installing from Bun's shared cache takes
+a few seconds.
 
 ## Scripts
 
-| Script                   | What it does                                        |
-| ------------------------ | --------------------------------------------------- |
-| `bun run dev`            | Nuxt dev server on port 3001 with `.env.local`      |
-| `bun run dev:tail`       | Dev server exposed through Tailscale on 8443        |
-| `bun run build`          | Production build                                    |
-| `bun run preview`        | Preview the production build                        |
-| `bun run lint`           | oxlint + ESLint (hybrid suite, CI default)          |
-| `bun run lint:eslint`    | Full Nuxt ESLint pass over Vue SFCs                 |
-| `bun run lint:fix`       | Apply both linters' fixes                           |
-| `bun run format`         | `bun fmt` (bunfig.toml); pre-commit runs `--staged` |
-| `bun run format:check`   | Check formatting without writing                    |
-| `bun run seed:dev`       | Create/refresh the dev operator and demo data       |
-| `bun run seed:dev:reset` | Wipe demo rows first, then seed                     |
+| Script                   | What it does                                           |
+| ------------------------ | ------------------------------------------------------ |
+| `bun run dev`            | Nuxt dev server on port 3001 with `.env.local`         |
+| `bun run dev:tail`       | Dev server exposed through Tailscale on 8443           |
+| `bun run build`          | Production build                                       |
+| `bun run preview`        | Preview the production build                           |
+| `bun run lint`           | oxlint + ESLint hybrid pass (default)                  |
+| `bun run lint:eslint`    | Full Nuxt ESLint pass over Vue SFCs                    |
+| `bun run lint:fix`       | Apply both linters' fixes                              |
+| `bun run format`         | Format with `bun fmt`; pre-commit formats staged files |
+| `bun run format:check`   | Check formatting without writing                       |
+| `bun run seed:dev`       | Create/refresh the dev operator and demo data          |
+| `bun run seed:dev:reset` | Wipe demo rows first, then seed                        |
 
 ## Verifying signed-in surfaces
 
@@ -102,12 +112,13 @@ session-derived identity on every query — bypassing the route guard renders a
 page that cannot load or write data.
 
 1. Set `ENABLE_DEV_TOOLS=true`, `DEV_AUTH_EMAIL`, and `DEV_AUTH_PASSWORD` in
-   `.env.local`, then restart `bunx convex dev` so the deployment sees them.
+   `.env.local`, then restart `bun run dev` so the route reads them.
 2. Run `bun run seed:dev`. It creates the dev operator plus demo data:
    products at zero and low stock, sales history, an active preorder form with
-   submissions. Demo rows use the `[demo] ` product prefix, the `dev-seed-`
-   checkout id, and the `dev-demo` form slug, so they never touch real data.
-   Re-seeding recreates the operator account, so sign in again afterwards.
+   submissions. Demo rows use the `[demo] ` product prefix (the trailing space is
+   part of it), the `dev-seed-` checkout id, and the `dev-demo` form slug, so
+   they never touch real data. Re-seeding recreates the operator account, so
+   sign in again afterwards.
 3. Open `http://localhost:3001/dev/login?next=/dash/dashboard`. The route exists
    only under `nuxt dev`, requires `ENABLE_DEV_TOOLS=true`, refuses a production
    site URL, and signs in through the normal `/api/auth` proxy so the cookie is
@@ -125,8 +136,8 @@ The auth server runs inside Convex, not in Nitro:
   `/api/auth` proxy. `crossDomainClient` is deliberately not used — it would
   move the session into `localStorage` and break both the SSR cookie→JWT
   exchange and the client token plugin.
-- `nuxt.config.ts` registers `convex.auth = { provider: 'better-auth', proxy:
-true }`, and `@nuxtjs/better-auth` runs in `clientOnly` mode.
+- `nuxt.config.ts` enables the same-origin `/api/auth` proxy for Convex, and
+  `@nuxtjs/better-auth` runs in `clientOnly` mode so it adds no server routes.
 - `server/auth.config.ts` is an unused scaffold kept only so the module does not
   regenerate it.
 - Both `convex/auth.config.ts` and the client config must agree on the provider;
