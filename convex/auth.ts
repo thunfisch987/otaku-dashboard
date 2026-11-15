@@ -21,7 +21,9 @@ import authConfig from './auth.config';
 import authSchema from './betterAuth/schema';
 import {
 	getAuthAllowedHosts,
+	getDevAuthEmailOrNull,
 	getPlaygroundSiteUrl,
+	isDevToolsEnabled,
 	isGoogleAuthEnabled,
 } from './env';
 import { v } from 'convex/values';
@@ -29,6 +31,10 @@ import { v } from 'convex/values';
 const siteUrl = getPlaygroundSiteUrl();
 const passkeyRpID = new URL(siteUrl).hostname;
 const enableGoogleAuth = isGoogleAuthEnabled();
+// Dev-only email/password login for the seeded operator account used by
+// automated browser checks. Disabled unless ENABLE_DEV_TOOLS is set on a
+// non-production deployment, so the production auth surface is unchanged.
+const enableDevEmailAuth = isDevToolsEnabled();
 const useSecureCookies = siteUrl.startsWith('https://');
 const allowedHosts = getAuthAllowedHosts();
 const initialAdminEmail =
@@ -141,6 +147,9 @@ export function createAuthOptions(ctx: GenericCtx<DataModel>) {
 		baseURL: {
 			allowedHosts,
 			protocol: 'auto' as const,
+			// Used by trusted helpers (e.g. the dev seed action) that call
+			// auth.api directly, where no request host exists to resolve.
+			fallback: siteUrl,
 		},
 		advanced: {
 			ipAddress: {
@@ -150,6 +159,10 @@ export function createAuthOptions(ctx: GenericCtx<DataModel>) {
 		},
 		useSecureCookies,
 		database: authComponent.adapter(ctx),
+		emailAndPassword: {
+			enabled: enableDevEmailAuth,
+			requireEmailVerification: false,
+		},
 		...(enableGoogleAuth
 			? {
 					socialProviders: {
@@ -164,18 +177,28 @@ export function createAuthOptions(ctx: GenericCtx<DataModel>) {
 			user: {
 				create: {
 					before: async (user: User & Record<string, unknown>) => {
+						const normalizedEmail = user.email.trim().toLowerCase();
 						const isInitialAdmin =
 							user.emailVerified &&
 							!!initialAdminEmail &&
-							user.email.trim().toLowerCase() ===
-								initialAdminEmail;
+							normalizedEmail === initialAdminEmail;
+						// The seeded dev operator exists for automated browser
+						// checks; without this it would be banned like any
+						// stranger's account and could not sign in.
+						const devOperatorEmail = isDevToolsEnabled()
+							? getDevAuthEmailOrNull()
+							: null;
+						const isDevOperator =
+							!!devOperatorEmail &&
+							normalizedEmail === devOperatorEmail;
+						const isTrusted = isInitialAdmin || isDevOperator;
 
 						return {
 							data: {
 								...user,
-								role: isInitialAdmin ? 'admin' : 'user',
-								banned: !isInitialAdmin,
-								banReason: isInitialAdmin
+								role: isTrusted ? 'admin' : 'user',
+								banned: !isTrusted,
+								banReason: isTrusted
 									? null
 									: 'Waiting for operator approval',
 								banExpires: null,

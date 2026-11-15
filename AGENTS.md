@@ -59,14 +59,50 @@
 - Store shared agent skills in `.agents/skills/<name>/SKILL.md`; do not add
   tool-specific skill directories.
 
+## Verifying signed-in surfaces in dev
+
+Most operator pages sit behind a real Better Auth session, and Convex checks the
+session-derived identity on every query. Bypassing the route guard alone
+produces a page that renders but cannot load or write data, so use the dev login:
+
+- One-time setup in `.env.local` (never in production):
+
+    ```sh
+    ENABLE_DEV_TOOLS=true
+    DEV_AUTH_EMAIL=dev@otaku.local
+    DEV_AUTH_PASSWORD=<at least 12 characters>
+    ```
+
+    Restart `convex dev` afterwards so the dev deployment picks up the same file.
+
+- `bun run seed:dev` creates or refreshes the dev operator and demo data
+  (products including zero and low stock, sales history, an active preorder form
+  with submissions). `bun run seed:dev:reset` wipes those rows first. Demo rows
+  are recognizable by the `[demo] ` product prefix, the `dev-seed-` checkout id,
+  and the `dev-demo` form slug, and never touch real data.
+- Sign in with `http://localhost:3001/dev/login?next=/dash/dashboard` (any
+  same-origin path works as `next`). The route exists only under `nuxt dev`,
+  requires `ENABLE_DEV_TOOLS=true`, and refuses a production site URL. It signs
+  in through the normal `/api/auth` proxy, so the cookie is first-party and the
+  Convex JWT exchange behaves exactly like a human login.
+- These credentials are dev-only: never set `ENABLE_DEV_TOOLS` on a production
+  deployment and never commit the password.
+- Public `preorder/[slug].vue` pages need no login; open them directly.
+- After signing in, drive pages with the T3 preview tools (never the OpenCode
+  `browser.*` tools) and check the states the seed provides: zero and low stock,
+  helper pricing, sales history, and preorder submissions.
+
 ## Agent communication
 
 - A progress update is not completion: after announcing intended work, continue
   executing it in the same task. Do not end on a future-tense promise; report
   the completed result or the concrete blocker.
-- When a subagent implements a change and council review is requested, assign
-  the review to that same subagent for its isolated change. It owns the review
-  and report; the parent should not duplicate it.
+- Keep replies brief: lead with the result or next action, and skip filler,
+  preamble, and restating the request. Add detail only for decisions or risk.
+- For plans, research, and comparisons, write a self-contained HTML report and
+  show it with the HTML preview tools instead of a long chat reply.
+- For UI-visible changes, include before/after screenshots, or a short video
+  when motion or timing matters, and name the surfaces checked.
 - Before reporting frontend work as done, state which relevant surfaces you
   checked. Keep final reports short and precise after completing the task.
 - If a repository rule conflicts with the requested task, explain the conflict

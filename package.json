@@ -17,6 +17,8 @@
 		"lint:hybrid:fix": "oxlint . --fix && eslint --config eslint.oxlint.config.mjs . --fix",
 		"lint:oxlint": "oxlint .",
 		"preview": "nuxt preview",
+		"seed:dev": "convex run devSeed:seed",
+		"seed:dev:reset": "convex run devSeed:seed '{\"reset\":true}'",
 		"postinstall": "nuxt prepare",
 		"prepare": "git config core.hooksPath .githooks"
 	},

@@ -9,6 +9,7 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as devSeed from "../devSeed.js";
 import type * as env from "../env.js";
 import type * as http from "../http.js";
 import type * as preorders from "../preorders.js";
@@ -24,6 +25,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  devSeed: typeof devSeed;
   env: typeof env;
   http: typeof http;
   preorders: typeof preorders;
