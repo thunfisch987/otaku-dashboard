@@ -423,7 +423,8 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 
 		const tableApi = table.value.tableApi;
 		const rows = getMyRowModel(option, tableApi);
-		if (rows.length === 0) {
+		const [firstRow] = rows;
+		if (!firstRow) {
 			toast.add({
 				title: 'No products available to export',
 				description:
@@ -434,7 +435,7 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 			});
 			return;
 		}
-		const headers = Object.keys(rows[0]);
+		const headers = Object.keys(firstRow);
 		const csv = [
 			headers.map(csvCell).join(','),
 			...rows.map((row) =>

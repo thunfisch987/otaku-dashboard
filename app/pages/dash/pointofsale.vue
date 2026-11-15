@@ -438,7 +438,11 @@ function readStoredCheckoutToken(): StoredCheckoutToken | null {
 	}
 }
 
-function writeStoredCheckoutToken(token: StoredCheckoutToken): boolean {
+// storedAt is stamped on write, so callers only supply the identity of the
+// sale they are about to commit.
+function writeStoredCheckoutToken(
+	token: Omit<StoredCheckoutToken, 'storedAt'>,
+): boolean {
 	if (!import.meta.client) return false;
 	try {
 		sessionStorage.setItem(
