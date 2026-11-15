@@ -2,6 +2,7 @@
 	<UButton
 		:loading="isPending"
 		class="gsi-material-button"
+		:class="{ 'gsi-material-button-lg': large }"
 		@click="signInWithGoogle"
 	>
 		<div class="gsi-material-button-state" />
@@ -45,6 +46,8 @@
 </template>
 
 <script setup lang="ts">
+defineProps<{ large?: boolean }>();
+
 const signInWithSocial = useSignIn('social');
 const isPending = computed(() => signInWithSocial.status.value === 'pending');
 
@@ -99,8 +102,6 @@ async function signInWithGoogle() {
 		box-shadow 0.218s;
 	vertical-align: middle;
 	white-space: nowrap;
-	width: auto;
-	max-width: 400px;
 	min-width: min-content;
 	border-color: #8e918f;
 }
@@ -110,6 +111,23 @@ async function signInWithGoogle() {
 	margin-right: 12px;
 	min-width: 20px;
 	width: 20px;
+}
+
+.gsi-material-button.gsi-material-button-lg {
+	height: 48px;
+	padding: 0 16px;
+	font-size: 15px;
+}
+
+.gsi-material-button-lg .gsi-material-button-contents {
+	font-size: 15px;
+}
+
+.gsi-material-button-lg .gsi-material-button-icon {
+	height: 24px;
+	margin-right: 12px;
+	min-width: 24px;
+	width: 24px;
 }
 
 .gsi-material-button .gsi-material-button-content-wrapper {
