@@ -1,6 +1,7 @@
 // Convex-runtime compatible env helpers (no node:process import)
 const DEFAULT_DEV_SITE_URL = 'http://localhost:3001';
 const DEFAULT_SITE_URL = 'https://www.lilbitgay.de';
+const PRODUCTION_HOST_SUFFIX = 'lilbitgay.de';
 const DISABLED_VALUES = new Set(['0', 'false', 'no', 'off']);
 const LOCAL_AUTH_HOSTS = [
 	'localhost:3000',
@@ -45,8 +46,12 @@ export function getAuthAllowedHosts(): string[] {
  * open them up.
  */
 export function isProductionSiteUrl(): boolean {
+	const host = new URL(getPlaygroundSiteUrl()).hostname.toLowerCase();
+	// Match the apex and every subdomain, so a mis-set SITE_URL (e.g. the
+	// apex or a preview host under the same domain) still fails closed.
 	return (
-		new URL(getPlaygroundSiteUrl()).host === new URL(DEFAULT_SITE_URL).host
+		host === PRODUCTION_HOST_SUFFIX ||
+		host.endsWith(`.${PRODUCTION_HOST_SUFFIX}`)
 	);
 }
 

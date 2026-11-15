@@ -233,6 +233,12 @@ export const insertDemoData = internalMutation({
 				updatedAt: now,
 			});
 		}
+		// Match the checkout rule: for Onigiri products the shared row wins
+		// over per-product prices, including the helper price.
+		const sharedOnigiriPricing: {
+			price: number;
+			helperPrice?: number;
+		} = onigiriPricing ?? { price: 3, helperPrice: 2.5 };
 
 		const productsByName = new Map<string, SeededProduct>();
 		for (const product of DEMO_PRODUCTS) {
@@ -305,10 +311,15 @@ export const insertDemoData = internalMutation({
 			let totalCents = 0;
 			const items = seed.lines.map(([name, quantity]) => {
 				const product = requireProduct(name);
-				const unitPrice =
-					seed.isHelper && product.helperPrice !== undefined
-						? product.helperPrice
-						: product.price;
+				let unitPrice = product.price;
+				let helperPrice = product.helperPrice;
+				if (product.category === 'onigiri') {
+					unitPrice = sharedOnigiriPricing.price;
+					helperPrice = sharedOnigiriPricing.helperPrice;
+				}
+				if (seed.isHelper && helperPrice !== undefined) {
+					unitPrice = helperPrice;
+				}
 				const lineTotal = Math.round(unitPrice * 100) * quantity;
 				totalCents += lineTotal;
 				return {

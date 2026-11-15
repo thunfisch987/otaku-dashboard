@@ -19,20 +19,28 @@ import {
 } from 'h3';
 
 const DEFAULT_NEXT = '/dash/dashboard';
-const PRODUCTION_HOST = 'www.lilbitgay.de';
+const PRODUCTION_HOST_SUFFIX = 'lilbitgay.de';
 
 function safeNextPath(value: unknown): string {
 	const raw = Array.isArray(value) ? value[0] : value;
 	if (typeof raw !== 'string') return DEFAULT_NEXT;
-	// Only same-origin paths; reject protocol-relative and absolute URLs.
-	if (!raw.startsWith('/') || raw.startsWith('//')) return DEFAULT_NEXT;
+	// Only same-origin paths. Reject absolute/protocol-relative URLs and
+	// backslashes, which browsers normalize to "/" in a Location header.
+	if (!raw.startsWith('/') || raw.startsWith('//') || raw.includes('\\')) {
+		return DEFAULT_NEXT;
+	}
+	if (raw.split('?')[0] === '/dev/login') return DEFAULT_NEXT;
 	return raw;
 }
 
 function isProductionSite(siteUrl: string | undefined): boolean {
 	if (!siteUrl) return false;
 	try {
-		return new URL(siteUrl).host === PRODUCTION_HOST;
+		const host = new URL(siteUrl).hostname.toLowerCase();
+		return (
+			host === PRODUCTION_HOST_SUFFIX ||
+			host.endsWith(`.${PRODUCTION_HOST_SUFFIX}`)
+		);
 	} catch {
 		return false;
 	}

@@ -79,7 +79,8 @@ produces a page that renders but cannot load or write data, so use the dev login
   (products including zero and low stock, sales history, an active preorder form
   with submissions). `bun run seed:dev:reset` wipes those rows first. Demo rows
   are recognizable by the `[demo] ` product prefix, the `dev-seed-` checkout id,
-  and the `dev-demo` form slug, and never touch real data.
+  and the `dev-demo` form slug, and never touch real data. Re-seeding recreates
+  the operator account, so sign in again afterwards.
 - Sign in with `http://localhost:3001/dev/login?next=/dash/dashboard` (any
   same-origin path works as `next`). The route exists only under `nuxt dev`,
   requires `ENABLE_DEV_TOOLS=true`, and refuses a production site URL. It signs
