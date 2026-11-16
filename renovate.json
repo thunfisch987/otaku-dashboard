@@ -1,5 +1,12 @@
 {
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
 	"extends": ["config:best-practices", ":automergeAll"],
-	"automergeType": "branch"
+	"automergeType": "branch",
+	"packageRules": [
+		{
+			"description": "better-auth 1.7.22+ consumes verifications with an `id ne` filter that @convex-dev/better-auth 0.13.0 rejects (convex/better-auth#479). Hold both packages until convex/better-auth#481 ships.",
+			"matchPackageNames": ["better-auth", "@better-auth/passkey"],
+			"allowedVersions": "<=1.7.21"
+		}
+	]
 }

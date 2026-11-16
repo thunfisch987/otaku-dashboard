@@ -63,11 +63,25 @@ async function clearSession() {
 	await signOut();
 }
 
+function passkeyErrorMessage(error: unknown): string {
+	if (error && typeof error === 'object') {
+		if ('message' in error && typeof error.message === 'string') {
+			const message = error.message.trim();
+			if (message) return message;
+		}
+		if ('statusText' in error && typeof error.statusText === 'string') {
+			const statusText = error.statusText.trim();
+			if (statusText) return statusText;
+		}
+		if ('status' in error && typeof error.status === 'number') {
+			return `The passkey request failed (HTTP ${error.status}).`;
+		}
+	}
+	return 'The passkey operation could not be completed.';
+}
+
 function showPasskeyError(error: unknown) {
-	const message =
-		error && typeof error === 'object' && 'message' in error
-			? String(error.message)
-			: 'The passkey operation could not be completed.';
+	const message = passkeyErrorMessage(error);
 
 	toast.add({
 		title: 'Passkey error',
