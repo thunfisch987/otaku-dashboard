@@ -94,13 +94,21 @@
 					{{ formatCurrency(totalSales) }}
 				</p>
 			</div>
-			<div class="max-w-full overflow-x-auto rounded-lg border">
+			<div
+				class="max-w-full overflow-x-auto rounded-lg border max-md:hidden"
+			>
 				<UTable
 					:data="saleRows"
 					:columns="saleColumns"
 					class="min-w-[60rem]"
 				/>
 			</div>
+			<TransactionsSaleList
+				:sales="sales"
+				:is-reverting="isReverting"
+				class="md:hidden"
+				@revert="askRevertSale"
+			/>
 		</div>
 
 		<UModal
@@ -145,21 +153,7 @@ import { UButton } from '#components';
 import type { TableColumn } from '@nuxt/ui';
 import { h } from 'vue';
 import type { Id } from '~~/convex/_generated/dataModel';
-
-type SaleWithItems = {
-	_id: string;
-	_creationTime: number;
-	timestamp: number;
-	operatorName: string;
-	total: number;
-	isHelper?: boolean;
-	items: {
-		productName: string;
-		unitPrice: number;
-		quantity: number;
-		lineTotal: number;
-	}[];
-};
+import type { SaleWithItems } from '~/components/Transactions/types';
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
 	useAppConvexAuth();
@@ -279,8 +273,8 @@ const revertErrorMessage = computed(() =>
 		: 'Please try again.',
 );
 
-function askRevertSale(saleId: Id<'sales'>) {
-	revertSaleId.value = saleId;
+function askRevertSale(saleId: string) {
+	revertSaleId.value = saleId as Id<'sales'>;
 	revertOpen.value = true;
 }
 

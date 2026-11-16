@@ -272,6 +272,7 @@ export const insertDemoData = internalMutation({
 		const saleSeeds: {
 			daysAgo: number;
 			hour: number;
+			minute?: number;
 			isHelper: boolean;
 			lines: [string, number][];
 		}[] = [
@@ -293,6 +294,91 @@ export const insertDemoData = internalMutation({
 					['[demo] Onigiri Tuna Mayo', 3],
 				],
 			},
+			// A full day of sales so the grouped mobile cards can be reviewed
+			// with a realistic list (single-item and multi-item sales, helper
+			// and regular prices).
+			{
+				daysAgo: 0,
+				hour: 10,
+				minute: 5,
+				isHelper: false,
+				lines: [
+					['[demo] Pocky', 2],
+					['[demo] Ramune', 1],
+				],
+			},
+			{
+				daysAgo: 0,
+				hour: 12,
+				minute: 20,
+				isHelper: false,
+				lines: [
+					['[demo] Takoyaki', 1],
+					['[demo] Pocky', 1],
+					['[demo] Manga Print', 1],
+				],
+			},
+			{
+				daysAgo: 0,
+				hour: 13,
+				minute: 10,
+				isHelper: true,
+				lines: [
+					['[demo] Onigiri Tuna Mayo', 1],
+					['[demo] Ramune', 2],
+				],
+			},
+			{
+				daysAgo: 0,
+				hour: 14,
+				minute: 5,
+				isHelper: false,
+				lines: [['[demo] Manga Print', 1]],
+			},
+			{
+				daysAgo: 0,
+				hour: 15,
+				minute: 40,
+				isHelper: false,
+				lines: [
+					['[demo] Onigiri Tuna Mayo', 2],
+					['[demo] Takoyaki', 1],
+				],
+			},
+			{
+				daysAgo: 0,
+				hour: 16,
+				minute: 15,
+				isHelper: true,
+				lines: [
+					['[demo] Pocky', 3],
+					['[demo] Ramune', 1],
+				],
+			},
+			{
+				daysAgo: 0,
+				hour: 17,
+				minute: 30,
+				isHelper: false,
+				lines: [
+					['[demo] Onigiri Tuna Mayo', 4],
+					['[demo] Ramune', 4],
+				],
+			},
+			{
+				daysAgo: 0,
+				hour: 18,
+				minute: 45,
+				isHelper: true,
+				lines: [['[demo] Takoyaki', 2]],
+			},
+			{
+				daysAgo: 0,
+				hour: 19,
+				minute: 20,
+				isHelper: false,
+				lines: [['[demo] Ramune', 1]],
+			},
 		];
 
 		const today = startOfToday(now);
@@ -308,7 +394,9 @@ export const insertDemoData = internalMutation({
 			if (existing) continue;
 
 			const timestamp =
-				today - seed.daysAgo * DAY_MS + seed.hour * 3_600_000;
+				today -
+				seed.daysAgo * DAY_MS +
+				(seed.hour * 60 + (seed.minute ?? 0)) * 60_000;
 			let totalCents = 0;
 			const items = seed.lines.map(([name, quantity]) => {
 				const product = requireProduct(name);
