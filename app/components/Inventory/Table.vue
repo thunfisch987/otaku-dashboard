@@ -24,6 +24,17 @@
 					class="min-w-0 md:min-w-[42rem]"
 				/>
 			</div>
+			<ul
+				v-if="!isMobileViewport && mobileVariant !== 'priority'"
+				class="space-y-3 md:hidden"
+				aria-hidden="true"
+			>
+				<li
+					v-for="placeholder in 3"
+					:key="placeholder"
+					class="h-28 animate-pulse rounded-lg border border-default bg-elevated"
+				/>
+			</ul>
 			<InventoryMobileList
 				v-if="isMobileViewport && mobileVariant !== 'priority'"
 				:rows="mobileRows"

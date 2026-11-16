@@ -44,14 +44,17 @@
 				class="rounded-lg border border-default bg-default p-3"
 			>
 				<div class="flex items-start gap-3">
-					<UCheckbox
-						class="mt-1"
-						:model-value="row.getIsSelected()"
-						:aria-label="`Select ${row.original.productname}`"
-						@update:model-value="
-							(value) => row.toggleSelected(!!value)
-						"
-					/>
+					<label
+						class="-m-3 flex size-11 shrink-0 cursor-pointer items-center justify-center"
+					>
+						<UCheckbox
+							:model-value="row.getIsSelected()"
+							:aria-label="`Select ${row.original.productname}`"
+							@update:model-value="
+								(value) => row.toggleSelected(!!value)
+							"
+						/>
+					</label>
 					<div class="min-w-0 flex-1">
 						<p class="font-medium break-words">
 							{{ row.original.productname }}
@@ -151,7 +154,9 @@ const someSelected = computed(
 	() => props.tableApi?.getIsSomePageRowsSelected() ?? false,
 );
 const selectedCount = computed(
-	() => props.rows.filter((row) => row.getIsSelected()).length,
+	() =>
+		props.tableApi?.getFilteredSelectedRowModel().rows.length ??
+		props.rows.filter((row) => row.getIsSelected()).length,
 );
 
 function toggleAll(value: boolean | 'indeterminate') {
