@@ -34,7 +34,17 @@
 			leading-icon="i-lucide-boxes"
 			size="lg"
 		/>
-		<ColumnVisibilityDropdown />
+		<USelect
+			v-model="mobileSort"
+			:items="mobileSortItems"
+			class="w-full md:hidden sm:min-w-44"
+			aria-label="Sort products"
+			leading-icon="i-lucide-arrow-up-down"
+			size="lg"
+		/>
+		<div class="max-md:hidden">
+			<ColumnVisibilityDropdown />
+		</div>
 		<div class="flex flex-wrap gap-2 sm:col-span-2 xl:col-span-1">
 			<DeleteProductModal />
 			<CreateProductModal />
@@ -79,6 +89,28 @@ const stockItems: SelectItem[] = [
 	{ label: 'Out of stock', value: 'out' },
 ];
 
+const mobileSortItems: SelectItem[] = [
+	{ label: 'Default order', value: 'default' },
+	{ label: 'Name A–Z', value: 'name-asc' },
+	{ label: 'Name Z–A', value: 'name-desc' },
+	{ label: 'Price low–high', value: 'price-asc' },
+	{ label: 'Price high–low', value: 'price-desc' },
+	{ label: 'Stock low–high', value: 'stock-asc' },
+	{ label: 'Stock high–low', value: 'stock-desc' },
+];
+
+const mobileSorts: Record<string, { id: string; desc: boolean } | undefined> = {
+	default: undefined,
+	'name-asc': { id: 'productname', desc: false },
+	'name-desc': { id: 'productname', desc: true },
+	'price-asc': { id: 'price', desc: false },
+	'price-desc': { id: 'price', desc: true },
+	'stock-asc': { id: 'amount', desc: false },
+	'stock-desc': { id: 'amount', desc: true },
+};
+
+const mobileSort = ref('default');
+
 const globalFilter = useState('globalFilter', () => '');
 const supplierFilter = useState('facetedSelectValue', () => 'Alle');
 const categoryFilter = useState('inventoryCategoryFilter', () => 'all');
@@ -111,4 +143,12 @@ watch(
 	},
 	{ immediate: true },
 );
+
+watch([mobileSort, table], () => {
+	const tableApi = table.value?.tableApi;
+	if (!tableApi) return;
+	const sort = mobileSorts[mobileSort.value];
+	tableApi.setSorting(sort ? [sort] : []);
+	tableApi.setPageIndex(0);
+});
 </script>
