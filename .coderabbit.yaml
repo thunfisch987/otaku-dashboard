@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+reviews:
+    # Quiet keeps inline comments for serious issues only and groups the rest in
+    # the review summary.
+    profile: quiet
+    # Do not add "Prompt for Coding Agents" blocks that invite agents to expand
+    # the change beyond the pull request's scope.
+    enable_prompt_for_ai_agents: false
+    path_instructions:
+        - path: '**/*'
+          instructions: |
+              Review only defects in lines this pull request changes: correctness,
+              data loss, security, accessibility, and regressions introduced by the
+              change. Do not propose new features, new UI or UX, refactors, file
+              moves, test rewrites, or follow-up work. Do not repeat suggestions from
+              earlier reviews. If something out of scope is worth doing, mention it
+              once in the summary as a follow-up, never as an inline comment or a fix
+              prompt.
+knowledge_base:
+    code_guidelines:
+        enabled: true
+        filePatterns:
+            - 'AGENTS.md'
+    learnings:
+        scope: local
