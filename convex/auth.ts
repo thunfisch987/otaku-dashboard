@@ -40,6 +40,19 @@ const initialAdminEmail =
 	process.env.BETTER_AUTH_INITIAL_ADMIN_EMAIL?.trim().toLowerCase();
 const infrastructureApiKey = process.env.BETTER_AUTH_API_KEY;
 
+type SyntheticUserParams = {
+	coreFields: {
+		name: string;
+		email: string;
+		emailVerified: boolean;
+		image: string | null;
+		createdAt: Date;
+		updatedAt: Date;
+	};
+	additionalFields: Record<string, unknown>;
+	id: string;
+};
+
 const approvalAccessControl = createAccessControl(defaultStatements);
 const operatorRole = approvalAccessControl.newRole({
 	user: [],
@@ -166,6 +179,22 @@ export function createAuthOptions(ctx: GenericCtx<DataModel>) {
 			// error, which reveals whether an address is registered. The dev
 			// seed ignores the session and promotes its account explicitly.
 			autoSignIn: false,
+			// Duplicate addresses get a synthetic user instead of the real
+			// one. Match the approval fields that user.create.before stores
+			// for a new registration, so the two responses stay identical.
+			customSyntheticUser: ({
+				coreFields,
+				additionalFields,
+				id,
+			}: SyntheticUserParams) => ({
+				...coreFields,
+				...additionalFields,
+				role: 'user',
+				banned: true,
+				banReason: 'Waiting for operator approval',
+				banExpires: null,
+				id,
+			}),
 		},
 		...(enableGoogleAuth
 			? {

@@ -451,7 +451,11 @@ class ExportCancelledError extends Error {
 // scope, so they are stopped explicitly when the panel unmounts.
 const pendingStops = new Set<() => void>();
 let cancelPendingPageWait: ((reason: ExportCancellation) => void) | null = null;
+// The unmount hook may run between a page wait settling and the export
+// continuing; `props.formId` does not change then, so track unmount itself.
+let panelUnmounted = false;
 onBeforeUnmount(() => {
+	panelUnmounted = true;
 	for (const stop of pendingStops) stop();
 	pendingStops.clear();
 	cancelPendingPageWait?.('unmounted');
@@ -607,6 +611,7 @@ function waitForNextSubmissionsPage(previousCount: number) {
 async function loadAllSubmissions(expectedFormId: Id<'preorderForms'>) {
 	let retries = 0;
 	while (!submissionsDone.value) {
+		if (panelUnmounted) throw new ExportCancelledError('unmounted');
 		if (props.formId !== expectedFormId) {
 			throw new ExportCancelledError('form-changed');
 		}
@@ -630,6 +635,7 @@ async function loadAllSubmissions(expectedFormId: Id<'preorderForms'>) {
 			retries += 1;
 		}
 	}
+	if (panelUnmounted) throw new ExportCancelledError('unmounted');
 	if (props.formId !== expectedFormId) {
 		throw new ExportCancelledError('form-changed');
 	}
@@ -645,6 +651,7 @@ async function downloadOrdersCsv() {
 	try {
 		// Export the complete form, not just the pages already rendered.
 		await loadAllSubmissions(exportFormId);
+		if (panelUnmounted) throw new ExportCancelledError('unmounted');
 		if (props.formId !== exportFormId) {
 			throw new ExportCancelledError('form-changed');
 		}
