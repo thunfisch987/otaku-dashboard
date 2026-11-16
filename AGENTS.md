@@ -116,6 +116,11 @@ keep `.env.local` for Nuxt and the CLI.
   short Markdown; never claim it rendered without the call.
 - In both HTML and Markdown output, embed images inline. Never hand over a bare
   file link or path instead of showing the image.
+- Prefer sending screenshots as attachments when a tool allows it; attachments
+  always render full size. When embedding Markdown images instead, give each
+  image its own paragraph: a blank line before and after, with any caption on a
+  separate line. An image on the line directly under a caption renders as a tiny
+  inline preview pill and reads as a broken image.
 - For UI-visible changes, include before/after screenshots, or a short video
   when motion or timing matters, and name the surfaces checked.
 - Before reporting frontend work as done, state which relevant surfaces you

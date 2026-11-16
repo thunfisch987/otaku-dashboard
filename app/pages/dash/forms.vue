@@ -1,5 +1,5 @@
 <template>
-	<main class="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+	<main class="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
 		<header>
 			<h1 class="text-3xl font-semibold">Preorder forms</h1>
 		</header>
@@ -155,7 +155,7 @@
 									label-key="productname"
 									value-key="_id"
 									placeholder="Choose an inventory product"
-									class="min-w-64 flex-1"
+									class="w-full min-w-0 sm:min-w-64 sm:flex-1"
 									size="lg"
 								/>
 								<UButton

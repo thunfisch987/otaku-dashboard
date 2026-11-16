@@ -34,7 +34,9 @@
 			leading-icon="i-lucide-boxes"
 			size="lg"
 		/>
-		<ColumnVisibilityDropdown />
+		<div class="max-md:hidden">
+			<ColumnVisibilityDropdown />
+		</div>
 		<div class="flex flex-wrap gap-2 sm:col-span-2 xl:col-span-1">
 			<DeleteProductModal />
 			<CreateProductModal />

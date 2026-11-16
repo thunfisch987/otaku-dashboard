@@ -248,7 +248,7 @@
 				>
 					<h3 class="font-semibold">Recent sales</h3>
 					<div
-						class="max-w-full overflow-x-auto rounded-xl border border-default"
+						class="max-w-full overflow-x-auto rounded-xl border border-default max-md:hidden"
 					>
 						<UTable
 							:data="recentSaleRows"
@@ -256,6 +256,11 @@
 							class="min-w-[32rem]"
 						/>
 					</div>
+					<TransactionsSaleList
+						:sales="recentSales"
+						variant="compact"
+						class="md:hidden"
+					/>
 				</div>
 				<div
 					v-else-if="salesCount === 0 && salesDone"

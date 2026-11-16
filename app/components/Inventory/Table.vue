@@ -4,6 +4,7 @@
 			<LazyInventoryToolbar />
 			<div
 				class="max-w-full overflow-x-auto rounded-lg border border-default"
+				:class="mobileVariant === 'priority' ? '' : 'max-md:hidden'"
 			>
 				<UTable
 					ref="table"
@@ -20,9 +21,17 @@
 						getFacetedRowModel: getFacetedRowModel(),
 						getFacetedUniqueValues: getFacetedUniqueValues(),
 					}"
-					class="min-w-[42rem]"
+					class="min-w-0 md:min-w-[42rem]"
 				/>
 			</div>
+			<InventoryMobileList
+				v-if="isMobileViewport && mobileVariant !== 'priority'"
+				:rows="mobileRows"
+				:table-api="table?.tableApi"
+				:variant="mobileListVariant"
+				:loading="pendingos || convexAuthLoading"
+				@delete="askDeleteProduct"
+			/>
 			<UModal
 				v-model:open="rowDeleteOpen"
 				title="Delete product"
@@ -308,6 +317,18 @@ async function confirmRowDelete() {
 }
 
 const columns = createColumns({ deleteProduct: askDeleteProduct });
+
+const isMobileViewport = useIsMobileTable();
+const mobileVariant = useMobileTableVariant(inventoryMobileVariants, 'compact');
+const mobileListVariant = computed<'cards' | 'compact'>(() =>
+	mobileVariant.value === 'compact' ? 'compact' : 'cards',
+);
+// Same sorted, filtered, paginated rows the table renders. Reading the row
+// model inside a computed keeps this in sync with toolbar filters, sorting,
+// and page changes without a second TanStack table instance.
+const mobileRows = computed(
+	() => table.value?.tableApi?.getRowModel().rows ?? [],
+);
 
 const productRowCount = computed(
 	() => table.value?.tableApi.getCoreRowModel().rows.length ?? 0,
