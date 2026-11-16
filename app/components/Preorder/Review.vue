@@ -437,13 +437,35 @@ const SUBMISSIONS_PAGE_SIZE = 25;
 const SUBMISSIONS_PAGE_TIMEOUT_MS = 20_000;
 const SUBMISSIONS_PAGE_RETRIES = 2;
 const exporting = ref<'totals' | 'orders' | null>(null);
+
+// The orders export waits on paginated query updates, so it can be in flight
+// when the panel closes or the operator selects another form. Cancellation
+// rejects that wait instead of leaving its timeout to restart the retry loop.
+type ExportCancellation = 'unmounted' | 'form-changed';
+class ExportCancelledError extends Error {
+	constructor(readonly reason: ExportCancellation) {
+		super('Orders export cancelled');
+	}
+}
 // Watchers started from the export button live outside the setup effect
 // scope, so they are stopped explicitly when the panel unmounts.
 const pendingStops = new Set<() => void>();
+let cancelPendingPageWait: ((reason: ExportCancellation) => void) | null = null;
+// The unmount hook may run between a page wait settling and the export
+// continuing; `props.formId` does not change then, so track unmount itself.
+let panelUnmounted = false;
 onBeforeUnmount(() => {
+	panelUnmounted = true;
 	for (const stop of pendingStops) stop();
 	pendingStops.clear();
+	cancelPendingPageWait?.('unmounted');
 });
+// A form switch re-subscribes the paginated query; stop waiting on the old
+// form immediately so its export cannot continue against the new pages.
+watch(
+	() => props.formId,
+	() => cancelPendingPageWait?.('form-changed'),
+);
 const canExportTotals = computed(
 	() =>
 		!preparationPending.value &&
@@ -556,20 +578,27 @@ function waitForNextSubmissionsPage(previousCount: number) {
 			return;
 		}
 		const timeout: { handle?: ReturnType<typeof setTimeout> } = {};
+		function finish() {
+			stop();
+			pendingStops.delete(stop);
+			if (timeout.handle) clearTimeout(timeout.handle);
+			cancelPendingPageWait = null;
+		}
 		const stop = watch(
 			[submissions, submissionsDone, submissionsError],
 			() => {
 				if (!settled()) return;
-				stop();
-				pendingStops.delete(stop);
-				if (timeout.handle) clearTimeout(timeout.handle);
+				finish();
 				resolve();
 			},
 		);
 		pendingStops.add(stop);
+		cancelPendingPageWait = (reason) => {
+			finish();
+			reject(new ExportCancelledError(reason));
+		};
 		timeout.handle = setTimeout(() => {
-			stop();
-			pendingStops.delete(stop);
+			finish();
 			reject(
 				new Error(
 					'Orders stopped loading before every submission was available.',
@@ -579,9 +608,13 @@ function waitForNextSubmissionsPage(previousCount: number) {
 	});
 }
 
-async function loadAllSubmissions() {
+async function loadAllSubmissions(expectedFormId: Id<'preorderForms'>) {
 	let retries = 0;
 	while (!submissionsDone.value) {
+		if (panelUnmounted) throw new ExportCancelledError('unmounted');
+		if (props.formId !== expectedFormId) {
+			throw new ExportCancelledError('form-changed');
+		}
 		if (submissionsError.value) throw submissionsError.value;
 		const before = submissions.value?.length ?? 0;
 		const nextPage = waitForNextSubmissionsPage(before);
@@ -593,6 +626,8 @@ async function loadAllSubmissions() {
 			await nextPage;
 			retries = 0;
 		} catch (error) {
+			// Cancellation ends the export at once, even with retries left.
+			if (error instanceof ExportCancelledError) throw error;
 			// A page that stalls can be a transient subscription gap (for
 			// example, an order removed mid-export changed the page size).
 			// Retry a bounded number of times before giving up.
@@ -600,15 +635,26 @@ async function loadAllSubmissions() {
 			retries += 1;
 		}
 	}
+	if (panelUnmounted) throw new ExportCancelledError('unmounted');
+	if (props.formId !== expectedFormId) {
+		throw new ExportCancelledError('form-changed');
+	}
 	if (submissionsError.value) throw submissionsError.value;
 }
 
 async function downloadOrdersCsv() {
 	if (exporting.value !== null || !canExportOrders.value) return;
 	exporting.value = 'orders';
+	// Pin the export to the form it started on: selecting another form while
+	// the pages load must not write this form's orders into a file.
+	const exportFormId = props.formId;
 	try {
 		// Export the complete form, not just the pages already rendered.
-		await loadAllSubmissions();
+		await loadAllSubmissions(exportFormId);
+		if (panelUnmounted) throw new ExportCancelledError('unmounted');
+		if (props.formId !== exportFormId) {
+			throw new ExportCancelledError('form-changed');
+		}
 		const orders = submissions.value ?? [];
 		const headers = [
 			'Order time',
@@ -648,6 +694,19 @@ async function downloadOrdersCsv() {
 		].join('\r\n');
 		downloadCsv(csv, `${exportFileBase()}-orders.csv`);
 	} catch (error) {
+		if (error instanceof ExportCancelledError) {
+			// Closing the panel needs no feedback. A form switch does: the
+			// operator never got a file and must retry on the current form.
+			if (error.reason === 'form-changed') {
+				toast.add({
+					title: 'Orders export cancelled',
+					description:
+						'The selected form changed before the export finished. Start the export again for the current form.',
+					color: 'warning',
+				});
+			}
+			return;
+		}
 		toast.add({
 			title: 'Could not export orders',
 			description:

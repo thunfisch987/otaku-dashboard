@@ -67,8 +67,9 @@ export function getDevAuthEmail(): string {
 	const email = getDevAuthEmailOrNull();
 	if (!email) {
 		throw new Error(
-			'DEV_AUTH_EMAIL is not set on this deployment. Add it to .env.local ' +
-				'and restart `convex dev` (see AGENTS.md, "Verifying signed-in surfaces").',
+			'DEV_AUTH_EMAIL is not set on this Convex deployment. Set it with ' +
+				'`bunx convex env set DEV_AUTH_EMAIL` (see AGENTS.md, ' +
+				'"Verifying signed-in surfaces").',
 		);
 	}
 	return email;
@@ -85,8 +86,9 @@ export function getDevAuthPassword(): string {
 	if (!password || password.length < 12) {
 		throw new Error(
 			'DEV_AUTH_PASSWORD must be set to at least 12 characters on this ' +
-				'deployment. Add it to .env.local and restart `convex dev` ' +
-				'(see AGENTS.md, "Verifying signed-in surfaces").',
+				'Convex deployment. Set it with ' +
+				'`bunx convex env set DEV_AUTH_PASSWORD` (see AGENTS.md, ' +
+				'"Verifying signed-in surfaces").',
 		);
 	}
 	return password;

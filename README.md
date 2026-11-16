@@ -83,6 +83,32 @@ bun run dev                     # own terminal; http://localhost:3001
 `bunx convex dev` is a long-running sync watcher. Run it in its own terminal,
 separate from `bun run dev`, while editing Convex code.
 
+### Convex deployment environment
+
+`.env.local` configures Nuxt, Nitro, and the Convex CLI, but Convex functions
+read variables stored on the deployment. Set the backend variables once per
+deployment with `bunx convex env set` (or the dashboard under Settings →
+Environment Variables):
+
+```sh
+set -a; source .env.local; set +a
+bunx convex env set BETTER_AUTH_SECRET "$BETTER_AUTH_SECRET"
+bunx convex env set SITE_URL "$SITE_URL"
+bunx convex env set GOOGLE_CLIENT_ID "$GOOGLE_CLIENT_ID"
+bunx convex env set GOOGLE_CLIENT_SECRET "$GOOGLE_CLIENT_SECRET"
+```
+
+Add the optional ones the deployment uses the same way:
+`BETTER_AUTH_INITIAL_ADMIN_EMAIL`, `BETTER_AUTH_API_KEY`, `CONVEX_SITE_URL`,
+`ENABLE_GOOGLE_AUTH`, `ENABLE_DEV_AUTH_ORIGINS`, and `AUTH_ALLOWED_HOSTS`.
+For local dev tooling also set `ENABLE_DEV_TOOLS=true`, `DEV_AUTH_EMAIL`, and
+`DEV_AUTH_PASSWORD` here — the dev seed runs inside Convex and cannot read
+`.env.local`. Never set those on a production deployment. Keep
+`CONVEX_DEPLOYMENT` and `CONVEX_DEPLOY_KEY` local; functions do not need them.
+
+`bunx convex env list` shows what the deployment has. Re-run `env set` for a
+variable to change it.
+
 A fresh worktree has neither `node_modules` nor `.env.local`, and both are
 git-ignored. Copy the environment from your primary checkout, which is the first
 entry in `git worktree list --porcelain`:
@@ -119,8 +145,11 @@ Operator pages need a real Better Auth session because Convex checks the
 session-derived identity on every query — bypassing the route guard renders a
 page that cannot load or write data.
 
-1. Set `ENABLE_DEV_TOOLS=true`, `DEV_AUTH_EMAIL`, and `DEV_AUTH_PASSWORD` in
-   `.env.local`, then restart `bun run dev` so the route reads them.
+1. Set `ENABLE_DEV_TOOLS=true`, `DEV_AUTH_EMAIL`, and `DEV_AUTH_PASSWORD` on
+   the Convex deployment (see [Convex deployment
+   environment](#convex-deployment-environment)) and in `.env.local`, then
+   restart `bun run dev` so the Nuxt route reads them. The seed runs inside
+   Convex and only sees the deployment values.
 2. Run `bun run seed:dev`. It creates the dev operator plus demo data:
    products at zero and low stock, helper pricing, sales history, an active
    preorder form with submissions. Demo rows use the `[demo] ` product prefix

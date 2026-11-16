@@ -80,7 +80,10 @@ committed `.env.local`.
 Operator pages need a real Better Auth session; bypassing the route guard
 renders a page that cannot load or write data. Sign in through the dev login in
 [README.md](./README.md#verifying-signed-in-surfaces), including its
-`ENABLE_DEV_TOOLS` and `DEV_AUTH_*` setup and restart.
+`ENABLE_DEV_TOOLS` and `DEV_AUTH_*` setup and restart. Convex functions read the
+deployment environment, not `.env.local`: set those variables on the deployment
+with `bunx convex env set` (see README, "Convex deployment environment") and
+keep `.env.local` for Nuxt and the CLI.
 
 - Never set `ENABLE_DEV_TOOLS` on a production deployment and never commit
   `DEV_AUTH_PASSWORD`.
