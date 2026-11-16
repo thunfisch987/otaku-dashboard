@@ -23,7 +23,7 @@
 		"prepare": "git config core.hooksPath .githooks"
 	},
 	"dependencies": {
-		"@better-auth/infra": "0.4.29",
+		"@better-auth/infra": "0.4.30",
 		"@better-auth/passkey": "1.7.22",
 		"@convex-dev/better-auth": "0.13.0",
 		"@nuxt/eslint": "^1.17.0",
