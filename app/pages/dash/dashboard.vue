@@ -434,6 +434,8 @@
 import { api } from '#convex/api';
 import type { TableColumn } from '@nuxt/ui';
 import { productArraySchema } from '~/components/Inventory/types';
+import { summarizeSaleItems } from '~/components/Transactions/format';
+import type { SaleWithItems } from '~/components/Transactions/types';
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
 	useAppConvexAuth();
@@ -472,20 +474,6 @@ const outOfStockCount = computed(() =>
 				.length
 		: 0,
 );
-
-type SaleWithItems = {
-	_id: string;
-	_creationTime: number;
-	timestamp: number;
-	operatorName: string;
-	total: number;
-	items: {
-		productName: string;
-		unitPrice: number;
-		quantity: number;
-		lineTotal: number;
-	}[];
-};
 
 const today = ref(new Date());
 let todayRefreshTimer: ReturnType<typeof setInterval> | undefined;
@@ -573,7 +561,7 @@ const recentSaleRows = computed<SaleRow[]>(() =>
 			minute: '2-digit',
 		}),
 		Operator: sale.operatorName,
-		Products: summarizeSaleProducts(sale.items),
+		Products: summarizeSaleItems(sale.items),
 		Total: formatCurrency(sale.total),
 	})),
 );
@@ -600,14 +588,4 @@ const formatCurrency = (amount: number) =>
 	new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(
 		amount,
 	);
-
-function summarizeSaleProducts(items: SaleWithItems['items']) {
-	const shown = items
-		.slice(0, 3)
-		.map((item) => `${item.productName} × ${item.quantity}`);
-	const remaining = items.length - shown.length;
-	return remaining > 0
-		? `${shown.join(', ')} +${remaining} more`
-		: shown.join(', ');
-}
 </script>
