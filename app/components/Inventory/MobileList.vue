@@ -40,7 +40,7 @@
 		>
 			<li
 				v-for="row in rows"
-				:key="row.id"
+				:key="row.original._id"
 				class="rounded-lg border border-default bg-default p-3"
 			>
 				<div class="flex items-start gap-3">
@@ -55,7 +55,67 @@
 							"
 						/>
 					</label>
-					<div class="min-w-0 flex-1">
+
+					<!-- Compact: the whole name/price block is the expand trigger,
+					so the card needs no separate "Details" row. -->
+					<div
+						v-if="variant === 'compact'"
+						class="min-w-0 flex-1"
+					>
+						<button
+							type="button"
+							class="flex w-full items-start justify-between gap-2 text-left"
+							:aria-expanded="isExpanded(row.original._id)"
+							:aria-controls="detailsId(row.original._id)"
+							@click="toggleExpanded(row.original._id)"
+						>
+							<span class="min-w-0">
+								<span class="block font-medium break-words">{{
+									row.original.productname
+								}}</span>
+								<span
+									class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1"
+								>
+									<UBadge
+										:color="
+											stockSummary(row.original.amount)
+												.color
+										"
+										variant="subtle"
+									>
+										{{
+											stockSummary(row.original.amount)
+												.label
+										}}
+									</UBadge>
+									<span class="text-sm tabular-nums">
+										<span class="font-medium">{{
+											formatCurrency(row.original.price)
+										}}</span
+										><span class="text-xs text-muted">
+											·
+											<span class="sr-only"
+												>supplier </span
+											>{{ row.original.supplier }}</span
+										>
+									</span>
+								</span>
+							</span>
+							<UIcon
+								:name="
+									isExpanded(row.original._id)
+										? 'i-lucide-chevron-up'
+										: 'i-lucide-chevron-down'
+								"
+								class="mt-1 size-4 shrink-0 text-muted"
+							/>
+						</button>
+					</div>
+
+					<div
+						v-else
+						class="min-w-0 flex-1"
+					>
 						<p class="font-medium break-words">
 							{{ row.original.productname }}
 						</p>
@@ -72,13 +132,8 @@
 								{{ formatCurrency(row.original.price) }}
 							</span>
 						</div>
-						<p
-							v-if="variant === 'compact'"
-							class="mt-1 text-xs text-muted"
-						>
-							Supplier: {{ row.original.supplier }}
-						</p>
 					</div>
+
 					<UDropdownMenu
 						:items="rowItems(row)"
 						:content="{ align: 'end' }"
@@ -98,33 +153,16 @@
 					:product="row.original"
 					class="mt-3 border-t border-default pt-3"
 				/>
-				<UCollapsible
-					v-else
-					class="mt-3 border-t border-default pt-1"
+				<div
+					v-else-if="isExpanded(row.original._id)"
+					:id="detailsId(row.original._id)"
+					class="mt-3 border-t border-default pt-3"
 				>
-					<template #default="{ open }">
-						<UButton
-							label="Details"
-							color="neutral"
-							variant="ghost"
-							size="sm"
-							block
-							class="min-h-11 justify-between px-1"
-							:trailing-icon="
-								open
-									? 'i-lucide-chevron-up'
-									: 'i-lucide-chevron-down'
-							"
-						/>
-					</template>
-					<template #content>
-						<InventoryMobileDetails
-							:product="row.original"
-							:exclude="['Supplier']"
-							class="px-1 pb-1"
-						/>
-					</template>
-				</UCollapsible>
+					<InventoryMobileDetails
+						:product="row.original"
+						:exclude="['Supplier']"
+					/>
+				</div>
 			</li>
 		</ul>
 	</div>
@@ -147,6 +185,8 @@ const emit = defineEmits<{
 	delete: [product: ProductSchema];
 }>();
 
+const expandedRows = ref<Set<string>>(new Set());
+
 const allSelected = computed(
 	() => props.tableApi?.getIsAllPageRowsSelected() ?? false,
 );
@@ -161,6 +201,21 @@ const selectedCount = computed(
 
 function toggleAll(value: boolean | 'indeterminate') {
 	props.tableApi?.toggleAllPageRowsSelected(!!value);
+}
+
+function detailsId(productId: string) {
+	return `product-details-${productId}`;
+}
+
+function isExpanded(productId: string) {
+	return expandedRows.value.has(productId);
+}
+
+function toggleExpanded(productId: string) {
+	const next = new Set(expandedRows.value);
+	if (next.has(productId)) next.delete(productId);
+	else next.add(productId);
+	expandedRows.value = next;
 }
 
 function rowItems(row: Row<ProductSchema>) {
