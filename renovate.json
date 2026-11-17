@@ -7,6 +7,16 @@
 			"description": "better-auth 1.7.22+ consumes verifications with an `id ne` filter that @convex-dev/better-auth 0.13.0 rejects (convex/better-auth#479). Hold both packages until convex/better-auth#481 ships.",
 			"matchPackageNames": ["better-auth", "@better-auth/passkey"],
 			"allowedVersions": "<=1.7.21"
+		},
+		{
+			"description": "@tanstack/vue-table v9 removes the v8 table APIs and is not supported by @nuxt/ui yet. Stay on v8 until Nuxt UI ships v9 support.",
+			"matchPackageNames": ["@tanstack/vue-table"],
+			"allowedVersions": "<9"
+		},
+		{
+			"description": "nuxt-typed-router 4.0.11 was published with unresolved `catalog:` dependencies (prettier, @nuxt/kit, better-sqlite3) and cannot be installed. Skip it until a fixed release is published.",
+			"matchPackageNames": ["nuxt-typed-router"],
+			"allowedVersions": "<=4.0.10 || >=4.0.12"
 		}
 	]
 }
