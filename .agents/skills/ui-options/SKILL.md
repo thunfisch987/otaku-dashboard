@@ -55,7 +55,8 @@ Keep the text short; the images do the work.
 
 - Keep only the chosen variant and delete the other branches and worktrees.
 - Commit or stash the chosen variant's uncommitted edits before rebasing onto
-  `origin/main`; otherwise the rebase refuses to run. If you stashed them, run
-  `git stash pop` after the rebase. Then run the checks.
+  `origin/main`; otherwise the rebase refuses to run. If you stashed them, label
+  the stash (`git stash push -m chosen-variant`) and restore that exact stash
+  after the rebase. Then run the checks.
 - Stop there unless the user asked to push; continue with `ship-change` when
   they did.
