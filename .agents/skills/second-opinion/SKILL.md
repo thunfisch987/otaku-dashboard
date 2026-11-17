@@ -19,7 +19,9 @@ reviewer, used when the user names a model.
 
 ## 2. Prepare the material
 
-- `git diff origin/main...HEAD` and the list of changed files.
+- Committed, staged, unstaged, and untracked changes: the `origin/main...HEAD`
+  diff, `git diff`, `git diff --cached`, plus each new untracked file.
+  Alternatively commit them before delegating.
 - One paragraph of intent: what the change should do and what is out of scope.
 - Checks already run and their results.
 - The project rules that matter from AGENTS.md, not the whole file.
@@ -41,8 +43,9 @@ Launch one task and wait for the completion wake, not by polling.
 
 - Check every finding against the current code. Reject stale or incorrect ones
   with a one-line reason.
-- Apply in-scope fixes only, then rerun `bun run lint`, `bun run typecheck`, and
-  `bun run format:check`.
+- Apply in-scope fixes only when the request includes fixing them; if the user
+  asked only to review, report the findings and stop. After fixes, rerun
+  `bun run lint`, `bun run typecheck`, and `bun run format:check`.
 - Do not start another review round unless the user asks.
 
 ## 5. Report

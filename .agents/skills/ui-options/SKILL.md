@@ -54,5 +54,5 @@ Keep the text short; the images do the work.
 ## 6. After the pick
 
 - Keep only the chosen variant and delete the other branches and worktrees.
-- Rebase on `origin/main`, run the checks, and continue with `ship-change` for
-  the PR.
+- Rebase on `origin/main` and run the checks. Stop there unless the user asked
+  to push; continue with `ship-change` when they did.

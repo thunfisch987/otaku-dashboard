@@ -94,10 +94,16 @@ Merge only when asked. The merge style is squash:
 
 ```sh
 gh pr merge <number> --squash --delete-branch
+```
+
+Then run the local cleanup from the primary checkout (the one with `main`
+checked out; a linked worktree cannot switch to it):
+
+```sh
 git switch main
 git pull --ff-only
 git branch -d <branch>
-git worktree remove <path> # only after the branch is merged
+git worktree remove <path>
 git fetch --prune
 ```
 
@@ -111,8 +117,10 @@ merged":
 
 1. List branches (`git branch -vv`), worktrees (`git worktree list`), and stashes
    (`git stash list`).
-2. Mark a branch merged when `git merge-base --is-ancestor <branch> origin/main`
-   succeeds; otherwise show its unique commits.
+2. Mark a branch merged from its PR (`gh pr view <branch> --json state,mergedAt`)
+   or, when there is no PR, when `git merge-base --is-ancestor <branch>
+origin/main` succeeds. Squash merges create a new commit, so ancestry alone
+   misses them.
 3. Report unmerged branches, dirty worktrees, and stashes before deleting
    anything. Delete clean merged branches and worktrees without extra
    confirmation; ask about the rest. Never force-remove.

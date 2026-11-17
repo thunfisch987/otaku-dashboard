@@ -30,9 +30,9 @@ environment variables, and the full dev-login walkthrough live in
 
 ## Scope and checkpoints
 
-- When asked to plan, review, audit, or answer a question, do not edit files.
-  Produce the plan or answer, name the decisions you need, and stop. Start
-  editing only after approval.
+- When a request asks only to plan, review, audit, or answer a question, do not
+  edit files. Produce the plan or answer, name the decisions you need, and stop.
+  Start editing only after approval.
 - When a task is done, commit the work that passes checks, then report the
   branch, worktree path, commit SHA, any uncommitted files, and whether it is
   pushed. Do not push, open a pull request, or merge to main unless asked.
@@ -93,8 +93,10 @@ committed `.env.local`.
 - If you leave the dev server running for me to check, start it with
   `bun run dev:tail` so I can reach it from my phone. A server you only need
   for your own verification can stay on `bun run dev`.
-- Keep one server per checkout: check port 3001 before starting another and
-  reuse the running one. Stop a server you started when you finish.
+- Keep one server per checkout: reuse a running server on port 3001 only after
+  confirming from its startup output that it serves this checkout; otherwise
+  use a free port. Stop a server you started when you finish, unless I asked
+  you to leave it running.
 
 ## Verifying signed-in surfaces in dev
 
