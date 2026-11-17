@@ -102,8 +102,8 @@ checked out; a linked worktree cannot switch to it):
 ```sh
 git switch main
 git pull --ff-only
+git worktree remove <path> # first: the branch stays checked out until removal
 git branch -d <branch>
-git worktree remove <path>
 git fetch --prune
 ```
 
@@ -117,10 +117,10 @@ merged":
 
 1. List branches (`git branch -vv`), worktrees (`git worktree list`), and stashes
    (`git stash list`).
-2. Mark a branch merged from its PR (`gh pr view <branch> --json state,mergedAt`)
-   or, when there is no PR, when `git merge-base --is-ancestor <branch>
-origin/main` succeeds. Squash merges create a new commit, so ancestry alone
-   misses them.
+2. Before deleting a branch, check it against its PR: the PR must be `MERGED`
+   and its `headRefOid` must equal `git rev-parse <branch>`. Anything newer is
+   work done after the merge; report it instead of deleting. Without a PR, use
+   `git merge-base --is-ancestor` and ask before deleting a squash merge.
 3. Report unmerged branches, dirty worktrees, and stashes before deleting
    anything. Delete clean merged branches and worktrees without extra
    confirmation; ask about the rest. Never force-remove.

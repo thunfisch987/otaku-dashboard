@@ -54,5 +54,7 @@ Keep the text short; the images do the work.
 ## 6. After the pick
 
 - Keep only the chosen variant and delete the other branches and worktrees.
-- Rebase on `origin/main` and run the checks. Stop there unless the user asked
-  to push; continue with `ship-change` when they did.
+- Commit or stash the chosen variant's uncommitted edits before rebasing onto
+  `origin/main`; otherwise the rebase refuses to run. Then run the checks.
+- Stop there unless the user asked to push; continue with `ship-change` when
+  they did.

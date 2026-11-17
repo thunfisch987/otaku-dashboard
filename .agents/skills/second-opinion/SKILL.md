@@ -19,9 +19,11 @@ reviewer, used when the user names a model.
 
 ## 2. Prepare the material
 
-- Committed, staged, unstaged, and untracked changes: the `origin/main...HEAD`
-  diff, `git diff`, `git diff --cached`, plus each new untracked file.
-  Alternatively commit them before delegating.
+- The changes to review: the `origin/main...HEAD` diff, `git diff`,
+  `git diff --cached`, and each new untracked file. When HEAD equals
+  `origin/main`, use `git show <sha>` for the commit the user named.
+- Do not commit or stage anything for a review-only request; commit first only
+  when the user asked for fixes or a commit.
 - One paragraph of intent: what the change should do and what is out of scope.
 - Checks already run and their results.
 - The project rules that matter from AGENTS.md, not the whole file.
