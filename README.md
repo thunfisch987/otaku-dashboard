@@ -134,6 +134,7 @@ a few seconds.
 | `bun run lint:fix`       | Apply both linters' fixes                              |
 | `bun run format`         | Format with `bun fmt`; pre-commit formats staged files |
 | `bun run format:check`   | Check formatting without writing                       |
+| `bun run typecheck`      | Type-check the Nuxt app and Convex functions           |
 | `bun run seed:dev`       | Create/refresh the dev operator and demo data          |
 | `bun run seed:dev:reset` | Wipe demo rows first, then seed                        |
 

@@ -19,6 +19,7 @@
 		"preview": "nuxt preview",
 		"seed:dev": "convex run devSeed:seed",
 		"seed:dev:reset": "convex run devSeed:seed '{\"reset\":true}'",
+		"typecheck": "nuxt typecheck && tsc -p convex/tsconfig.json",
 		"postinstall": "nuxt prepare",
 		"prepare": "git config core.hooksPath .githooks"
 	},
