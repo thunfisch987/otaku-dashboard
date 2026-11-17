@@ -269,6 +269,10 @@ export const insertDemoData = internalMutation({
 			return product;
 		};
 
+		// Checkout ids use the array index (`dev-seed-<index>`), so append new
+		// sales instead of inserting or reordering them; otherwise existing demo
+		// rows keep their old content and the changed seed is skipped. Quantities
+		// stay within the seeded stock so the demo does not sell more than it has.
 		const saleSeeds: {
 			daysAgo: number;
 			hour: number;
@@ -351,7 +355,7 @@ export const insertDemoData = internalMutation({
 				minute: 15,
 				isHelper: true,
 				lines: [
-					['[demo] Pocky', 3],
+					['[demo] Pocky', 1],
 					['[demo] Ramune', 1],
 				],
 			},

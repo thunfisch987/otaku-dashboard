@@ -35,7 +35,7 @@
 						variant="ghost"
 						class="-mr-1 min-h-11 min-w-11 justify-center"
 						:disabled="isReverting"
-						:aria-label="`Revert sale from ${formatSaleTime(sale.timestamp)}`"
+						:aria-label="`Revert sale from ${formatSaleTime(sale.timestamp)} (${formatCurrency(sale.total)})`"
 						title="Revert this sale"
 						@click="emit('revert', sale._id)"
 					/>
