@@ -19,9 +19,10 @@ reviewer, used when the user names a model.
 
 ## 2. Prepare the material
 
-- The changes to review: the `origin/main...HEAD` diff, `git diff`,
-  `git diff --cached`, and each new untracked file. When HEAD equals
-  `origin/main`, use `git show <sha>` for the commit the user named.
+- The changes to review. When the user names a commit, review only that commit:
+  `git show <sha>`, regardless of HEAD, and exclude staged, unstaged, and
+  untracked changes. Otherwise review the `origin/main...HEAD` diff, `git diff`,
+  `git diff --cached`, and each new untracked file.
 - Do not commit or stage anything for a review-only request; commit first only
   when the user asked for fixes or a commit.
 - One paragraph of intent: what the change should do and what is out of scope.
