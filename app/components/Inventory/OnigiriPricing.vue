@@ -149,17 +149,29 @@ const prefilled = { price: '', helperPrice: '' };
 const edited = reactive({ price: false, helperPrice: false });
 const toast = useToast();
 
+/** Apply subscription prices to the fields the operator has not edited. */
+function applyPricing(
+	price: number | undefined,
+	helperPrice: number | undefined,
+) {
+	const nextPrice = price === undefined ? '' : formatMoneyInput(price);
+	const nextHelper =
+		helperPrice === undefined ? '' : formatMoneyInput(helperPrice);
+	// A remote change to one price must not discard an in-progress edit to
+	// the other field, and retyped text keeps its own edit flag.
+	if (!edited.price) {
+		prefilled.price = nextPrice;
+		state.price = nextPrice;
+	}
+	if (!edited.helperPrice) {
+		prefilled.helperPrice = nextHelper;
+		state.helperPrice = nextHelper;
+	}
+}
+
 watch(
 	() => [pricing.value?.price, pricing.value?.helperPrice] as const,
-	([price, helperPrice]) => {
-		prefilled.price = price === undefined ? '' : formatMoneyInput(price);
-		prefilled.helperPrice =
-			helperPrice === undefined ? '' : formatMoneyInput(helperPrice);
-		state.price = prefilled.price;
-		state.helperPrice = prefilled.helperPrice;
-		edited.price = false;
-		edited.helperPrice = false;
-	},
+	([price, helperPrice]) => applyPricing(price, helperPrice),
 	{ immediate: true },
 );
 
@@ -275,6 +287,10 @@ async function savePricing() {
 	}
 	try {
 		await updatePricing({ price: regular, helperPrice });
+		// The saved prices are authoritative again; the subscription refresh
+		// can now repopulate both fields.
+		edited.price = false;
+		edited.helperPrice = false;
 		// Counted statements live in the pre-save summary above the button;
 		// the toast stays count-free so it can never quote stale numbers.
 		toast.add({
