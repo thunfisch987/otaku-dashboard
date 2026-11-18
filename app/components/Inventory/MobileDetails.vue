@@ -12,7 +12,8 @@
 
 <script setup lang="ts">
 import type { ProductSchema } from './types';
-import { formatOptionalCurrency, productCategoryLabel } from './format';
+import { productCategoryLabel } from './format';
+import { formatOptionalCurrency } from '~/utils/currency';
 
 export type MobileDetailLabel =
 	'Category' | 'Supplier' | 'Helper price' | 'Supply cost';

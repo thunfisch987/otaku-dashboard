@@ -1,18 +1,5 @@
 import type { ProductSchema } from './types';
 
-const currencyFormatter = new Intl.NumberFormat('en', {
-	style: 'currency',
-	currency: 'EUR',
-});
-
-export function formatCurrency(amount: number) {
-	return currencyFormatter.format(amount);
-}
-
-export function formatOptionalCurrency(amount: number | undefined) {
-	return amount === undefined ? '—' : currencyFormatter.format(amount);
-}
-
 export function productCategoryLabel(category: ProductSchema['category']) {
 	const labels: Record<
 		Exclude<ProductSchema['category'], undefined>,

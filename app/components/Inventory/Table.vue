@@ -248,11 +248,21 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 import type { Table } from '@tanstack/vue-table';
 import { api } from '#convex/api';
 import type { Id } from '~~/convex/_generated/dataModel';
+import { formatCurrency } from '~/utils/currency';
 
 function csvCell(value: unknown) {
 	let text = String(value ?? '');
 	if (/^[=+@\-\t\r]/.test(text)) text = `'${text}`;
 	return `"${text.replaceAll('"', '""')}"`;
+}
+
+// Money columns are exported in the same German notation the operator sees.
+const stockCsvCurrencyKeys = new Set(['price', 'helperPrice', 'supplyCost']);
+
+function stockCsvValue(key: string, value: unknown) {
+	return stockCsvCurrencyKeys.has(key) && typeof value === 'number'
+		? formatCurrency(value)
+		: value;
 }
 
 // Fixed CSV column order so exports stay comparable between runs. Optional
@@ -494,7 +504,11 @@ async function downloadFile(option: 'all' | 'filtered' | 'selected') {
 			headers.map(csvCell).join(','),
 			...rows.map((row) =>
 				headers
-					.map((key) => csvCell(row[key as keyof ProductSchema]))
+					.map((key) =>
+						csvCell(
+							stockCsvValue(key, row[key as keyof ProductSchema]),
+						),
+					)
 					.join(','),
 			),
 		].join('\r\n');

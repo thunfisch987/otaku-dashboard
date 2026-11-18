@@ -5,17 +5,8 @@ const timeFormatter = new Intl.DateTimeFormat('en', {
 	minute: '2-digit',
 });
 
-const currencyFormatter = new Intl.NumberFormat('en', {
-	style: 'currency',
-	currency: 'EUR',
-});
-
 export function formatSaleTime(timestamp: number) {
 	return timeFormatter.format(timestamp);
-}
-
-export function formatCurrency(amount: number) {
-	return currencyFormatter.format(amount);
 }
 
 /** Short product summary for one sale, e.g. "Onigiri × 2, Tea × 1 +2 more". */

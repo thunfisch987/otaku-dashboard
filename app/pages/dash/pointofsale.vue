@@ -297,6 +297,7 @@
 
 <script setup lang="ts">
 import { api } from '#convex/api';
+import { formatCurrency } from '~/utils/currency';
 import { createRequestId } from '~/utils/requestId';
 import { productArraySchema } from '~/components/Inventory/types';
 import type { Id } from '~~/convex/_generated/dataModel';
@@ -349,10 +350,6 @@ function effectivePrice(product: { price: number; helperPrice?: number }) {
 			: product.price;
 	return Math.round(price * 100) / 100;
 }
-const formatCurrency = (amount: number) =>
-	new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(
-		amount,
-	);
 
 function addToCart(id: Id<'products'>) {
 	const product = availableProducts.value.find((item) => item._id === id);

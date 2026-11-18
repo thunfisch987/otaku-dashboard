@@ -44,8 +44,8 @@
 				>
 					<UInput
 						v-model="editProductState.price"
-						v-maska:unmaskedEditPriceValue.unmasked="maskOptions"
-						inputmode="numeric"
+						inputmode="decimal"
+						placeholder="0,00"
 						trailing-icon="i-lucide-euro"
 						:disabled="
 							editProductState.category === 'onigiri' &&
@@ -60,9 +60,7 @@
 				>
 					<UInput
 						v-model="editProductState.helperPrice"
-						type="number"
-						min="0"
-						step="0.01"
+						inputmode="decimal"
 						placeholder="Use regular price"
 						:disabled="
 							editProductState.category === 'onigiri' &&
@@ -77,10 +75,8 @@
 				>
 					<UInput
 						v-model="editProductState.supplyCost"
-						type="number"
-						min="0"
-						step="0.01"
-						placeholder="0.00"
+						inputmode="decimal"
+						placeholder="0,00"
 						trailing-icon="i-lucide-euro"
 					/>
 				</UFormField>
@@ -136,9 +132,9 @@
 </template>
 
 <script setup lang="ts">
-import type { MaskInputOptions } from 'maska';
 import { resetFormState } from './forms';
 import {
+	parseProductMoney,
 	patchProductSchema,
 	productCategories,
 	type PatchProductSchema,
@@ -147,9 +143,9 @@ import {
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { Table } from '@tanstack/vue-table';
 import type { Ref } from 'vue';
-import { vMaska } from 'maska/vue';
 import { api } from '#convex/api';
 import type { Id } from '~~/convex/_generated/dataModel';
+import { formatMoneyInput } from '~/utils/currency';
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
 	useAppConvexAuth();
@@ -176,16 +172,6 @@ const items: {
 	{ label: 'Otaku', value: 'Otaku' },
 ];
 
-const unmaskedEditPriceValue = useState('unmaskedProductEditValue', () => '');
-defineExpose({ unmaskedEditPriceValue });
-const maskOptions: MaskInputOptions = {
-	eager: true,
-	number: {
-		unsigned: true,
-		fraction: 2,
-		locale: 'en-US',
-	},
-};
 const DEFAULT_STATE = {
 	productname: '',
 	price: '',
@@ -210,10 +196,11 @@ watch(
 		] as const,
 	([category, sharedPrice, sharedHelperPrice]) => {
 		if (category !== 'onigiri' || sharedPrice === undefined) return;
-		editProductState.value.price = sharedPrice.toFixed(2);
-		unmaskedEditPriceValue.value = String(sharedPrice);
+		editProductState.value.price = formatMoneyInput(sharedPrice);
 		editProductState.value.helperPrice =
-			sharedHelperPrice === undefined ? '' : String(sharedHelperPrice);
+			sharedHelperPrice === undefined
+				? ''
+				: formatMoneyInput(sharedHelperPrice);
 	},
 );
 
@@ -226,31 +213,23 @@ const mutationError = computed(() =>
 async function editProduct(
 	formSubmitEvent: FormSubmitEvent<PatchProductSchema>,
 ) {
+	// The form schema already rejects malformed money strings; parsing here
+	// turns the accepted comma (or period) decimal into a number.
+	const price = parseProductMoney(formSubmitEvent.data.price);
+	if (price === undefined) return;
 	try {
 		await mutate({
 			id: formSubmitEvent.data._id as Id<'products'>,
 			productname: formSubmitEvent.data.productname,
 			supplier: formSubmitEvent.data.supplier,
-			price: Number.parseFloat(unmaskedEditPriceValue.value),
+			price,
 			category: formSubmitEvent.data.category,
-			helperPrice: String(editProductState.value.helperPrice ?? '').trim()
-				? Number(
-						String(editProductState.value.helperPrice).replace(
-							',',
-							'.',
-						),
-					)
-				: null,
+			helperPrice:
+				parseProductMoney(formSubmitEvent.data.helperPrice) ?? null,
 			amount: formSubmitEvent.data.amount,
 			picture: formSubmitEvent.data.picture,
-			supplyCost: String(formSubmitEvent.data.supplyCost ?? '').trim()
-				? Number(
-						String(formSubmitEvent.data.supplyCost).replace(
-							',',
-							'.',
-						),
-					)
-				: null,
+			supplyCost:
+				parseProductMoney(formSubmitEvent.data.supplyCost) ?? null,
 		});
 		table.value?.tableApi.toggleAllRowsSelected(false);
 		editProductOpen.value = false;

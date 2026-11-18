@@ -32,13 +32,12 @@
 				<UFormField
 					label="Regular price (€)"
 					required
-					:hint="`Defaults to €${ONIGIRI_DEFAULT_PRICE.toFixed(2)} when left empty`"
+					:hint="`Defaults to ${formatCurrency(ONIGIRI_DEFAULT_PRICE)} when left empty`"
 				>
 					<UInput
 						v-model="state.price"
-						type="number"
-						min="0.01"
-						step="0.01"
+						inputmode="decimal"
+						placeholder="0,00"
 					/>
 				</UFormField>
 				<UFormField
@@ -47,9 +46,7 @@
 				>
 					<UInput
 						v-model="state.helperPrice"
-						type="number"
-						min="0"
-						step="0.01"
+						inputmode="decimal"
 						placeholder="Use regular price"
 					/>
 				</UFormField>
@@ -107,6 +104,7 @@
 <script setup lang="ts">
 import { api } from '#convex/api';
 import { ONIGIRI_DEFAULT_PRICE } from '~~/convex/sharedConstants';
+import { formatCurrency, formatMoneyInput } from '~/utils/currency';
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
 	useAppConvexAuth();
@@ -145,9 +143,9 @@ const toast = useToast();
 watch(
 	() => [pricing.value?.price, pricing.value?.helperPrice] as const,
 	([price, helperPrice]) => {
-		state.price = price === undefined ? '' : String(price);
+		state.price = price === undefined ? '' : formatMoneyInput(price);
 		state.helperPrice =
-			helperPrice === undefined ? '' : String(helperPrice);
+			helperPrice === undefined ? '' : formatMoneyInput(helperPrice);
 	},
 	{ immediate: true },
 );
@@ -158,11 +156,6 @@ const errorMessage = computed(() => {
 		? error.value.message
 		: 'Please try again.';
 });
-
-const formatCurrency = (amount: number) =>
-	new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(
-		amount,
-	);
 
 /** The regular/helper prices this save would write. */
 const plannedPrices = computed(() => {
@@ -201,12 +194,12 @@ const impactStatement = computed<string | null>(() => {
 });
 
 async function savePricing() {
-	// An empty regular field uses the documented €3 default instead of
+	// An empty regular field uses the documented 3,00 € default instead of
 	// parsing to 0 and zeroing every Onigiri product.
 	const { regular, helper: helperPrice } = plannedPrices.value;
 	if (!Number.isFinite(regular) || regular <= 0) {
 		return toast.add({
-			title: 'Enter an Onigiri regular price above €0',
+			title: `Enter an Onigiri regular price above ${formatCurrency(0)}`,
 			color: 'error',
 		});
 	}

@@ -96,7 +96,8 @@
 
 <script setup lang="ts">
 import type { SaleWithItems } from './types';
-import { formatCurrency, formatSaleTime, summarizeSaleItems } from './format';
+import { formatCurrency } from '~/utils/currency';
+import { formatSaleTime, summarizeSaleItems } from './format';
 
 withDefaults(
 	defineProps<{

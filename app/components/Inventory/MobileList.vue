@@ -172,7 +172,8 @@
 import type { Row, Table } from '@tanstack/vue-table';
 import type { ProductSchema } from './types';
 import { getRowItems } from './columns';
-import { formatCurrency, stockSummary } from './format';
+import { formatCurrency } from '~/utils/currency';
+import { stockSummary } from './format';
 
 const props = defineProps<{
 	rows: Row<ProductSchema>[];

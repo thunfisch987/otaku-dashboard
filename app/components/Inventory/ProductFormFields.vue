@@ -29,12 +29,12 @@
 				label="Regular price (€)"
 				:name="formValidation ? 'price' : undefined"
 				required
-				hint="Use a period or comma for cents."
+				hint="Use a comma for cents."
 			>
 				<UInput
 					v-model="state.price"
 					inputmode="decimal"
-					placeholder="0.00"
+					placeholder="0,00"
 					trailing-icon="i-lucide-euro"
 					:disabled="sharedOnigiriPriceAvailable"
 				/>
@@ -95,7 +95,7 @@
 				<UInput
 					v-model="state.supplyCost"
 					inputmode="decimal"
-					placeholder="0.00"
+					placeholder="0,00"
 					trailing-icon="i-lucide-euro"
 				/>
 			</UFormField>
@@ -119,6 +119,7 @@ import {
 	type ProductCreationFormState,
 	type ProductSchema,
 } from './types';
+import { formatMoneyInput } from '~/utils/currency';
 
 const props = withDefaults(
 	defineProps<{
@@ -161,9 +162,11 @@ watch(
 		] as const,
 	([category, sharedPrice, sharedHelperPrice]) => {
 		if (category !== 'onigiri' || sharedPrice === undefined) return;
-		state.value.price = sharedPrice.toFixed(2);
+		state.value.price = formatMoneyInput(sharedPrice);
 		state.value.helperPrice =
-			sharedHelperPrice === undefined ? '' : String(sharedHelperPrice);
+			sharedHelperPrice === undefined
+				? ''
+				: formatMoneyInput(sharedHelperPrice);
 	},
 );
 </script>

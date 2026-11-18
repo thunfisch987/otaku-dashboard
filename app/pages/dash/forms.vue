@@ -390,6 +390,7 @@
 <script setup lang="ts">
 import { api } from '#convex/api';
 import PreorderReview from '~/components/Preorder/Review.vue';
+import { formatCurrency, formatMoneyInput } from '~/utils/currency';
 import type { Id } from '~~/convex/_generated/dataModel';
 import { CalendarDateTime, type CalendarDate } from '@internationalized/date';
 import {
@@ -727,12 +728,12 @@ async function createInventoryProduct() {
 		newProduct.productname = '';
 		newProduct.price =
 			newProduct.category === 'onigiri' && onigiriPricing.value
-				? String(onigiriPricing.value.price)
+				? formatMoneyInput(onigiriPricing.value.price)
 				: '';
 		newProduct.helperPrice =
 			newProduct.category === 'onigiri' &&
 			onigiriPricing.value?.helperPrice !== undefined
-				? String(onigiriPricing.value.helperPrice)
+				? formatMoneyInput(onigiriPricing.value.helperPrice)
 				: '';
 		newProduct.supplyCost = '';
 		newProduct.amount = 0;
@@ -839,10 +840,6 @@ async function copyFormLink(
 function selectForm(formId: Id<'preorderForms'>) {
 	selectedFormId.value = formId;
 }
-const formatCurrency = (amount: number) =>
-	new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(
-		amount,
-	);
 const formatDate = (timestamp: number) =>
 	new Intl.DateTimeFormat('en', {
 		dateStyle: 'medium',
