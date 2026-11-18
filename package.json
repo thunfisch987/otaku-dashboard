@@ -30,7 +30,7 @@
 		"@nuxt/eslint": "^1.17.0",
 		"@nuxt/image": "^2.2.1",
 		"@nuxt/ui": "^4.12.0",
-		"@nuxtjs/better-auth": "0.3.16",
+		"@nuxtjs/better-auth": "0.3.17",
 		"@nuxtjs/color-mode": "^4.1.0",
 		"@tanstack/vue-table": "^8.21.3",
 		"@vite-pwa/nuxt": "^1.1.1",
