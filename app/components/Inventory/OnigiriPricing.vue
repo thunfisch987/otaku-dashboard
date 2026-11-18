@@ -38,6 +38,7 @@
 						v-model="state.price"
 						inputmode="decimal"
 						placeholder="0,00"
+						@input="edited.price = true"
 					/>
 				</UFormField>
 				<UFormField
@@ -48,6 +49,7 @@
 						v-model="state.helperPrice"
 						inputmode="decimal"
 						placeholder="Use regular price"
+						@input="edited.helperPrice = true"
 					/>
 				</UFormField>
 				<UAlert
@@ -142,6 +144,9 @@ const state = reactive({ price: '', helperPrice: '' });
 // The text the form was prefilled with. An untouched field saves the stored
 // number exactly, so a two-decimal display can never round stored data.
 const prefilled = { price: '', helperPrice: '' };
+// Edits are tracked per field: retyping the prefilled text is still an edit,
+// and must save what the operator typed rather than the stored value.
+const edited = reactive({ price: false, helperPrice: false });
 const toast = useToast();
 
 watch(
@@ -152,9 +157,24 @@ watch(
 			helperPrice === undefined ? '' : formatMoneyInput(helperPrice);
 		state.price = prefilled.price;
 		state.helperPrice = prefilled.helperPrice;
+		edited.price = false;
+		edited.helperPrice = false;
 	},
 	{ immediate: true },
 );
+
+/**
+ * Parse a typed price. A leading separator means a fraction of a euro
+ * (`,50`), which the old number input accepted; a bare separator stays
+ * invalid, as does anything that is not a plain decimal.
+ */
+function parseTypedPrice(input: string) {
+	return /^[.,]/.test(input)
+		? /^[.,]\d{1,2}$/.test(input)
+			? parseProductMoney(`0${input}`)
+			: undefined
+		: parseProductMoney(input);
+}
 
 const errorMessage = computed(() => {
 	if (!error.value) return '';
@@ -174,17 +194,19 @@ const plannedPrices = computed(() => {
 	const regular =
 		regularInput === ''
 			? ONIGIRI_DEFAULT_PRICE
-			: regularInput === prefilled.price &&
+			: !edited.price &&
+				  regularInput === prefilled.price &&
 				  pricing.value?.price !== undefined
 				? pricing.value.price
-				: parseProductMoney(regularInput);
+				: parseTypedPrice(regularInput);
 	const helper =
 		helperInput === ''
 			? null
-			: helperInput === prefilled.helperPrice &&
+			: !edited.helperPrice &&
+				  helperInput === prefilled.helperPrice &&
 				  pricing.value?.helperPrice !== undefined
 				? pricing.value.helperPrice
-				: parseProductMoney(helperInput);
+				: parseTypedPrice(helperInput);
 	return { regular, helper };
 });
 
@@ -192,13 +214,14 @@ const plannedPrices = computed(() => {
 const impactStatement = computed<string | null>(() => {
 	const result = impact.value;
 	const planned = plannedPrices.value;
-	// Invalid input or a sub-cent regular price would render a false
-	// statement; the save validation reports it instead.
+	// Invalid input, a sub-cent regular price, or a helper above the regular
+	// price would render a false statement; the save validation reports it.
 	if (
 		!result ||
 		planned.regular === undefined ||
 		planned.regular < 0.01 ||
-		planned.helper === undefined
+		planned.helper === undefined ||
+		(planned.helper !== null && planned.helper > planned.regular)
 	) {
 		return null;
 	}
