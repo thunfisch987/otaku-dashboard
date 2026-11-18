@@ -32,13 +32,14 @@
 				<UFormField
 					label="Regular price (€)"
 					required
-					:hint="`Defaults to €${ONIGIRI_DEFAULT_PRICE.toFixed(2)} when left empty`"
+					:hint="`Defaults to ${formatCurrency(ONIGIRI_DEFAULT_PRICE)} when left empty`"
 				>
 					<UInput
 						v-model="state.price"
-						type="number"
-						min="0.01"
-						step="0.01"
+						inputmode="decimal"
+						placeholder="0,00"
+						:disabled="saving"
+						@input="edited.price = true"
 					/>
 				</UFormField>
 				<UFormField
@@ -47,10 +48,10 @@
 				>
 					<UInput
 						v-model="state.helperPrice"
-						type="number"
-						min="0"
-						step="0.01"
+						inputmode="decimal"
 						placeholder="Use regular price"
+						:disabled="saving"
+						@input="edited.helperPrice = true"
 					/>
 				</UFormField>
 				<UAlert
@@ -107,6 +108,8 @@
 <script setup lang="ts">
 import { api } from '#convex/api';
 import { ONIGIRI_DEFAULT_PRICE } from '~~/convex/sharedConstants';
+import { formatCurrency, formatMoneyInput } from '~/utils/currency';
+import { parseProductMoney } from './types';
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
 	useAppConvexAuth();
@@ -140,17 +143,52 @@ const {
 	error,
 } = useConvexMutation(api.products.updateOnigiriPricing);
 const state = reactive({ price: '', helperPrice: '' });
+// The text the form was prefilled with. An untouched field saves the stored
+// number exactly, so a two-decimal display can never round stored data.
+const prefilled = { price: '', helperPrice: '' };
+// Edits are tracked per field: retyping the prefilled text is still an edit,
+// and must save what the operator typed rather than the stored value.
+const edited = reactive({ price: false, helperPrice: false });
 const toast = useToast();
+
+/** Apply subscription prices to the fields the operator has not edited. */
+function applyPricing(
+	price: number | undefined,
+	helperPrice: number | undefined,
+) {
+	const nextPrice = price === undefined ? '' : formatMoneyInput(price);
+	const nextHelper =
+		helperPrice === undefined ? '' : formatMoneyInput(helperPrice);
+	// A remote change to one price must not discard an in-progress edit to
+	// the other field, and retyped text keeps its own edit flag.
+	if (!edited.price) {
+		prefilled.price = nextPrice;
+		state.price = nextPrice;
+	}
+	if (!edited.helperPrice) {
+		prefilled.helperPrice = nextHelper;
+		state.helperPrice = nextHelper;
+	}
+}
 
 watch(
 	() => [pricing.value?.price, pricing.value?.helperPrice] as const,
-	([price, helperPrice]) => {
-		state.price = price === undefined ? '' : String(price);
-		state.helperPrice =
-			helperPrice === undefined ? '' : String(helperPrice);
-	},
+	([price, helperPrice]) => applyPricing(price, helperPrice),
 	{ immediate: true },
 );
+
+/**
+ * Parse a typed price. A leading separator means a fraction of a euro
+ * (`,50`), which the old number input accepted; a bare separator stays
+ * invalid, as does anything that is not a plain decimal.
+ */
+function parseTypedPrice(input: string) {
+	return /^[.,]/.test(input)
+		? /^[.,]\d{1,2}$/.test(input)
+			? parseProductMoney(`0${input}`)
+			: undefined
+		: parseProductMoney(input);
+}
 
 const errorMessage = computed(() => {
 	if (!error.value) return '';
@@ -159,20 +197,30 @@ const errorMessage = computed(() => {
 		: 'Please try again.';
 });
 
-const formatCurrency = (amount: number) =>
-	new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(
-		amount,
-	);
-
 /** The regular/helper prices this save would write. */
 const plannedPrices = computed(() => {
 	const regularInput = String(state.price).trim();
-	// An empty field uses the documented default instead of parsing to 0.
-	const regular = regularInput
-		? Number(regularInput.replace(',', '.'))
-		: ONIGIRI_DEFAULT_PRICE;
 	const helperInput = String(state.helperPrice).trim();
-	const helper = helperInput ? Number(helperInput.replace(',', '.')) : null;
+	// An empty field uses the documented default instead of parsing to 0.
+	// Typed values must be plain decimals: Number() alone would also accept
+	// hexadecimal and exponent input. An untouched field keeps the stored
+	// value as-is rather than the rounded text the input displays.
+	const regular =
+		regularInput === ''
+			? ONIGIRI_DEFAULT_PRICE
+			: !edited.price &&
+				  regularInput === prefilled.price &&
+				  pricing.value?.price !== undefined
+				? pricing.value.price
+				: parseTypedPrice(regularInput);
+	const helper =
+		helperInput === ''
+			? null
+			: !edited.helperPrice &&
+				  helperInput === prefilled.helperPrice &&
+				  pricing.value?.helperPrice !== undefined
+				? pricing.value.helperPrice
+				: parseTypedPrice(helperInput);
 	return { regular, helper };
 });
 
@@ -180,10 +228,15 @@ const plannedPrices = computed(() => {
 const impactStatement = computed<string | null>(() => {
 	const result = impact.value;
 	const planned = plannedPrices.value;
-	if (!result || !Number.isFinite(planned.regular)) return null;
-	// Invalid helper input would render a nonsense statement; the save
-	// validation reports it instead.
-	if (planned.helper !== null && !Number.isFinite(planned.helper)) {
+	// Invalid input, a sub-cent regular price, or a helper above the regular
+	// price would render a false statement; the save validation reports it.
+	if (
+		!result ||
+		planned.regular === undefined ||
+		planned.regular < 0.01 ||
+		planned.helper === undefined ||
+		(planned.helper !== null && planned.helper > planned.regular)
+	) {
 		return null;
 	}
 	const { onigiriProductCount, activeFormCount, countsTruncated } = result;
@@ -201,19 +254,28 @@ const impactStatement = computed<string | null>(() => {
 });
 
 async function savePricing() {
-	// An empty regular field uses the documented €3 default instead of
+	// An empty regular field uses the documented 3,00 € default instead of
 	// parsing to 0 and zeroing every Onigiri product.
 	const { regular, helper: helperPrice } = plannedPrices.value;
-	if (!Number.isFinite(regular) || regular <= 0) {
+	if (regular === undefined) {
 		return toast.add({
-			title: 'Enter an Onigiri regular price above €0',
+			title: 'Enter a valid Onigiri regular price with up to two decimals',
 			color: 'error',
 		});
 	}
-	if (
-		helperPrice !== null &&
-		(!Number.isFinite(helperPrice) || helperPrice < 0)
-	) {
+	if (regular < 0.01) {
+		return toast.add({
+			title: `Enter an Onigiri regular price of at least ${formatCurrency(0.01)}`,
+			color: 'error',
+		});
+	}
+	if (helperPrice === undefined) {
+		return toast.add({
+			title: 'Enter a valid non-negative helper price with up to two decimals',
+			color: 'error',
+		});
+	}
+	if (helperPrice !== null && helperPrice < 0) {
 		return toast.add({
 			title: 'Enter a valid non-negative helper price',
 			color: 'error',
@@ -227,6 +289,12 @@ async function savePricing() {
 	}
 	try {
 		await updatePricing({ price: regular, helperPrice });
+		// The saved prices are authoritative again; the subscription refresh
+		// can now repopulate both fields. Apply it here too, because an update
+		// that arrived during the save was skipped while the flags were set.
+		edited.price = false;
+		edited.helperPrice = false;
+		applyPricing(pricing.value?.price, pricing.value?.helperPrice);
 		// Counted statements live in the pre-save summary above the button;
 		// the toast stays count-free so it can never quote stale numbers.
 		toast.add({

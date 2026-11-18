@@ -436,6 +436,7 @@ import type { TableColumn } from '@nuxt/ui';
 import { productArraySchema } from '~/components/Inventory/types';
 import { summarizeSaleItems } from '~/components/Transactions/format';
 import type { SaleWithItems } from '~/components/Transactions/types';
+import { formatCurrency } from '~/utils/currency';
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
 	useAppConvexAuth();
@@ -583,9 +584,4 @@ const recentSaleColumns: TableColumn<SaleRow>[] = [
 		header: 'Total',
 	},
 ];
-
-const formatCurrency = (amount: number) =>
-	new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(
-		amount,
-	);
 </script>

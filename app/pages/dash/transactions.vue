@@ -154,6 +154,7 @@ import type { TableColumn } from '@nuxt/ui';
 import { h } from 'vue';
 import type { Id } from '~~/convex/_generated/dataModel';
 import type { SaleWithItems } from '~/components/Transactions/types';
+import { formatCurrency } from '~/utils/currency';
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
 	useAppConvexAuth();
@@ -215,15 +216,11 @@ const timeFormatter = new Intl.DateTimeFormat('en', {
 	hour: '2-digit',
 	minute: '2-digit',
 });
-const currencyFormatter = new Intl.NumberFormat('en', {
-	style: 'currency',
-	currency: 'EUR',
-});
 
 const saleRows = computed<SaleRow[]>(() =>
 	sales.value.flatMap((sale) => {
 		const time = timeFormatter.format(sale.timestamp);
-		const saleTotal = currencyFormatter.format(sale.total);
+		const saleTotal = formatCurrency(sale.total);
 		return sale.items.map((item, itemIndex) => ({
 			Time: time,
 			'Sale ID': sale._id,
@@ -238,8 +235,8 @@ const saleRows = computed<SaleRow[]>(() =>
 					: '',
 			Product: item.productName,
 			Quantity: item.quantity,
-			'Unit price': currencyFormatter.format(item.unitPrice),
-			'Line total': currencyFormatter.format(item.lineTotal),
+			'Unit price': formatCurrency(item.unitPrice),
+			'Line total': formatCurrency(item.lineTotal),
 			'Sale total': itemIndex === 0 ? saleTotal : '',
 			_saleId: sale._id as Id<'sales'>,
 			_isFirstRow: itemIndex === 0,
@@ -360,7 +357,6 @@ const totalQuantity = computed(() =>
 const totalSales = computed(() =>
 	sales.value.reduce((total, sale) => total + sale.total, 0),
 );
-const formatCurrency = (amount: number) => currencyFormatter.format(amount);
 
 function formatDateInput(date: Date) {
 	const year = date.getFullYear();

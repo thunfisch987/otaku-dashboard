@@ -507,6 +507,7 @@
 // ---------------------------------------------------------------------------
 import { api } from '#convex/api';
 import type { Id } from '~~/convex/_generated/dataModel';
+import { formatCurrency } from '~/utils/currency';
 import { createRequestId } from '~/utils/requestId';
 import {
 	MAX_ORDER_LINES,
@@ -931,11 +932,6 @@ function startNewOrder() {
 	}
 	stepIndex.value = 0;
 }
-
-const formatCurrency = (amount: number) =>
-	new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(
-		amount,
-	);
 
 const formatDate = (timestamp: number) =>
 	new Intl.DateTimeFormat('en', {

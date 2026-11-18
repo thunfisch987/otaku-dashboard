@@ -309,6 +309,7 @@
 <script setup lang="ts">
 import { api } from '#convex/api';
 import type { Id } from '~~/convex/_generated/dataModel';
+import { formatCurrency } from '~/utils/currency';
 
 const props = defineProps<{
 	formId: Id<'preorderForms'>;
@@ -316,10 +317,6 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ close: [] }>();
 const toast = useToast();
-const currencyFormatter = new Intl.NumberFormat('en-IE', {
-	style: 'currency',
-	currency: 'EUR',
-});
 const allSupplyCostsKnown = computed(
 	() =>
 		preparationTotals.value?.every(
@@ -334,9 +331,6 @@ const knownSupplyCost = computed(
 		) ?? 0,
 );
 const totalSupplyCost = computed(() => knownSupplyCost.value);
-function formatCurrency(value: number) {
-	return currencyFormatter.format(value);
-}
 
 const reviewArgs = computed(() => ({ formId: props.formId }));
 // Changing this tick changes the args object identity to re-subscribe the

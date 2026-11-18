@@ -3,12 +3,8 @@ import type { Column, Row } from '@tanstack/vue-table';
 import type { ProductSchema } from './types';
 import { UButton, UDropdownMenu, UCheckbox, UBadge } from '#components';
 import { prepareEditForm } from './forms';
-import {
-	formatCurrency,
-	formatOptionalCurrency,
-	productCategoryLabel,
-	stockSummary,
-} from './format';
+import { formatCurrency, formatOptionalCurrency } from '~/utils/currency';
+import { productCategoryLabel, stockSummary } from './format';
 
 type RowActionHandlers = {
 	deleteProduct: (product: ProductSchema) => void;

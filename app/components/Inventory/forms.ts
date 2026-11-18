@@ -1,12 +1,10 @@
 import type { PatchProductSchema, ProductSchema } from './types';
 import type { Row } from '@tanstack/vue-table';
+import { formatMoneyInput } from '~/utils/currency';
 
 export function prepareEditForm(row: Row<ProductSchema>) {
 	const editProductState = useState<PatchProductSchema>('editProductState');
 	const editProductOpen = useState<boolean>('editProductOpen');
-	const unmaskedProductEditValue = useState<string>(
-		'unmaskedProductEditValue',
-	);
 
 	editProductOpen.value = true;
 	editProductState.value.amount = row.original.amount;
@@ -14,24 +12,20 @@ export function prepareEditForm(row: Row<ProductSchema>) {
 	editProductState.value.helperPrice =
 		row.original.helperPrice === undefined
 			? ''
-			: String(row.original.helperPrice);
+			: formatMoneyInput(row.original.helperPrice);
 	editProductState.value.supplyCost =
 		row.original.supplyCost === undefined
 			? ''
-			: String(row.original.supplyCost);
-	editProductState.value.price = row.original.price.toFixed(2);
+			: formatMoneyInput(row.original.supplyCost);
+	editProductState.value.price = formatMoneyInput(row.original.price);
 	editProductState.value.productname = row.original.productname;
 	editProductState.value.category = row.original.category;
 	editProductState.value.supplier = row.original.supplier;
 	editProductState.value._id = String(row.original._id);
-	unmaskedProductEditValue.value = String(row.original.price);
 }
 
 export function resetFormState() {
 	const editProductState = useState<PatchProductSchema>('editProductState');
-	const unmaskedProductEditValue = useState<string>(
-		'unmaskedProductEditValue',
-	);
 	editProductState.value.productname = '';
 	editProductState.value.price = '';
 	editProductState.value.category = 'other';
@@ -41,5 +35,4 @@ export function resetFormState() {
 	editProductState.value.helperPrice = '';
 	editProductState.value.supplyCost = '';
 	editProductState.value._id = '';
-	unmaskedProductEditValue.value = '';
 }
