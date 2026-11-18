@@ -38,6 +38,7 @@
 						v-model="state.price"
 						inputmode="decimal"
 						placeholder="0,00"
+						:disabled="saving"
 						@input="edited.price = true"
 					/>
 				</UFormField>
@@ -49,6 +50,7 @@
 						v-model="state.helperPrice"
 						inputmode="decimal"
 						placeholder="Use regular price"
+						:disabled="saving"
 						@input="edited.helperPrice = true"
 					/>
 				</UFormField>
@@ -288,9 +290,11 @@ async function savePricing() {
 	try {
 		await updatePricing({ price: regular, helperPrice });
 		// The saved prices are authoritative again; the subscription refresh
-		// can now repopulate both fields.
+		// can now repopulate both fields. Apply it here too, because an update
+		// that arrived during the save was skipped while the flags were set.
 		edited.price = false;
 		edited.helperPrice = false;
+		applyPricing(pricing.value?.price, pricing.value?.helperPrice);
 		// Counted statements live in the pre-save summary above the button;
 		// the toast stays count-free so it can never quote stale numbers.
 		toast.add({
