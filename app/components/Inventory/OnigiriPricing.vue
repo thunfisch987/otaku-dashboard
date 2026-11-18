@@ -105,6 +105,7 @@
 import { api } from '#convex/api';
 import { ONIGIRI_DEFAULT_PRICE } from '~~/convex/sharedConstants';
 import { formatCurrency, formatMoneyInput } from '~/utils/currency';
+import { parseProductMoney } from './types';
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
 	useAppConvexAuth();
@@ -138,14 +139,19 @@ const {
 	error,
 } = useConvexMutation(api.products.updateOnigiriPricing);
 const state = reactive({ price: '', helperPrice: '' });
+// The text the form was prefilled with. An untouched field saves the stored
+// number exactly, so a two-decimal display can never round stored data.
+const prefilled = { price: '', helperPrice: '' };
 const toast = useToast();
 
 watch(
 	() => [pricing.value?.price, pricing.value?.helperPrice] as const,
 	([price, helperPrice]) => {
-		state.price = price === undefined ? '' : formatMoneyInput(price);
-		state.helperPrice =
+		prefilled.price = price === undefined ? '' : formatMoneyInput(price);
+		prefilled.helperPrice =
 			helperPrice === undefined ? '' : formatMoneyInput(helperPrice);
+		state.price = prefilled.price;
+		state.helperPrice = prefilled.helperPrice;
 	},
 	{ immediate: true },
 );
@@ -160,12 +166,25 @@ const errorMessage = computed(() => {
 /** The regular/helper prices this save would write. */
 const plannedPrices = computed(() => {
 	const regularInput = String(state.price).trim();
-	// An empty field uses the documented default instead of parsing to 0.
-	const regular = regularInput
-		? Number(regularInput.replace(',', '.'))
-		: ONIGIRI_DEFAULT_PRICE;
 	const helperInput = String(state.helperPrice).trim();
-	const helper = helperInput ? Number(helperInput.replace(',', '.')) : null;
+	// An empty field uses the documented default instead of parsing to 0.
+	// Typed values must be plain decimals: Number() alone would also accept
+	// hexadecimal and exponent input. An untouched field keeps the stored
+	// value as-is rather than the rounded text the input displays.
+	const regular =
+		regularInput === ''
+			? ONIGIRI_DEFAULT_PRICE
+			: regularInput === prefilled.price &&
+				  pricing.value?.price !== undefined
+				? pricing.value.price
+				: parseProductMoney(regularInput);
+	const helper =
+		helperInput === ''
+			? null
+			: helperInput === prefilled.helperPrice &&
+				  pricing.value?.helperPrice !== undefined
+				? pricing.value.helperPrice
+				: parseProductMoney(helperInput);
 	return { regular, helper };
 });
 
@@ -173,10 +192,14 @@ const plannedPrices = computed(() => {
 const impactStatement = computed<string | null>(() => {
 	const result = impact.value;
 	const planned = plannedPrices.value;
-	if (!result || !Number.isFinite(planned.regular)) return null;
-	// Invalid helper input would render a nonsense statement; the save
-	// validation reports it instead.
-	if (planned.helper !== null && !Number.isFinite(planned.helper)) {
+	// Invalid input or a sub-cent regular price would render a false
+	// statement; the save validation reports it instead.
+	if (
+		!result ||
+		planned.regular === undefined ||
+		planned.regular < 0.01 ||
+		planned.helper === undefined
+	) {
 		return null;
 	}
 	const { onigiriProductCount, activeFormCount, countsTruncated } = result;
@@ -197,16 +220,25 @@ async function savePricing() {
 	// An empty regular field uses the documented 3,00 € default instead of
 	// parsing to 0 and zeroing every Onigiri product.
 	const { regular, helper: helperPrice } = plannedPrices.value;
-	if (!Number.isFinite(regular) || regular <= 0) {
+	if (regular === undefined) {
 		return toast.add({
-			title: `Enter an Onigiri regular price above ${formatCurrency(0)}`,
+			title: 'Enter a valid Onigiri regular price with up to two decimals',
 			color: 'error',
 		});
 	}
-	if (
-		helperPrice !== null &&
-		(!Number.isFinite(helperPrice) || helperPrice < 0)
-	) {
+	if (regular < 0.01) {
+		return toast.add({
+			title: `Enter an Onigiri regular price of at least ${formatCurrency(0.01)}`,
+			color: 'error',
+		});
+	}
+	if (helperPrice === undefined) {
+		return toast.add({
+			title: 'Enter a valid non-negative helper price with up to two decimals',
+			color: 'error',
+		});
+	}
+	if (helperPrice !== null && helperPrice < 0) {
 		return toast.add({
 			title: 'Enter a valid non-negative helper price',
 			color: 'error',
