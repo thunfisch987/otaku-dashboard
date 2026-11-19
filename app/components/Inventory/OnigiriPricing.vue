@@ -1,108 +1,129 @@
 <template>
-	<UCard>
-		<template #header>
-			<div>
-				<h2 class="text-lg font-semibold">Shared Onigiri prices</h2>
-				<p class="mt-1 text-sm text-muted">
-					Every product in the Onigiri category uses these prices in
-					preorders and at checkout.
-				</p>
-			</div>
-		</template>
-		<div class="space-y-4">
-			<div
-				v-if="convexAuthLoading || pricingPending"
-				class="text-sm text-muted"
-			>
-				Loading shared prices…
-			</div>
-			<UAlert
-				v-else-if="pricingError"
-				title="Shared Onigiri prices could not be loaded"
-				description="Refresh the page and try again."
-				color="error"
-				icon="i-lucide-circle-alert"
+	<UCollapsible
+		v-model:open="open"
+		:unmount-on-hide="false"
+		class="rounded-lg bg-default ring ring-default"
+	>
+		<button
+			type="button"
+			class="flex w-full items-start justify-between gap-4 p-4 text-left sm:px-6"
+		>
+			<span class="min-w-0">
+				<span class="block text-lg font-semibold">
+					Shared Onigiri prices
+				</span>
+				<span class="mt-1 block text-sm text-muted">
+					{{ headerSummary }}
+				</span>
+				<span
+					v-if="hasUnsavedEdits"
+					class="mt-1 block text-sm text-warning"
+				>
+					Unsaved changes — expand to review or save.
+				</span>
+			</span>
+			<UIcon
+				name="i-lucide-chevron-down"
+				class="mt-1 size-5 shrink-0 text-muted transition-transform duration-200"
+				:class="{ 'rotate-180': open }"
 			/>
-			<UForm
-				v-else
-				:state="state"
-				class="grid gap-4 sm:grid-cols-2"
-				@submit="savePricing"
-			>
-				<UFormField
-					label="Regular price (€)"
-					required
-					:hint="`Defaults to ${formatCurrency(ONIGIRI_DEFAULT_PRICE)} when left empty`"
+		</button>
+		<template #content>
+			<div class="space-y-4 border-t border-default p-4 sm:p-6">
+				<div
+					v-if="convexAuthLoading || pricingPending"
+					class="text-sm text-muted"
 				>
-					<UInput
-						v-model="state.price"
-						inputmode="decimal"
-						placeholder="0,00"
-						:disabled="saving"
-						@input="edited.price = true"
-					/>
-				</UFormField>
-				<UFormField
-					label="Helper price (€)"
-					hint="Optional; helpers pay the regular price when this is empty."
-				>
-					<UInput
-						v-model="state.helperPrice"
-						inputmode="decimal"
-						placeholder="Use regular price"
-						:disabled="saving"
-						@input="edited.helperPrice = true"
-					/>
-				</UFormField>
+					Loading shared prices…
+				</div>
 				<UAlert
-					v-if="errorMessage"
-					class="sm:col-span-2"
-					title="Could not save shared prices"
-					:description="errorMessage"
+					v-else-if="pricingError"
+					title="Shared Onigiri prices could not be loaded"
+					description="Refresh the page and try again."
 					color="error"
 					icon="i-lucide-circle-alert"
 				/>
-				<div
-					v-if="impactPending || impactError || impactStatement"
-					class="rounded-lg border p-3 text-sm sm:col-span-2"
-					role="status"
+				<UForm
+					v-else
+					:state="state"
+					class="grid gap-4 sm:grid-cols-2"
+					@submit="savePricing"
 				>
-					<p
-						v-if="impactPending"
-						class="text-muted"
+					<UFormField
+						label="Regular price (€)"
+						required
+						:hint="`Defaults to ${formatCurrency(ONIGIRI_DEFAULT_PRICE)} when left empty`"
 					>
-						Calculating how many products and forms this would
-						reprice…
-					</p>
-					<p
-						v-else-if="impactError"
-						class="text-muted"
+						<UInput
+							v-model="state.price"
+							inputmode="decimal"
+							placeholder="0,00"
+							:disabled="saving"
+							@input="edited.price = true"
+						/>
+					</UFormField>
+					<UFormField
+						label="Helper price (€)"
+						hint="Optional; helpers pay the regular price when this is empty."
 					>
-						Could not load how many products and forms are affected.
-						Saving still reprices every Onigiri product at POS and
-						in preorders.
-					</p>
-					<p
-						v-else-if="impactStatement"
-						class="text-default"
-					>
-						{{ impactStatement }}
-					</p>
-				</div>
-				<div class="sm:col-span-2">
-					<UButton
-						label="Save Onigiri prices"
-						type="submit"
-						class="min-h-11"
-						:loading="saving"
-						:disabled="
-							saving || !convexAuthenticated || impactPending
-						"
+						<UInput
+							v-model="state.helperPrice"
+							inputmode="decimal"
+							placeholder="Use regular price"
+							:disabled="saving"
+							@input="edited.helperPrice = true"
+						/>
+					</UFormField>
+					<UAlert
+						v-if="errorMessage"
+						class="sm:col-span-2"
+						title="Could not save shared prices"
+						:description="errorMessage"
+						color="error"
+						icon="i-lucide-circle-alert"
 					/>
-				</div>
-			</UForm>
-		</div>
-	</UCard>
+					<div
+						v-if="impactPending || impactError || impactStatement"
+						class="rounded-lg border p-3 text-sm sm:col-span-2"
+						role="status"
+					>
+						<p
+							v-if="impactPending"
+							class="text-muted"
+						>
+							Calculating how many products and forms this would
+							reprice…
+						</p>
+						<p
+							v-else-if="impactError"
+							class="text-muted"
+						>
+							Could not load how many products and forms are
+							affected. Saving still reprices every Onigiri
+							product at POS and in preorders.
+						</p>
+						<p
+							v-else-if="impactStatement"
+							class="text-default"
+						>
+							{{ impactStatement }}
+						</p>
+					</div>
+					<div class="sm:col-span-2">
+						<UButton
+							label="Save Onigiri prices"
+							type="submit"
+							class="min-h-11"
+							:loading="saving"
+							:disabled="
+								saving || !convexAuthenticated || impactPending
+							"
+						/>
+					</div>
+				</UForm>
+			</div>
+		</template>
+	</UCollapsible>
 </template>
 
 <script setup lang="ts">
@@ -150,6 +171,10 @@ const prefilled = { price: '', helperPrice: '' };
 // and must save what the operator typed rather than the stored value.
 const edited = reactive({ price: false, helperPrice: false });
 const toast = useToast();
+// Collapsed by default so the form does not push the product table down; the
+// header still shows the current prices so they can be read at a glance.
+const open = ref(false);
+const hasUnsavedEdits = computed(() => edited.price || edited.helperPrice);
 
 /** Apply subscription prices to the fields the operator has not edited. */
 function applyPricing(
@@ -195,6 +220,25 @@ const errorMessage = computed(() => {
 	return error.value instanceof Error
 		? error.value.message
 		: 'Please try again.';
+});
+
+/** One-line state shown while the form is collapsed. */
+const headerSummary = computed(() => {
+	if (convexAuthLoading.value || pricingPending.value) {
+		return 'Loading shared prices…';
+	}
+	if (pricingError.value) {
+		return 'Shared prices could not be loaded';
+	}
+	const current = pricing.value;
+	if (!current) {
+		return 'Not configured yet';
+	}
+	const helper =
+		current.helperPrice === undefined
+			? 'helpers pay the regular price'
+			: `helpers pay ${formatCurrency(current.helperPrice)}`;
+	return `Regular ${formatCurrency(current.price)} · ${helper}`;
 });
 
 /** The regular/helper prices this save would write. */
