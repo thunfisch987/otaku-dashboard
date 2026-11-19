@@ -80,25 +80,39 @@
 				</h2>
 				<div
 					class="flex flex-wrap items-center gap-2"
+					:class="
+						chipsScroll
+							? 'sticky top-0 z-20 -mx-2 border-b border-muted bg-default/95 px-2 py-2 backdrop-blur'
+							: ''
+					"
 					role="group"
-					aria-label="Filter products by category"
+					:aria-label="
+						chipsScroll
+							? 'Jump to a product category'
+							: 'Filter products by category'
+					"
 				>
 					<UButton
 						v-for="option in categoryOptions"
 						:key="option.value"
 						class="min-h-11 px-4"
 						:variant="
-							selectedCategory === option.value
-								? 'solid'
-								: 'outline'
+							activeChip === option.value ? 'solid' : 'outline'
 						"
 						:color="
-							selectedCategory === option.value
-								? 'primary'
-								: 'neutral'
+							activeChip === option.value ? 'primary' : 'neutral'
 						"
-						:aria-pressed="selectedCategory === option.value"
-						@click="selectedCategory = option.value"
+						:aria-pressed="
+							chipsScroll
+								? undefined
+								: activeChip === option.value
+						"
+						:aria-current="
+							chipsScroll && activeChip === option.value
+								? 'true'
+								: undefined
+						"
+						@click="selectCategory(option.value)"
 					>
 						{{ option.label }}
 					</UButton>
@@ -129,6 +143,9 @@
 					<section
 						v-for="group in productGroups"
 						:key="group.category"
+						:data-pos-category="group.category"
+						class="scroll-mt-4"
+						:class="chipsScroll ? 'scroll-mt-20' : ''"
 						:aria-labelledby="`pos-category-${group.category}`"
 					>
 						<h3
@@ -356,13 +373,22 @@ const categoryOptions: { label: string; value: CategoryFilter }[] = [
 	...productCategories,
 ];
 const selectedCategory = ref<CategoryFilter>('all');
+
+// Temporary comparison switch: `?chips=scroll` turns the chips into jump links
+// that scroll to a category section instead of filtering the catalogue.
+const route = useRoute();
+const chipsScroll = computed(() => route.query.chips === 'scroll');
+const visibleCategory = ref<CategoryFilter>('all');
+const activeChip = computed(() =>
+	chipsScroll.value ? visibleCategory.value : selectedCategory.value,
+);
 const selectedCategoryLabel = computed(() =>
 	selectedCategory.value === 'all'
 		? ''
 		: productCategoryLabel(selectedCategory.value),
 );
 const emptyProductsMessage = computed(() =>
-	selectedCategory.value === 'all'
+	selectedCategory.value === 'all' || chipsScroll.value
 		? 'No products are available.'
 		: `No ${selectedCategoryLabel.value} products are available.`,
 );
@@ -378,9 +404,8 @@ const convexConnected = computed(
 );
 const productsQueryArgs = computed(() => {
 	if (convexAuthLoading.value || !convexAuthenticated.value) return 'skip';
-	return selectedCategory.value === 'all'
-		? {}
-		: { category: selectedCategory.value };
+	if (chipsScroll.value || selectedCategory.value === 'all') return {};
+	return { category: selectedCategory.value };
 });
 const {
 	data: products,
@@ -468,6 +493,65 @@ function clearCart() {
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
+
+function prefersReducedMotion() {
+	return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function scrollToSection(id: string) {
+	document.getElementById(id)?.scrollIntoView({
+		behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+		block: 'start',
+	});
+}
+
+function selectCategory(value: CategoryFilter) {
+	if (!chipsScroll.value) {
+		selectedCategory.value = value;
+		return;
+	}
+	visibleCategory.value = value;
+	scrollToSection(
+		value === 'all' ? 'products-heading' : `pos-category-${value}`,
+	);
+}
+
+// Scroll mode keeps the active chip in step with the section in view, so the
+// chips stay a position indicator rather than a one-off jump.
+function updateVisibleCategory() {
+	if (!chipsScroll.value) return;
+	const sections = Array.from(
+		document.querySelectorAll<HTMLElement>('[data-pos-category]'),
+	);
+	let current: CategoryFilter = 'all';
+	for (const section of sections) {
+		if (section.getBoundingClientRect().top > 140) break;
+		current = section.dataset.posCategory as CategoryFilter;
+	}
+	// Near the bottom the last sections cannot reach the top, so highlight the
+	// last one instead of leaving the chip on a section already scrolled past.
+	if (
+		window.innerHeight + window.scrollY >=
+		document.documentElement.scrollHeight - 2
+	) {
+		const last = sections.at(-1)?.dataset.posCategory;
+		if (last) current = last as CategoryFilter;
+	}
+	visibleCategory.value = current;
+}
+
+onMounted(() => {
+	window.addEventListener('scroll', updateVisibleCategory, {
+		passive: true,
+	});
+	updateVisibleCategory();
+});
+
+onBeforeUnmount(() => {
+	window.removeEventListener('scroll', updateVisibleCategory);
+});
+
+watch(productGroups, () => updateVisibleCategory());
 
 const { mutate: checkout } = useConvexMutation(api.transactions.checkout);
 const isCheckingOut = ref(false);
