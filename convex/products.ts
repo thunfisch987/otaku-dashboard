@@ -98,6 +98,34 @@ export const listForPos = query({
 	},
 });
 
+/**
+ * Current prices and stock for the products in the cart. The POS keeps cart
+ * snapshots, and in filter mode the cart can hold products the visible
+ * category query no longer returns, so those snapshots need their own
+ * subscription to stay truthful before checkout.
+ */
+export const byIds = query({
+	args: { ids: v.array(v.id('products')) },
+	returns: v.array(schema.doc('products')),
+	handler: async (ctx, args) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new Error('Not authenticated');
+		}
+		if (args.ids.length > 200) {
+			throw new Error('Too many products requested at once');
+		}
+
+		const pricing = await readOnigiriPricing(ctx);
+		const products: Doc<'products'>[] = [];
+		for (const id of args.ids) {
+			const product = await ctx.db.get(id);
+			if (product) products.push(applyOnigiriPricing(product, pricing));
+		}
+		return products;
+	},
+});
+
 export const getById = query({
 	args: { id: v.id('products') },
 	returns: v.union(v.null(), schema.doc('products')),

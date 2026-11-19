@@ -451,6 +451,42 @@ watch(availableProducts, (products) => {
 		}
 	}
 });
+// Snapshot updates from the visible list stop at the category boundary: in
+// filter mode a cart line whose category is not shown keeps its old snapshot.
+// A dedicated subscription keeps every cart line's price and stock current.
+const cartProductIds = computed(() =>
+	Object.entries(cart.value)
+		.filter(([, quantity]) => quantity > 0)
+		.map(([id]) => id as Id<'products'>),
+);
+const cartRefreshArgs = computed(() => {
+	if (
+		convexAuthLoading.value ||
+		!convexAuthenticated.value ||
+		cartProductIds.value.length === 0
+	) {
+		return 'skip';
+	}
+	return { ids: cartProductIds.value };
+});
+const { data: refreshedCartProducts } = useConvexQuery(
+	api.products.byIds,
+	cartRefreshArgs,
+	{ server: false },
+);
+watch(
+	refreshedCartProducts,
+	(products) => {
+		const parsed = productArraySchema.safeParse(products);
+		if (!parsed.success) return;
+		for (const product of parsed.data) {
+			if (cart.value[product._id] !== undefined) {
+				cartProducts.value[product._id] = product;
+			}
+		}
+	},
+	{ immediate: true },
+);
 const cartTotal = computed(() =>
 	cartItems.value.reduce(
 		(total, item) => total + effectivePrice(item.product) * item.quantity,
