@@ -79,12 +79,8 @@
 					Products
 				</h2>
 				<div
-					class="flex flex-wrap items-center gap-2"
-					:class="
-						chipsScroll
-							? 'sticky top-0 z-20 -mx-2 border-b border-muted bg-default/95 px-2 py-2 backdrop-blur'
-							: ''
-					"
+					ref="chipsBar"
+					class="sticky top-0 z-20 -mx-2 flex flex-wrap items-center gap-2 border-b border-muted bg-default/95 px-2 py-2 backdrop-blur"
 					role="group"
 					:aria-label="
 						chipsScroll
@@ -95,7 +91,8 @@
 					<UButton
 						v-for="option in categoryOptions"
 						:key="option.value"
-						class="min-h-11 px-4"
+						class="min-h-11 px-3"
+						:disabled="productsPending"
 						:variant="
 							activeChip === option.value ? 'solid' : 'outline'
 						"
@@ -144,8 +141,6 @@
 						v-for="group in productGroups"
 						:key="group.category"
 						:data-pos-category="group.category"
-						class="scroll-mt-4"
-						:class="chipsScroll ? 'scroll-mt-20' : ''"
 						:aria-labelledby="`pos-category-${group.category}`"
 					>
 						<h3
@@ -374,10 +369,14 @@ const categoryOptions: { label: string; value: CategoryFilter }[] = [
 ];
 const selectedCategory = ref<CategoryFilter>('all');
 
-// Temporary comparison switch: `?chips=scroll` turns the chips into jump links
-// that scroll to a category section instead of filtering the catalogue.
+// Chips scroll to a category section by default, so switching category never
+// reloads the catalogue. `?chips=filter` keeps the earlier filter variant for
+// comparison until the decision is made.
 const route = useRoute();
-const chipsScroll = computed(() => route.query.chips === 'scroll');
+const chipsScroll = computed(() => route.query.chips !== 'filter');
+// The sticky bar's height is the scroll offset, so it stays visible and never
+// covers the heading it jumped to (it wraps on narrow screens).
+const chipsBar = useTemplateRef<HTMLElement>('chipsBar');
 const visibleCategory = ref<CategoryFilter>('all');
 const activeChip = computed(() =>
 	chipsScroll.value ? visibleCategory.value : selectedCategory.value,
@@ -499,9 +498,14 @@ function prefersReducedMotion() {
 }
 
 function scrollToSection(id: string) {
-	document.getElementById(id)?.scrollIntoView({
+	const target = document.getElementById(id);
+	if (!target) return;
+	const barHeight = chipsBar.value?.getBoundingClientRect().height ?? 0;
+	const top =
+		target.getBoundingClientRect().top + window.scrollY - barHeight - 12;
+	window.scrollTo({
+		top: Math.max(0, top),
 		behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-		block: 'start',
 	});
 }
 
@@ -511,9 +515,14 @@ function selectCategory(value: CategoryFilter) {
 		return;
 	}
 	visibleCategory.value = value;
-	scrollToSection(
-		value === 'all' ? 'products-heading' : `pos-category-${value}`,
-	);
+	if (value === 'all') {
+		window.scrollTo({
+			top: 0,
+			behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+		});
+		return;
+	}
+	scrollToSection(`pos-category-${value}`);
 }
 
 // Scroll mode keeps the active chip in step with the section in view, so the
@@ -523,9 +532,11 @@ function updateVisibleCategory() {
 	const sections = Array.from(
 		document.querySelectorAll<HTMLElement>('[data-pos-category]'),
 	);
+	const barHeight =
+		(chipsBar.value?.getBoundingClientRect().height ?? 0) + 24;
 	let current: CategoryFilter = 'all';
 	for (const section of sections) {
-		if (section.getBoundingClientRect().top > 140) break;
+		if (section.getBoundingClientRect().top > barHeight) break;
 		current = section.dataset.posCategory as CategoryFilter;
 	}
 	// Near the bottom the last sections cannot reach the top, so highlight the
