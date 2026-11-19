@@ -319,10 +319,7 @@ export const createForm = mutation({
 			if (!product) {
 				throw new Error('A selected product no longer exists');
 			}
-			if (
-				product.category !== undefined &&
-				product.category !== item.section
-			) {
+			if (product.category !== item.section) {
 				throw new Error(
 					`${product.productname} must be categorized as ${item.section} to appear in that preorder section`,
 				);

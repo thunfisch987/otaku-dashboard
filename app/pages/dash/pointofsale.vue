@@ -79,6 +79,42 @@
 					Products
 				</h2>
 				<div
+					ref="chipsBar"
+					class="sticky top-[var(--ui-header-height,4rem)] z-20 -mx-2 flex flex-wrap items-center gap-2 border-b border-muted bg-default/95 px-2 py-2 backdrop-blur"
+					role="group"
+					:aria-label="
+						chipsScroll
+							? 'Jump to a product category'
+							: 'Filter products by category'
+					"
+				>
+					<UButton
+						v-for="option in categoryOptions"
+						:key="option.value"
+						class="min-h-11 px-3"
+						:disabled="productsPending"
+						:variant="
+							activeChip === option.value ? 'solid' : 'outline'
+						"
+						:color="
+							activeChip === option.value ? 'primary' : 'neutral'
+						"
+						:aria-pressed="
+							chipsScroll
+								? undefined
+								: activeChip === option.value
+						"
+						:aria-current="
+							chipsScroll && activeChip === option.value
+								? 'true'
+								: undefined
+						"
+						@click="selectCategory(option.value)"
+					>
+						{{ option.label }}
+					</UButton>
+				</div>
+				<div
 					v-if="convexAuthLoading || productsPending"
 					class="py-8 text-center"
 				>
@@ -95,50 +131,73 @@
 					v-else-if="availableProducts.length === 0"
 					class="rounded-lg border p-4"
 				>
-					No products are available.
+					{{ emptyProductsMessage }}
 				</div>
 				<div
 					v-else
-					class="grid grid-cols-2 gap-3 sm:grid-cols-3"
+					class="space-y-8"
 				>
-					<UButton
-						v-for="product in availableProducts"
-						:key="product._id"
-						variant="outline"
-						color="neutral"
-						class="min-h-32 justify-start whitespace-normal p-0 text-left"
-						:disabled="
-							product.amount <= (cart[product._id] ?? 0) ||
-							isCheckingOut
-						"
-						@click="addToCart(product._id as Id<'products'>)"
+					<section
+						v-for="group in productGroups"
+						:key="group.category"
+						:data-pos-category="group.category"
+						:aria-labelledby="`pos-category-${group.category}`"
 					>
-						<div class="w-full p-4">
-							<span class="block text-base font-semibold">{{
-								product.productname
-							}}</span>
-							<span class="mt-1 block">{{
-								formatCurrency(effectivePrice(product))
-							}}</span>
-							<span
-								v-if="
-									isHelperCheckout &&
-									product.helperPrice === undefined
+						<h3
+							:id="`pos-category-${group.category}`"
+							class="mb-3 text-sm font-semibold tracking-wide text-muted uppercase"
+						>
+							{{ group.label }}
+						</h3>
+						<div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+							<UButton
+								v-for="product in group.products"
+								:key="product._id"
+								variant="outline"
+								color="neutral"
+								class="min-h-32 justify-start whitespace-normal p-0 text-left"
+								:disabled="
+									product.amount <=
+										(cart[product._id] ?? 0) ||
+									isCheckingOut
 								"
-								class="mt-1 block text-xs text-muted"
+								@click="addToCart(product)"
 							>
-								Regular price
-							</span>
-							<span class="mt-1 block text-sm text-muted">
-								{{ product.amount - (cart[product._id] ?? 0) }}
-								in stock
-							</span>
+								<div class="w-full p-4">
+									<span
+										class="block text-base font-semibold"
+										>{{ product.productname }}</span
+									>
+									<span class="mt-1 block">{{
+										formatCurrency(effectivePrice(product))
+									}}</span>
+									<span
+										v-if="
+											isHelperCheckout &&
+											product.helperPrice === undefined
+										"
+										class="mt-1 block text-xs text-muted"
+									>
+										Regular price
+									</span>
+									<span class="mt-1 block text-sm text-muted">
+										{{
+											product.amount -
+											(cart[product._id] ?? 0)
+										}}
+										in stock
+									</span>
+								</div>
+							</UButton>
 						</div>
-					</UButton>
+					</section>
 				</div>
 				<div
 					v-if="
-						convexAuthenticated && !productsError && !productsDone
+						convexAuthenticated &&
+						!productsPending &&
+						!productsError &&
+						!productsDone
 					"
 					class="flex justify-center"
 				>
@@ -226,11 +285,7 @@
 								color="neutral"
 								class="h-11 w-11 justify-center text-lg"
 								:disabled="isCheckingOut"
-								@click="
-									removeFromCart(
-										item.product._id as Id<'products'>,
-									)
-								"
+								@click="removeFromCart(item.product._id)"
 							>
 								−
 							</UButton>
@@ -246,11 +301,7 @@
 									isCheckingOut ||
 									item.quantity >= item.product.amount
 								"
-								@click="
-									addToCart(
-										item.product._id as Id<'products'>,
-									)
-								"
+								@click="addToCart(item.product)"
 							>
 								+
 							</UButton>
@@ -299,8 +350,47 @@
 import { api } from '#convex/api';
 import { formatCurrency } from '~/utils/currency';
 import { createRequestId } from '~/utils/requestId';
-import { productArraySchema } from '~/components/Inventory/types';
+import {
+	productArraySchema,
+	productCategories,
+} from '~/components/Inventory/types';
+import type {
+	ProductCategory,
+	ProductSchema,
+} from '~/components/Inventory/types';
+import { productCategoryLabel } from '~/components/Inventory/format';
 import type { Id } from '~~/convex/_generated/dataModel';
+
+type CategoryFilter = 'all' | ProductCategory;
+
+const categoryOptions: { label: string; value: CategoryFilter }[] = [
+	{ label: 'All', value: 'all' },
+	...productCategories,
+];
+const selectedCategory = ref<CategoryFilter>('all');
+
+// Chips scroll to a category section by default, so switching category never
+// reloads the catalogue. `?chips=filter` keeps the earlier filter variant for
+// comparison until the decision is made.
+const route = useRoute();
+const chipsScroll = computed(() => route.query.chips !== 'filter');
+// The sticky bar's height is the scroll offset, so it stays visible and never
+// covers the heading it jumped to (it wraps on narrow screens).
+const chipsBar = useTemplateRef<HTMLElement>('chipsBar');
+const visibleCategory = ref<CategoryFilter>('all');
+const activeChip = computed(() =>
+	chipsScroll.value ? visibleCategory.value : selectedCategory.value,
+);
+const selectedCategoryLabel = computed(() =>
+	selectedCategory.value === 'all'
+		? ''
+		: productCategoryLabel(selectedCategory.value),
+);
+const emptyProductsMessage = computed(() =>
+	selectedCategory.value === 'all' || chipsScroll.value
+		? 'No products are available.'
+		: `No ${selectedCategoryLabel.value} products are available.`,
+);
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
 	useAppConvexAuth();
@@ -311,9 +401,11 @@ const connection = useConvexConnectionState();
 const convexConnected = computed(
 	() => connection.state.value?.isWebSocketConnected ?? true,
 );
-const productsQueryArgs = computed(() =>
-	convexAuthLoading.value || !convexAuthenticated.value ? 'skip' : {},
-);
+const productsQueryArgs = computed(() => {
+	if (convexAuthLoading.value || !convexAuthenticated.value) return 'skip';
+	if (chipsScroll.value || selectedCategory.value === 'all') return {};
+	return { category: selectedCategory.value };
+});
 const {
 	data: products,
 	isPending: productsPending,
@@ -321,7 +413,7 @@ const {
 	isLoadingMore: loadingMoreProducts,
 	loadMore: loadMoreProducts,
 	error: productsError,
-} = useConvexPaginatedQuery(api.products.list, productsQueryArgs, {
+} = useConvexPaginatedQuery(api.products.listForPos, productsQueryArgs, {
 	numItems: 200,
 });
 
@@ -329,13 +421,71 @@ const availableProducts = computed(() => {
 	const parsed = productArraySchema.safeParse(products.value);
 	return parsed.success ? parsed.data : [];
 });
-const cart = reactive<Record<string, number>>({});
+const productGroups = computed(() =>
+	(['onigiri', 'food', 'snacks', 'other'] as ProductCategory[])
+		.map((category) => ({
+			category,
+			label: productCategoryLabel(category),
+			products: availableProducts.value.filter(
+				(product) => product.category === category,
+			),
+		}))
+		.filter((group) => group.products.length > 0),
+);
+const cart = ref<Record<string, number>>({});
+// Product snapshots for cart lines: switching the category filter drops other
+// products from the query, but a cart line must keep its name, price, and
+// stock until checkout.
+const cartProducts = ref<Record<string, ProductSchema>>({});
 const isHelperCheckout = ref(false);
 const cartItems = computed(() =>
-	availableProducts.value.flatMap((product) => {
-		const quantity = cart[product._id] ?? 0;
-		return quantity > 0 ? [{ product, quantity }] : [];
+	Object.entries(cart.value).flatMap(([id, quantity]) => {
+		const product = cartProducts.value[id];
+		return quantity > 0 && product ? [{ product, quantity }] : [];
 	}),
+);
+watch(availableProducts, (products) => {
+	for (const product of products) {
+		if (cart.value[product._id] !== undefined) {
+			cartProducts.value[product._id] = product;
+		}
+	}
+});
+// Snapshot updates from the visible list stop at the category boundary: in
+// filter mode a cart line whose category is not shown keeps its old snapshot.
+// A dedicated subscription keeps every cart line's price and stock current.
+const cartProductIds = computed(() =>
+	Object.entries(cart.value)
+		.filter(([, quantity]) => quantity > 0)
+		.map(([id]) => id as Id<'products'>),
+);
+const cartRefreshArgs = computed(() => {
+	if (
+		convexAuthLoading.value ||
+		!convexAuthenticated.value ||
+		cartProductIds.value.length === 0
+	) {
+		return 'skip';
+	}
+	return { ids: cartProductIds.value };
+});
+const { data: refreshedCartProducts } = useConvexQuery(
+	api.products.byIds,
+	cartRefreshArgs,
+	{ server: false },
+);
+watch(
+	refreshedCartProducts,
+	(products) => {
+		const parsed = productArraySchema.safeParse(products);
+		if (!parsed.success) return;
+		for (const product of parsed.data) {
+			if (cart.value[product._id] !== undefined) {
+				cartProducts.value[product._id] = product;
+			}
+		}
+	},
+	{ immediate: true },
 );
 const cartTotal = computed(() =>
 	cartItems.value.reduce(
@@ -351,31 +501,117 @@ function effectivePrice(product: { price: number; helperPrice?: number }) {
 	return Math.round(price * 100) / 100;
 }
 
-function addToCart(id: Id<'products'>) {
-	const product = availableProducts.value.find((item) => item._id === id);
-	if (!product || (cart[id] ?? 0) >= product.amount) return;
-	cart[id] = (cart[id] ?? 0) + 1;
+function addToCart(product: ProductSchema) {
+	const quantity = cart.value[product._id] ?? 0;
+	if (quantity >= product.amount) return;
+	cartProducts.value[product._id] = product;
+	cart.value[product._id] = quantity + 1;
 	checkoutErrorTitle.value = '';
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
 
-function removeFromCart(id: Id<'products'>) {
-	const quantity = cart[id] ?? 0;
-	if (quantity <= 1) cart[id] = 0;
-	else cart[id] = quantity - 1;
+function removeFromCart(id: string) {
+	const quantity = cart.value[id] ?? 0;
+	if (quantity <= 1) cart.value[id] = 0;
+	else cart.value[id] = quantity - 1;
 	checkoutErrorTitle.value = '';
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
 
 function clearCart() {
-	for (const id of Object.keys(cart)) cart[id] = 0;
+	cart.value = {};
+	cartProducts.value = {};
 	isHelperCheckout.value = false;
 	checkoutErrorTitle.value = '';
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
+
+function prefersReducedMotion() {
+	return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function headerHeight() {
+	const header = document.querySelector('header');
+	return header instanceof HTMLElement ? header.offsetHeight : 0;
+}
+
+function scrollToSection(id: string) {
+	const target = document.getElementById(id);
+	if (!target) return;
+	const barHeight = chipsBar.value?.getBoundingClientRect().height ?? 0;
+	// Reserve the header too: jumping to a section near the top brings the
+	// sticky header back into view.
+	const top =
+		target.getBoundingClientRect().top +
+		window.scrollY -
+		headerHeight() -
+		barHeight -
+		12;
+	window.scrollTo({
+		top: Math.max(0, top),
+		behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+	});
+}
+
+function selectCategory(value: CategoryFilter) {
+	if (!chipsScroll.value) {
+		selectedCategory.value = value;
+		return;
+	}
+	visibleCategory.value = value;
+	if (value === 'all') {
+		window.scrollTo({
+			top: 0,
+			behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+		});
+		return;
+	}
+	scrollToSection(`pos-category-${value}`);
+}
+
+// Scroll mode keeps the active chip in step with the section in view, so the
+// chips stay a position indicator rather than a one-off jump.
+function updateVisibleCategory() {
+	if (!chipsScroll.value) return;
+	const sections = Array.from(
+		document.querySelectorAll<HTMLElement>('[data-pos-category]'),
+	);
+	const barHeight =
+		headerHeight() +
+		(chipsBar.value?.getBoundingClientRect().height ?? 0) +
+		24;
+	let current: CategoryFilter = 'all';
+	for (const section of sections) {
+		if (section.getBoundingClientRect().top > barHeight) break;
+		current = section.dataset.posCategory as CategoryFilter;
+	}
+	// Near the bottom the last sections cannot reach the top, so highlight the
+	// last one instead of leaving the chip on a section already scrolled past.
+	if (
+		window.innerHeight + window.scrollY >=
+		document.documentElement.scrollHeight - 2
+	) {
+		const last = sections.at(-1)?.dataset.posCategory;
+		if (last) current = last as CategoryFilter;
+	}
+	visibleCategory.value = current;
+}
+
+onMounted(() => {
+	window.addEventListener('scroll', updateVisibleCategory, {
+		passive: true,
+	});
+	updateVisibleCategory();
+});
+
+onBeforeUnmount(() => {
+	window.removeEventListener('scroll', updateVisibleCategory);
+});
+
+watch(productGroups, () => updateVisibleCategory());
 
 const { mutate: checkout } = useConvexMutation(api.transactions.checkout);
 const isCheckingOut = ref(false);

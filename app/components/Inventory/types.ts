@@ -12,10 +12,7 @@ export const productCategories: {
 	{ label: 'Other', value: 'other' },
 ];
 
-const productCategorySchema = z._default(
-	z.enum(['onigiri', 'food', 'snacks', 'other']),
-	'other',
-);
+const productCategorySchema = z.enum(['onigiri', 'food', 'snacks', 'other']);
 
 export const insertProductSchema = z.object({
 	productname: z.string().check(z.minLength(1, 'Please enter a Name')),

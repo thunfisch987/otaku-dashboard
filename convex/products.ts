@@ -28,7 +28,7 @@ async function readOnigiriPricing(ctx: ProductContext) {
 }
 
 function applyOnigiriPricing<
-	T extends { category?: string; price: number; helperPrice?: number },
+	T extends { category: string; price: number; helperPrice?: number },
 >(product: T, pricing: Awaited<ReturnType<typeof readOnigiriPricing>>): T {
 	if (product.category !== 'onigiri' || !pricing) return product;
 	const { helperPrice: _storedHelperPrice, ...productFields } = product;
@@ -61,6 +61,68 @@ export const list = query({
 				applyOnigiriPricing(product, pricing),
 			),
 		};
+	},
+});
+
+/**
+ * POS catalogue: ordered by category, then name, so a paginated load stays
+ * category-contiguous and the grid can group items without reordering.
+ * `category` narrows the catalogue to one section.
+ */
+export const listForPos = query({
+	args: {
+		paginationOpts: paginationOptsValidator,
+		category: v.optional(productCategoryValidator),
+	},
+	returns: paginationResultValidator(schema.doc('products')),
+	handler: async (ctx, args) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new Error('Not authenticated');
+		}
+
+		const { category } = args;
+		const products = category
+			? ctx.db
+					.query('products')
+					.withIndex('by_category', (q) => q.eq('category', category))
+			: ctx.db.query('products').withIndex('by_category');
+		const page = await products.order('asc').paginate(args.paginationOpts);
+		const pricing = await readOnigiriPricing(ctx);
+		return {
+			...page,
+			page: page.page.map((product) =>
+				applyOnigiriPricing(product, pricing),
+			),
+		};
+	},
+});
+
+/**
+ * Current prices and stock for the products in the cart. The POS keeps cart
+ * snapshots, and in filter mode the cart can hold products the visible
+ * category query no longer returns, so those snapshots need their own
+ * subscription to stay truthful before checkout.
+ */
+export const byIds = query({
+	args: { ids: v.array(v.id('products')) },
+	returns: v.array(schema.doc('products')),
+	handler: async (ctx, args) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new Error('Not authenticated');
+		}
+		if (args.ids.length > 200) {
+			throw new Error('Too many products requested at once');
+		}
+
+		const pricing = await readOnigiriPricing(ctx);
+		const products: Doc<'products'>[] = [];
+		for (const id of args.ids) {
+			const product = await ctx.db.get(id);
+			if (product) products.push(applyOnigiriPricing(product, pricing));
+		}
+		return products;
 	},
 });
 
@@ -205,7 +267,7 @@ export const create = mutation({
 		price: v.number(),
 		helperPrice: v.optional(v.number()),
 		supplyCost: v.optional(v.number()),
-		category: v.optional(productCategoryValidator),
+		category: productCategoryValidator,
 		supplier: v.union(v.literal('HDJ'), v.literal('Otaku')),
 		amount: v.number(),
 	},
@@ -240,7 +302,7 @@ export const create = mutation({
 		}
 
 		const now = Date.now();
-		const category = args.category ?? 'other';
+		const { category } = args;
 		let price = args.price;
 		let helperPrice = args.helperPrice;
 		let onigiriPricing: Doc<'productCategoryPricing'> | null = null;
@@ -372,8 +434,7 @@ export const update = mutation({
 		const effectiveCurrentHelperPrice = existingPricing
 			? existingPricing.helperPrice
 			: existingProduct.helperPrice;
-		const category =
-			updates.category ?? existingProduct.category ?? 'other';
+		const category = updates.category ?? existingProduct.category;
 		let price = updates.price ?? effectiveCurrentPrice;
 		let helperPrice =
 			updates.helperPrice === null

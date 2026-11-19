@@ -28,6 +28,12 @@ environment variables, and the full dev-login walkthrough live in
   product and per form item and totalled in the preparation view. Expected
   revenue per submission is not tracked.
 
+## Data maturity
+
+- The app is not in use yet and holds no production data. Treat the schema as
+  free to change: no backfills, migrations, or compatibility shims for legacy
+  rows, and dev data may be reset or reseeded.
+
 ## Scope and checkpoints
 
 - When a request asks only to plan, review, audit, or answer a question, do not
