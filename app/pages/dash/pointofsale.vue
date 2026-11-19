@@ -72,12 +72,42 @@
 				aria-labelledby="products-heading"
 				class="space-y-4"
 			>
-				<h2
-					id="products-heading"
-					class="text-xl font-semibold"
-				>
-					Products
-				</h2>
+				<div class="flex flex-wrap items-center justify-between gap-3">
+					<h2
+						id="products-heading"
+						class="text-xl font-semibold"
+					>
+						Products
+					</h2>
+					<div
+						class="inline-flex items-center gap-0.5 rounded-lg border border-muted p-0.5"
+						role="group"
+						aria-label="Category chip behaviour"
+					>
+						<UButton
+							size="xs"
+							class="px-3"
+							:variant="chipsScroll ? 'solid' : 'ghost'"
+							:color="chipsScroll ? 'primary' : 'neutral'"
+							:aria-pressed="chipsScroll"
+							title="Chips scroll to that category and keep the other categories visible"
+							@click="setChipMode('jump')"
+						>
+							Jump
+						</UButton>
+						<UButton
+							size="xs"
+							class="px-3"
+							:variant="chipsScroll ? 'ghost' : 'solid'"
+							:color="chipsScroll ? 'neutral' : 'primary'"
+							:aria-pressed="!chipsScroll"
+							title="Chips show only that category"
+							@click="setChipMode('filter')"
+						>
+							Filter
+						</UButton>
+					</div>
+				</div>
 				<div
 					ref="chipsBar"
 					class="sticky top-[var(--ui-header-height,4rem)] z-20 -mx-2 flex flex-wrap items-center gap-2 border-b border-muted bg-default/95 px-2 py-2 backdrop-blur"
@@ -369,11 +399,25 @@ const categoryOptions: { label: string; value: CategoryFilter }[] = [
 ];
 const selectedCategory = ref<CategoryFilter>('all');
 
-// Chips scroll to a category section by default, so switching category never
-// reloads the catalogue. `?chips=filter` keeps the earlier filter variant for
-// comparison until the decision is made.
-const route = useRoute();
-const chipsScroll = computed(() => route.query.chips !== 'filter');
+// Chips either scroll to a category section (default: switching category never
+// reloads the catalogue) or filter the catalogue to it. The choice is per
+// device and survives reloads.
+type ChipMode = 'jump' | 'filter';
+const CHIP_MODE_STORAGE_KEY = 'pos-category-chip-mode';
+const chipMode = ref<ChipMode>('jump');
+const chipsScroll = computed(() => chipMode.value === 'jump');
+
+function setChipMode(mode: ChipMode) {
+	chipMode.value = mode;
+	// Filter mode starts from the complete catalogue instead of inheriting a
+	// category the operator picked while jumping.
+	if (mode === 'filter') selectedCategory.value = 'all';
+	try {
+		localStorage.setItem(CHIP_MODE_STORAGE_KEY, mode);
+	} catch {
+		// The preference still applies for this page; only persistence fails.
+	}
+}
 // The sticky bar's height is the scroll offset, so it stays visible and never
 // covers the heading it jumped to (it wraps on narrow screens).
 const chipsBar = useTemplateRef<HTMLElement>('chipsBar');
@@ -601,6 +645,12 @@ function updateVisibleCategory() {
 }
 
 onMounted(() => {
+	try {
+		const stored = localStorage.getItem(CHIP_MODE_STORAGE_KEY);
+		if (stored === 'jump' || stored === 'filter') chipMode.value = stored;
+	} catch {
+		// No stored preference: keep the default.
+	}
 	window.addEventListener('scroll', updateVisibleCategory, {
 		passive: true,
 	});
