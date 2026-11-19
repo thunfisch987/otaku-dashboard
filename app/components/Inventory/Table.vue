@@ -368,13 +368,16 @@ const pagination = useState('pagination', () => ({
 const columnVisibility = ref({
 	_id: false,
 });
-const globalFilter = useState<string>('globalFilter');
+const globalFilter = useState<string>('globalFilter', () => '');
 
 const facetedSelectValue = useState('facetedSelectValue');
 const stockFilter = useState('inventoryStockFilter', () => 'all');
 
 const exportFilteredEnabled = computed((): boolean => {
-	if (table.value?.tableApi.getCoreRowModel().rows.length === 0) {
+	if (
+		!table.value ||
+		table.value.tableApi.getCoreRowModel().rows.length === 0
+	) {
 		return false;
 	} else {
 		if (

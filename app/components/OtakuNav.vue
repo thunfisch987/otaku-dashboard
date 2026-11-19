@@ -3,7 +3,6 @@
 		v-model:open="menuOpen"
 		to="/"
 		title="Otaku Dashboard"
-		:toggle="signedIn"
 	>
 		<template #title>
 			<NuxtImg
@@ -11,6 +10,26 @@
 				class="h-16 w-16"
 				alt="Logo der Anitoria Trier"
 			/>
+		</template>
+
+		<!--
+			The session resolves only on the client, so the toggle must live in a
+			stable client-only boundary. Rendering it from `signedIn` directly
+			would make the server render no button while the client hydrates one.
+		-->
+		<template #toggle="{ open, toggle, ui }">
+			<ClientOnly>
+				<UButton
+					v-if="signedIn"
+					color="neutral"
+					variant="ghost"
+					:aria-label="open ? 'Close menu' : 'Open menu'"
+					:icon="open ? 'i-lucide-x' : 'i-lucide-menu'"
+					data-slot="toggle"
+					:class="ui.toggle({ toggleSide: 'right' })"
+					@click="toggle"
+				/>
+			</ClientOnly>
 		</template>
 
 		<template #default>
