@@ -80,7 +80,7 @@
 				</h2>
 				<div
 					ref="chipsBar"
-					class="sticky top-0 z-20 -mx-2 flex flex-wrap items-center gap-2 border-b border-muted bg-default/95 px-2 py-2 backdrop-blur"
+					class="sticky top-[var(--ui-header-height,4rem)] z-20 -mx-2 flex flex-wrap items-center gap-2 border-b border-muted bg-default/95 px-2 py-2 backdrop-blur"
 					role="group"
 					:aria-label="
 						chipsScroll
@@ -497,12 +497,23 @@ function prefersReducedMotion() {
 	return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+function headerHeight() {
+	const header = document.querySelector('header');
+	return header instanceof HTMLElement ? header.offsetHeight : 0;
+}
+
 function scrollToSection(id: string) {
 	const target = document.getElementById(id);
 	if (!target) return;
 	const barHeight = chipsBar.value?.getBoundingClientRect().height ?? 0;
+	// Reserve the header too: jumping to a section near the top brings the
+	// sticky header back into view.
 	const top =
-		target.getBoundingClientRect().top + window.scrollY - barHeight - 12;
+		target.getBoundingClientRect().top +
+		window.scrollY -
+		headerHeight() -
+		barHeight -
+		12;
 	window.scrollTo({
 		top: Math.max(0, top),
 		behavior: prefersReducedMotion() ? 'auto' : 'smooth',
@@ -533,7 +544,9 @@ function updateVisibleCategory() {
 		document.querySelectorAll<HTMLElement>('[data-pos-category]'),
 	);
 	const barHeight =
-		(chipsBar.value?.getBoundingClientRect().height ?? 0) + 24;
+		headerHeight() +
+		(chipsBar.value?.getBoundingClientRect().height ?? 0) +
+		24;
 	let current: CategoryFilter = 'all';
 	for (const section of sections) {
 		if (section.getBoundingClientRect().top > barHeight) break;
