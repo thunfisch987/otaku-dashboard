@@ -31,6 +31,7 @@ const applicationTables = {
 		updatedAt: v.number(),
 	})
 		.index('by_productname', ['productname'])
+		.index('by_category', ['category', 'productname'])
 		.index('by_supplier', ['supplier']),
 
 	productCategoryPricing: defineTable({

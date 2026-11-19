@@ -79,6 +79,31 @@
 					Products
 				</h2>
 				<div
+					class="flex flex-wrap items-center gap-2"
+					role="group"
+					aria-label="Filter products by category"
+				>
+					<UButton
+						v-for="option in categoryOptions"
+						:key="option.value"
+						class="min-h-11 px-4"
+						:variant="
+							selectedCategory === option.value
+								? 'solid'
+								: 'outline'
+						"
+						:color="
+							selectedCategory === option.value
+								? 'primary'
+								: 'neutral'
+						"
+						:aria-pressed="selectedCategory === option.value"
+						@click="selectedCategory = option.value"
+					>
+						{{ option.label }}
+					</UButton>
+				</div>
+				<div
 					v-if="convexAuthLoading || productsPending"
 					class="py-8 text-center"
 				>
@@ -95,50 +120,72 @@
 					v-else-if="availableProducts.length === 0"
 					class="rounded-lg border p-4"
 				>
-					No products are available.
+					{{ emptyProductsMessage }}
 				</div>
 				<div
 					v-else
-					class="grid grid-cols-2 gap-3 sm:grid-cols-3"
+					class="space-y-8"
 				>
-					<UButton
-						v-for="product in availableProducts"
-						:key="product._id"
-						variant="outline"
-						color="neutral"
-						class="min-h-32 justify-start whitespace-normal p-0 text-left"
-						:disabled="
-							product.amount <= (cart[product._id] ?? 0) ||
-							isCheckingOut
-						"
-						@click="addToCart(product._id as Id<'products'>)"
+					<section
+						v-for="group in productGroups"
+						:key="group.category"
+						:aria-labelledby="`pos-category-${group.category}`"
 					>
-						<div class="w-full p-4">
-							<span class="block text-base font-semibold">{{
-								product.productname
-							}}</span>
-							<span class="mt-1 block">{{
-								formatCurrency(effectivePrice(product))
-							}}</span>
-							<span
-								v-if="
-									isHelperCheckout &&
-									product.helperPrice === undefined
+						<h3
+							:id="`pos-category-${group.category}`"
+							class="mb-3 text-sm font-semibold tracking-wide text-muted uppercase"
+						>
+							{{ group.label }}
+						</h3>
+						<div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+							<UButton
+								v-for="product in group.products"
+								:key="product._id"
+								variant="outline"
+								color="neutral"
+								class="min-h-32 justify-start whitespace-normal p-0 text-left"
+								:disabled="
+									product.amount <=
+										(cart[product._id] ?? 0) ||
+									isCheckingOut
 								"
-								class="mt-1 block text-xs text-muted"
+								@click="addToCart(product)"
 							>
-								Regular price
-							</span>
-							<span class="mt-1 block text-sm text-muted">
-								{{ product.amount - (cart[product._id] ?? 0) }}
-								in stock
-							</span>
+								<div class="w-full p-4">
+									<span
+										class="block text-base font-semibold"
+										>{{ product.productname }}</span
+									>
+									<span class="mt-1 block">{{
+										formatCurrency(effectivePrice(product))
+									}}</span>
+									<span
+										v-if="
+											isHelperCheckout &&
+											product.helperPrice === undefined
+										"
+										class="mt-1 block text-xs text-muted"
+									>
+										Regular price
+									</span>
+									<span class="mt-1 block text-sm text-muted">
+										{{
+											product.amount -
+											(cart[product._id] ?? 0)
+										}}
+										in stock
+									</span>
+								</div>
+							</UButton>
 						</div>
-					</UButton>
+					</section>
 				</div>
 				<div
 					v-if="
-						convexAuthenticated && !productsError && !productsDone
+						convexAuthenticated &&
+						!productsPending &&
+						!productsError &&
+						!productsDone
 					"
 					class="flex justify-center"
 				>
@@ -226,11 +273,7 @@
 								color="neutral"
 								class="h-11 w-11 justify-center text-lg"
 								:disabled="isCheckingOut"
-								@click="
-									removeFromCart(
-										item.product._id as Id<'products'>,
-									)
-								"
+								@click="removeFromCart(item.product._id)"
 							>
 								−
 							</UButton>
@@ -246,11 +289,7 @@
 									isCheckingOut ||
 									item.quantity >= item.product.amount
 								"
-								@click="
-									addToCart(
-										item.product._id as Id<'products'>,
-									)
-								"
+								@click="addToCart(item.product)"
 							>
 								+
 							</UButton>
@@ -299,8 +338,34 @@
 import { api } from '#convex/api';
 import { formatCurrency } from '~/utils/currency';
 import { createRequestId } from '~/utils/requestId';
-import { productArraySchema } from '~/components/Inventory/types';
+import {
+	productArraySchema,
+	productCategories,
+} from '~/components/Inventory/types';
+import type {
+	ProductCategory,
+	ProductSchema,
+} from '~/components/Inventory/types';
+import { productCategoryLabel } from '~/components/Inventory/format';
 import type { Id } from '~~/convex/_generated/dataModel';
+
+type CategoryFilter = 'all' | ProductCategory;
+
+const categoryOptions: { label: string; value: CategoryFilter }[] = [
+	{ label: 'All', value: 'all' },
+	...productCategories,
+];
+const selectedCategory = ref<CategoryFilter>('all');
+const selectedCategoryLabel = computed(() =>
+	selectedCategory.value === 'all'
+		? ''
+		: productCategoryLabel(selectedCategory.value),
+);
+const emptyProductsMessage = computed(() =>
+	selectedCategory.value === 'all'
+		? 'No products are available.'
+		: `No ${selectedCategoryLabel.value} products are available.`,
+);
 
 const { isLoading: convexAuthLoading, isAuthenticated: convexAuthenticated } =
 	useAppConvexAuth();
@@ -311,9 +376,12 @@ const connection = useConvexConnectionState();
 const convexConnected = computed(
 	() => connection.state.value?.isWebSocketConnected ?? true,
 );
-const productsQueryArgs = computed(() =>
-	convexAuthLoading.value || !convexAuthenticated.value ? 'skip' : {},
-);
+const productsQueryArgs = computed(() => {
+	if (convexAuthLoading.value || !convexAuthenticated.value) return 'skip';
+	return selectedCategory.value === 'all'
+		? {}
+		: { category: selectedCategory.value };
+});
 const {
 	data: products,
 	isPending: productsPending,
@@ -321,7 +389,7 @@ const {
 	isLoadingMore: loadingMoreProducts,
 	loadMore: loadMoreProducts,
 	error: productsError,
-} = useConvexPaginatedQuery(api.products.list, productsQueryArgs, {
+} = useConvexPaginatedQuery(api.products.listForPos, productsQueryArgs, {
 	numItems: 200,
 });
 
@@ -329,14 +397,36 @@ const availableProducts = computed(() => {
 	const parsed = productArraySchema.safeParse(products.value);
 	return parsed.success ? parsed.data : [];
 });
-const cart = reactive<Record<string, number>>({});
+const productGroups = computed(() =>
+	(['onigiri', 'food', 'snacks', 'other'] as ProductCategory[])
+		.map((category) => ({
+			category,
+			label: productCategoryLabel(category),
+			products: availableProducts.value.filter(
+				(product) => product.category === category,
+			),
+		}))
+		.filter((group) => group.products.length > 0),
+);
+const cart = ref<Record<string, number>>({});
+// Product snapshots for cart lines: switching the category filter drops other
+// products from the query, but a cart line must keep its name, price, and
+// stock until checkout.
+const cartProducts = ref<Record<string, ProductSchema>>({});
 const isHelperCheckout = ref(false);
 const cartItems = computed(() =>
-	availableProducts.value.flatMap((product) => {
-		const quantity = cart[product._id] ?? 0;
-		return quantity > 0 ? [{ product, quantity }] : [];
+	Object.entries(cart.value).flatMap(([id, quantity]) => {
+		const product = cartProducts.value[id];
+		return quantity > 0 && product ? [{ product, quantity }] : [];
 	}),
 );
+watch(availableProducts, (products) => {
+	for (const product of products) {
+		if (cart.value[product._id] !== undefined) {
+			cartProducts.value[product._id] = product;
+		}
+	}
+});
 const cartTotal = computed(() =>
 	cartItems.value.reduce(
 		(total, item) => total + effectivePrice(item.product) * item.quantity,
@@ -351,26 +441,28 @@ function effectivePrice(product: { price: number; helperPrice?: number }) {
 	return Math.round(price * 100) / 100;
 }
 
-function addToCart(id: Id<'products'>) {
-	const product = availableProducts.value.find((item) => item._id === id);
-	if (!product || (cart[id] ?? 0) >= product.amount) return;
-	cart[id] = (cart[id] ?? 0) + 1;
+function addToCart(product: ProductSchema) {
+	const quantity = cart.value[product._id] ?? 0;
+	if (quantity >= product.amount) return;
+	cartProducts.value[product._id] = product;
+	cart.value[product._id] = quantity + 1;
 	checkoutErrorTitle.value = '';
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
 
-function removeFromCart(id: Id<'products'>) {
-	const quantity = cart[id] ?? 0;
-	if (quantity <= 1) cart[id] = 0;
-	else cart[id] = quantity - 1;
+function removeFromCart(id: string) {
+	const quantity = cart.value[id] ?? 0;
+	if (quantity <= 1) cart.value[id] = 0;
+	else cart.value[id] = quantity - 1;
 	checkoutErrorTitle.value = '';
 	checkoutError.value = '';
 	checkoutSuccess.value = '';
 }
 
 function clearCart() {
-	for (const id of Object.keys(cart)) cart[id] = 0;
+	cart.value = {};
+	cartProducts.value = {};
 	isHelperCheckout.value = false;
 	checkoutErrorTitle.value = '';
 	checkoutError.value = '';

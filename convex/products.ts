@@ -64,6 +64,40 @@ export const list = query({
 	},
 });
 
+/**
+ * POS catalogue: ordered by category, then name, so a paginated load stays
+ * category-contiguous and the grid can group items without reordering.
+ * `category` narrows the catalogue to one section.
+ */
+export const listForPos = query({
+	args: {
+		paginationOpts: paginationOptsValidator,
+		category: v.optional(productCategoryValidator),
+	},
+	returns: paginationResultValidator(schema.doc('products')),
+	handler: async (ctx, args) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			throw new Error('Not authenticated');
+		}
+
+		const { category } = args;
+		const products = category
+			? ctx.db
+					.query('products')
+					.withIndex('by_category', (q) => q.eq('category', category))
+			: ctx.db.query('products').withIndex('by_category');
+		const page = await products.order('asc').paginate(args.paginationOpts);
+		const pricing = await readOnigiriPricing(ctx);
+		return {
+			...page,
+			page: page.page.map((product) =>
+				applyOnigiriPricing(product, pricing),
+			),
+		};
+	},
+});
+
 export const getById = query({
 	args: { id: v.id('products') },
 	returns: v.union(v.null(), schema.doc('products')),
