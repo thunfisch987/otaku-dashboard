@@ -25,8 +25,7 @@ const applicationTables = {
 		helperPrice: v.optional(v.number()),
 		// Optional cost to prepare one unit; absent costs remain unknown.
 		supplyCost: v.optional(v.number()),
-		// Optional while existing inventory products are being categorized.
-		category: v.optional(productCategoryValidator),
+		category: productCategoryValidator,
 		supplier: v.union(v.literal('HDJ'), v.literal('Otaku')),
 		amount: v.number(),
 		updatedAt: v.number(),

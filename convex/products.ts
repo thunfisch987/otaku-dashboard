@@ -28,7 +28,7 @@ async function readOnigiriPricing(ctx: ProductContext) {
 }
 
 function applyOnigiriPricing<
-	T extends { category?: string; price: number; helperPrice?: number },
+	T extends { category: string; price: number; helperPrice?: number },
 >(product: T, pricing: Awaited<ReturnType<typeof readOnigiriPricing>>): T {
 	if (product.category !== 'onigiri' || !pricing) return product;
 	const { helperPrice: _storedHelperPrice, ...productFields } = product;
@@ -205,7 +205,7 @@ export const create = mutation({
 		price: v.number(),
 		helperPrice: v.optional(v.number()),
 		supplyCost: v.optional(v.number()),
-		category: v.optional(productCategoryValidator),
+		category: productCategoryValidator,
 		supplier: v.union(v.literal('HDJ'), v.literal('Otaku')),
 		amount: v.number(),
 	},
@@ -240,7 +240,7 @@ export const create = mutation({
 		}
 
 		const now = Date.now();
-		const category = args.category ?? 'other';
+		const { category } = args;
 		let price = args.price;
 		let helperPrice = args.helperPrice;
 		let onigiriPricing: Doc<'productCategoryPricing'> | null = null;
@@ -372,8 +372,7 @@ export const update = mutation({
 		const effectiveCurrentHelperPrice = existingPricing
 			? existingPricing.helperPrice
 			: existingProduct.helperPrice;
-		const category =
-			updates.category ?? existingProduct.category ?? 'other';
+		const category = updates.category ?? existingProduct.category;
 		let price = updates.price ?? effectiveCurrentPrice;
 		let helperPrice =
 			updates.helperPrice === null

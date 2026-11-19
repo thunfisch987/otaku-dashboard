@@ -1,16 +1,13 @@
 import type { ProductSchema } from './types';
 
 export function productCategoryLabel(category: ProductSchema['category']) {
-	const labels: Record<
-		Exclude<ProductSchema['category'], undefined>,
-		string
-	> = {
+	const labels: Record<ProductSchema['category'], string> = {
 		onigiri: 'Onigiri',
 		food: 'Food',
 		snacks: 'Snacks',
 		other: 'Other',
 	};
-	return (category && labels[category]) ?? '—';
+	return labels[category];
 }
 
 /**

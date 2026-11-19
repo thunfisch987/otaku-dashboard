@@ -405,7 +405,7 @@ type FormProduct = {
 	productname: string;
 	price: number;
 	amount: number;
-	category?: ProductCategory;
+	category: ProductCategory;
 };
 
 const formState = reactive({
