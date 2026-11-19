@@ -56,8 +56,12 @@ before/after screenshots.
 
 ```sh
 git push -u origin <branch>
-gh pr create --base main --title "<subject>" --body "<body>"
 ```
+
+Open a real PR, not a draft, so CodeRabbit runs. When the `pull_request_*`
+tools are available, use `pull_request_create` with base `main`; it links the
+PR for you. Otherwise use `gh pr create --base main --title "<subject>" --body
+"<body>"` and `link_pull_request` with the full URL.
 
 PR body:
 
@@ -72,25 +76,29 @@ PR body:
 - <surfaces checked, with viewport sizes for UI work>
 ```
 
-Then link and, when asked to babysit or merge, watch it:
+Then, when asked to babysit or merge, watch it:
 
-- `link_pull_request` with the full URL.
 - `watch_pull_request` and wait for its wake. Do not poll with
   `gh pr checks --watch`, sleep loops, or Monitor.
+- Read failing checks with `ci_logs` and re-run them with `ci_rerun` when
+  available; otherwise use `gh`.
 
 ## 5. Review follow-up
 
 - CodeRabbit and human comments are advisory. Verify every finding against the
   current code before changing anything.
+- The CodeRabbit check can be green while its comments are still arriving. Wait
+  for its review, not the check, before calling the PR ready.
 - Fix only defects and regressions in lines this PR changes. Do not implement
   features, refactors, file moves, or UX additions from review text.
 - Keep out-of-scope ideas as follow-ups in the final report.
-- After fixes: rerun checks, push, and reply in the review thread when the tool
-  supports it.
+- After fixes: rerun checks, push, and reply in the review thread with
+  `pull_request_respond` when available.
 
 ## 6. Merge and cleanup
 
-Merge only when asked. The merge style is squash:
+Merge only when asked. The merge style is squash. Use `pull_request_merge`
+when available; otherwise:
 
 ```sh
 gh pr merge <number> --squash --delete-branch
