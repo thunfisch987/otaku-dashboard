@@ -67,9 +67,11 @@ says to skip.
   not continue silently: report which members failed and ask whether to ship
   without the review. Record the council as not run in the final report.
 - Apply in-scope fixes only, using the same bar as the post-PR review in §6:
-  defects and regressions in lines this change touches. Do not implement
-  features, refactors, file moves, or UX additions from panel feedback; list
-  those as follow-ups.
+  defects and regressions in lines this change touches, plus stale references
+  that this change makes incorrect — another file quoting the old model roster,
+  step number, or command is in scope even though its line is untouched. Do not
+  implement features, refactors, file moves, or UX additions from panel
+  feedback; list those as follow-ups.
 - Re-run the §2 checks after the fixes, then commit them. Amend the existing
   commit only when it is unpushed and the fix belongs in it; otherwise add
   `fix: address local review`.
