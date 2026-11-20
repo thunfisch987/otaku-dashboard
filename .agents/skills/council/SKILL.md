@@ -1,6 +1,6 @@
 ---
 name: council
-description: Two-model OpenRouter review panel (Ernie 5.5 Flash Preview, North Mini Code). Shared base for the council-plan, council-review, and council-ship skills; also usable standalone whenever the user asks for a council/panel review or second opinions.
+description: Two-model OpenCode Go review panel (GPT-6 Luna, Claude Haiku 5.5). Shared base for the council-plan, council-review, and council-ship skills; also usable standalone whenever the user asks for a council/panel review or second opinions.
 ---
 
 # Council
@@ -12,12 +12,20 @@ those instructions win for their workflow stage.
 
 ## Roster
 
-| Member          | Preferred model ID                              |
-| --------------- | ----------------------------------------------- |
-| Ernie 5.5 Flash | `openrouter/baidu/ernie-5.5-flash-preview:free` |
-| North Mini Code | `openrouter/cohere/north-mini-code:free`        |
+| Member | Provider instance | Model ID                       | Options         | USD / Mtok (in / out) |
+| ------ | ----------------- | ------------------------------ | --------------- | --------------------- |
+| Luna   | `opencode`        | `opencode-go/gpt-6-luna`       | `variant: high` | 0.10 / 0.50           |
+| Haiku  | `opencode`        | `opencode-go/claude-haiku-5-5` | `variant: high` | 0.10 / 0.50           |
 
-The table above is a snapshot, not a contract. Model names and free status drift.
+Both members share the same base rate on OpenCode Go, so pick the effort variant,
+not the price, to control a round. They come from different families (GPT and
+Claude), so their blind spots are less likely to overlap; when the authoring
+model shares one of those families, weigh their agreement accordingly. Haiku's
+rate rises fivefold above 100k input tokens, so send the important hunks rather
+than a whole generated diff.
+
+The table above is a snapshot, not a contract. Model IDs, variants, and prices
+drift.
 
 ## Procedure
 
@@ -33,17 +41,17 @@ The table above is a snapshot, not a contract. Model names and free status drift
    subagent changes, each authoring subagent reviews its own change separately;
    do not combine their diffs unless the user asks for a combined review.
 
-1. **Check the roster at runtime.** In T3 Code, use `orchestrator_capabilities`
-   to confirm the OpenRouter connection, model IDs, and delegate tool before
-   launching. Treat a model as _free_ only when the live catalog confirms the
-   exact `:free` variant (or an explicitly zero-priced free variant). Treat it
-   as _available_ only when this harness can route to it; a catalog entry alone
-   does not prove account access, quota, or provider uptime. Do not use OpenCode's
-   free inference for this roster.
+1. **Check the roster at runtime.** In T3 Code, call `orchestrator_capabilities`
+   with `search` when a model is missing from the short list, to confirm the
+   provider instance, model IDs, and `variant` values before launching. Treat a
+   model as _available_ only when this harness can route to it; a catalog entry
+   alone does not prove quota or uptime. Use the paid `opencode-go/*` IDs, not
+   the `opencode/*-free` variants: free inference is rate-limited and is not
+   this roster.
 2. **Handle availability honestly.** If a roster member is missing from the
-   catalog or is no longer listed as free, tell the user before launching and
-   ask whether to proceed with fewer members or edit the roster. Do not silently
-   substitute or use a paid variant. If a launch later fails due to account
+   catalog or cannot launch, tell the user before launching and ask whether to
+   proceed with fewer members or edit the roster. Do not silently substitute a
+   different model or fall back to a free variant. If a launch later fails due to
    access, quota, or provider errors, report that member as unavailable; do not
    retry repeatedly or quietly replace it.
 3. **Gather the material to review** (varies by invoking skill: a plan document,
@@ -51,7 +59,12 @@ The table above is a snapshot, not a contract. Model names and free status drift
    every delegate.
 4. **Launch one independent review task per member in parallel.** In T3 Code,
    prepare the same review prompt and material for each member, then issue all
-   `delegate_task` calls before waiting for any result. Use asynchronous launches
+   `delegate_task` calls before waiting for any result. Target each member
+   explicitly, because the two rows use different models:
+   `target: { providerInstanceId: "opencode", model: "<roster model ID>", options: { variant: "high" } }`,
+   with `role: "review"`. The model ID keeps its `opencode-go/` prefix; only the
+   provider instance is `opencode`. Keep reviewers read-only: tell them not to
+   edit files and do not raise their runtime mode. Use asynchronous launches
    (for example, start the calls together with `Promise.all`) so a blocking
    `mode: "wait"` call cannot serialize the panel. Keep each task's returned
    `taskId`; after all launches have been attempted, collect the results using
