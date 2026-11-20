@@ -89,7 +89,7 @@
 						active-color="primary"
 						active-variant="solid"
 						aria-label="Category chip behaviour"
-						@update:model-value="setChipMode($event as ChipMode)"
+						@update:model-value="setChipMode($event)"
 					/>
 				</div>
 				<div
@@ -415,12 +415,16 @@ const chipModeOptions = [
 ];
 const chipsScroll = computed(() => chipMode.value === 'jump');
 
-function setChipMode(mode: ChipMode) {
-	chipModeCookie.value = mode;
+// A single-select toggle group emits `undefined` when the active item is
+// clicked again; that is a deselect, not a change of behaviour.
+function setChipMode(value: unknown) {
+	if (value !== 'jump' && value !== 'filter') return;
+	chipModeCookie.value = value;
 	// Filter mode starts from the complete catalogue instead of inheriting a
 	// category the operator picked while jumping.
-	if (mode === 'filter') selectedCategory.value = 'all';
+	if (value === 'filter') selectedCategory.value = 'all';
 }
+
 // The sticky bar's height is the scroll offset, so it stays visible and never
 // covers the heading it jumped to (it wraps on narrow screens).
 const chipsBar = useTemplateRef<HTMLElement>('chipsBar');
