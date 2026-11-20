@@ -59,9 +59,13 @@ CodeRabbit and CI spend a round on them. Run this once per branch, before the
 first push. Skip it only when the request is commit-only or the user explicitly
 says to skip.
 
-- Load the `council` skill and run the panel on `origin/main...HEAD` with one
-  short paragraph of intent and the checks already run. Include any untracked
-  files that belong to the change.
+- Load the `council` skill and run the panel on the committed branch diff,
+  `origin/main...HEAD`, with one short paragraph of intent and the checks
+  already run. Anything that belongs to the change must be committed first; do
+  not point reviewers at untracked files.
+- If the panel cannot launch at all (provider unavailable, quota, or auth), do
+  not continue silently: report which members failed and ask whether to ship
+  without the review. Record the council as not run in the final report.
 - Apply in-scope fixes only, using the same bar as the post-PR review in §6:
   defects and regressions in lines this change touches. Do not implement
   features, refactors, file moves, or UX additions from panel feedback; list
@@ -69,8 +73,11 @@ says to skip.
 - Re-run the §2 checks after the fixes, then commit them. Amend the existing
   commit only when it is unpushed and the fix belongs in it; otherwise add
   `fix: address local review`.
-- Report the merged verdict, the findings applied, and the skipped findings with
-  one-line reasons. Do not add council results to the PR description.
+- Run another panel round only when the fixes change behavior enough to warrant
+  a fresh look, within the council's three-round limit.
+- Report the merged verdict, the score table, the findings applied, and the
+  skipped findings with one-line reasons. Do not add council results to the PR
+  description.
 
 ## 5. Push and PR
 

@@ -17,11 +17,12 @@ those instructions win for their workflow stage.
 | Luna   | `opencode`        | `opencode-go/gpt-6-luna`       | `variant: high` | 0.10 / 0.50           |
 | Haiku  | `opencode`        | `opencode-go/claude-haiku-5-5` | `variant: high` | 0.10 / 0.50           |
 
-Both members run on OpenCode Go and cost the same, so pick the effort variant,
+Both members share the same base rate on OpenCode Go, so pick the effort variant,
 not the price, to control a round. They come from different families (GPT and
-Claude), and neither is the DeepSeek authoring model's family, so agreement
-between them is real signal. Haiku's rate doubles above 100k input tokens, so
-send the important hunks rather than a whole generated diff.
+Claude), so their blind spots are less likely to overlap; when the authoring
+model shares one of those families, weigh their agreement accordingly. Haiku's
+rate rises fivefold above 100k input tokens, so send the important hunks rather
+than a whole generated diff.
 
 The table above is a snapshot, not a contract. Model IDs, variants, and prices
 drift.
@@ -40,8 +41,8 @@ drift.
    subagent changes, each authoring subagent reviews its own change separately;
    do not combine their diffs unless the user asks for a combined review.
 
-1. **Check the roster at runtime.** In T3 Code, use `orchestrator_capabilities`
-   (pass `search` when a model is missing from the short list) to confirm the
+1. **Check the roster at runtime.** In T3 Code, call `orchestrator_capabilities`
+   with `search` when a model is missing from the short list, to confirm the
    provider instance, model IDs, and `variant` values before launching. Treat a
    model as _available_ only when this harness can route to it; a catalog entry
    alone does not prove quota or uptime. Use the paid `opencode-go/*` IDs, not
@@ -61,8 +62,9 @@ drift.
    `delegate_task` calls before waiting for any result. Target each member
    explicitly, because the two rows use different models:
    `target: { providerInstanceId: "opencode", model: "<roster model ID>", options: { variant: "high" } }`,
-   with `role: "review"`. Keep reviewers read-only: tell them not to edit files
-   and do not raise their runtime mode. Use asynchronous launches
+   with `role: "review"`. The model ID keeps its `opencode-go/` prefix; only the
+   provider instance is `opencode`. Keep reviewers read-only: tell them not to
+   edit files and do not raise their runtime mode. Use asynchronous launches
    (for example, start the calls together with `Promise.all`) so a blocking
    `mode: "wait"` call cannot serialize the panel. Keep each task's returned
    `taskId`; after all launches have been attempted, collect the results using
