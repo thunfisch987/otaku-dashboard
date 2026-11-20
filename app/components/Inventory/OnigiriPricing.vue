@@ -332,19 +332,22 @@ async function savePricing() {
 		});
 	}
 	try {
-		await updatePricing({ price: regular, helperPrice });
+		await toast.promise(updatePricing({ price: regular, helperPrice }), {
+			loading: { title: 'Saving shared Onigiri prices…' },
+			success: {
+				// Counted statements live in the pre-save summary above the
+				// button; the toast stays count-free so it can never quote
+				// stale numbers.
+				title: 'Shared Onigiri prices saved — every Onigiri product now uses these prices',
+				color: 'success',
+			},
+		});
 		// The saved prices are authoritative again; the subscription refresh
 		// can now repopulate both fields. Apply it here too, because an update
 		// that arrived during the save was skipped while the flags were set.
 		edited.price = false;
 		edited.helperPrice = false;
 		applyPricing(pricing.value?.price, pricing.value?.helperPrice);
-		// Counted statements live in the pre-save summary above the button;
-		// the toast stays count-free so it can never quote stale numbers.
-		toast.add({
-			title: 'Shared Onigiri prices saved — every Onigiri product now uses these prices',
-			color: 'success',
-		});
 	} catch {
 		// The mutation error is shown above the save button.
 	}

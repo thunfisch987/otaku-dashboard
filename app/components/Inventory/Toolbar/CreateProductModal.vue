@@ -150,25 +150,31 @@ async function createProduct(
 	}
 
 	try {
-		await mutate({
-			productname: formSubmitEvent.data.productname,
-			price,
-			category: formSubmitEvent.data.category,
-			...(helperPrice === undefined ? {} : { helperPrice }),
-			supplier: formSubmitEvent.data.supplier,
-			amount: formSubmitEvent.data.amount,
-			...(supplyCost === undefined ? {} : { supplyCost }),
-			picture: formSubmitEvent.data.picture,
-		});
+		await toast.promise(
+			mutate({
+				productname: formSubmitEvent.data.productname,
+				price,
+				category: formSubmitEvent.data.category,
+				...(helperPrice === undefined ? {} : { helperPrice }),
+				supplier: formSubmitEvent.data.supplier,
+				amount: formSubmitEvent.data.amount,
+				...(supplyCost === undefined ? {} : { supplyCost }),
+				picture: formSubmitEvent.data.picture,
+			}),
+			{
+				loading: { title: 'Creating product…' },
+				success: {
+					title: `${formSubmitEvent.data.productname} created`,
+					color: 'success',
+				},
+			},
+		);
 		table.value?.tableApi.toggleAllRowsSelected(false);
 		createProductOpen.value = false;
-		toast.add({
-			title: `${formSubmitEvent.data.productname} created`,
-			color: 'success',
-			id: 'modal-success',
-		});
 	} catch {
 		// Keep the form open so the operator can correct or retry.
+		// The mutation error is shown inline; the loading toast closes itself
+		// because no error state is passed to toast.promise.
 	}
 }
 </script>

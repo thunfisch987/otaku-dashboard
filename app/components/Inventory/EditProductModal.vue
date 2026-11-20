@@ -218,24 +218,31 @@ async function editProduct(
 	const price = parseProductMoney(formSubmitEvent.data.price);
 	if (price === undefined) return;
 	try {
-		await mutate({
-			id: formSubmitEvent.data._id as Id<'products'>,
-			productname: formSubmitEvent.data.productname,
-			supplier: formSubmitEvent.data.supplier,
-			price,
-			category: formSubmitEvent.data.category,
-			helperPrice:
-				parseProductMoney(formSubmitEvent.data.helperPrice) ?? null,
-			amount: formSubmitEvent.data.amount,
-			picture: formSubmitEvent.data.picture,
-			supplyCost:
-				parseProductMoney(formSubmitEvent.data.supplyCost) ?? null,
-		});
+		await toast.promise(
+			mutate({
+				id: formSubmitEvent.data._id as Id<'products'>,
+				productname: formSubmitEvent.data.productname,
+				supplier: formSubmitEvent.data.supplier,
+				price,
+				category: formSubmitEvent.data.category,
+				helperPrice:
+					parseProductMoney(formSubmitEvent.data.helperPrice) ?? null,
+				amount: formSubmitEvent.data.amount,
+				picture: formSubmitEvent.data.picture,
+				supplyCost:
+					parseProductMoney(formSubmitEvent.data.supplyCost) ?? null,
+			}),
+			{
+				loading: { title: 'Saving product…' },
+				success: { title: 'Product updated', color: 'success' },
+			},
+		);
 		table.value?.tableApi.toggleAllRowsSelected(false);
 		editProductOpen.value = false;
-		toast.add({ title: 'Product updated', color: 'success' });
 	} catch {
 		// Keep the form open so the operator can review the entered stock value.
+		// The mutation error is shown inline; the loading toast closes itself
+		// because no error state is passed to toast.promise.
 	}
 }
 </script>
