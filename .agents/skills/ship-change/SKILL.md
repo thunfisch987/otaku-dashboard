@@ -1,6 +1,6 @@
 ---
 name: ship-change
-description: Deliver a finished change as a merged pull request, from branch and worktree setup through checks, commit, push, PR, CodeRabbit and CI follow-up, squash merge, and branch or worktree cleanup. Use when asked to commit, push, open a PR, babysit or merge one, or clear stale branches and worktrees.
+description: Deliver a finished change as a merged pull request, from branch and worktree setup through checks, commit, a local council review, push, PR, CodeRabbit and CI follow-up, squash merge, and branch or worktree cleanup. Use when asked to commit, push, open a PR, babysit or merge one, or clear stale branches and worktrees.
 ---
 
 # Ship change
@@ -52,7 +52,27 @@ before/after screenshots.
 - Commit by default when the user asked for the change; leave push, PR, and
   merge to an explicit request.
 
-## 4. Push and PR
+## 4. Local council review
+
+Review locally before the branch goes to GitHub, so cheap fixes land before
+CodeRabbit and CI spend a round on them. Run this once per branch, before the
+first push. Skip it only when the request is commit-only or the user explicitly
+says to skip.
+
+- Load the `council` skill and run the panel on `origin/main...HEAD` with one
+  short paragraph of intent and the checks already run. Include any untracked
+  files that belong to the change.
+- Apply in-scope fixes only, using the same bar as the post-PR review in §6:
+  defects and regressions in lines this change touches. Do not implement
+  features, refactors, file moves, or UX additions from panel feedback; list
+  those as follow-ups.
+- Re-run the §2 checks after the fixes, then commit them. Amend the existing
+  commit only when it is unpushed and the fix belongs in it; otherwise add
+  `fix: address local review`.
+- Report the merged verdict, the findings applied, and the skipped findings with
+  one-line reasons. Do not add council results to the PR description.
+
+## 5. Push and PR
 
 ```sh
 git push -u origin <branch>
@@ -83,7 +103,7 @@ Then, when asked to babysit or merge, watch it:
 - Read failing checks with `ci_logs` and re-run them with `ci_rerun` when
   available; otherwise use `gh`.
 
-## 5. Review follow-up
+## 6. Review follow-up
 
 - CodeRabbit and human comments are advisory. Verify every finding against the
   current code before changing anything.
@@ -95,7 +115,7 @@ Then, when asked to babysit or merge, watch it:
 - After fixes: rerun checks, push, and reply in the review thread with
   `pull_request_respond` when available.
 
-## 6. Merge and cleanup
+## 7. Merge and cleanup
 
 Merge only when asked. The merge style is squash. Use `pull_request_merge`
 when available; otherwise:
