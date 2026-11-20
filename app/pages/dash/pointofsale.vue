@@ -72,12 +72,26 @@
 				aria-labelledby="products-heading"
 				class="space-y-4"
 			>
-				<h2
-					id="products-heading"
-					class="text-xl font-semibold"
-				>
-					Products
-				</h2>
+				<div class="flex flex-wrap items-center justify-between gap-3">
+					<h2
+						id="products-heading"
+						class="text-xl font-semibold"
+					>
+						Products
+					</h2>
+					<UToggleGroup
+						:model-value="chipMode"
+						:items="chipModeOptions"
+						attached
+						size="md"
+						variant="outline"
+						color="neutral"
+						active-color="primary"
+						active-variant="solid"
+						aria-label="Category chip behaviour"
+						@update:model-value="setChipMode($event)"
+					/>
+				</div>
 				<div
 					ref="chipsBar"
 					class="sticky top-[var(--ui-header-height,4rem)] z-20 -mx-2 flex flex-wrap items-center gap-2 border-b border-muted bg-default/95 px-2 py-2 backdrop-blur"
@@ -369,11 +383,48 @@ const categoryOptions: { label: string; value: CategoryFilter }[] = [
 ];
 const selectedCategory = ref<CategoryFilter>('all');
 
-// Chips scroll to a category section by default, so switching category never
-// reloads the catalogue. `?chips=filter` keeps the earlier filter variant for
-// comparison until the decision is made.
-const route = useRoute();
-const chipsScroll = computed(() => route.query.chips !== 'filter');
+// Chips either scroll to a category section (default: switching category never
+// reloads the catalogue) or filter the catalogue to it. The choice is per
+// device and survives reloads.
+type ChipMode = 'jump' | 'filter';
+// A cookie instead of localStorage: the server then renders the saved mode, so
+// the toggle never flashes the wrong state before hydration.
+const chipModeCookie = useCookie<ChipMode>('pos-category-chip-mode', {
+	default: () => 'jump',
+	maxAge: 60 * 60 * 24 * 365,
+	sameSite: 'lax',
+});
+const chipMode = computed<ChipMode>(() =>
+	chipModeCookie.value === 'filter' ? 'filter' : 'jump',
+);
+// Both labels stay visible: the choice changes what a category chip does, not
+// whether categories are shown.
+const chipModeOptions = [
+	{
+		label: 'Jump',
+		value: 'jump',
+		class: 'min-h-11 px-4',
+		title: 'Chips scroll to that category and keep the other categories visible',
+	},
+	{
+		label: 'Filter',
+		value: 'filter',
+		class: 'min-h-11 px-4',
+		title: 'Chips show only that category',
+	},
+];
+const chipsScroll = computed(() => chipMode.value === 'jump');
+
+// A single-select toggle group emits `undefined` when the active item is
+// clicked again; that is a deselect, not a change of behaviour.
+function setChipMode(value: unknown) {
+	if (value !== 'jump' && value !== 'filter') return;
+	chipModeCookie.value = value;
+	// Filter mode starts from the complete catalogue instead of inheriting a
+	// category the operator picked while jumping.
+	if (value === 'filter') selectedCategory.value = 'all';
+}
+
 // The sticky bar's height is the scroll offset, so it stays visible and never
 // covers the heading it jumped to (it wraps on narrow screens).
 const chipsBar = useTemplateRef<HTMLElement>('chipsBar');
