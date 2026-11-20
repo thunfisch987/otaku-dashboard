@@ -129,6 +129,9 @@ keep `.env.local` for Nuxt and the CLI.
 - Before deleting a branch, worktree, or stash, confirm its content is on
   `main`; report anything unmerged instead of deleting it. Do not force-remove
   without confirmation.
+- Do not remove or switch the worktree the thread is running in. T3's worktree
+  cleanup owns merged worktrees; report local branch commands for the primary
+  checkout instead.
 
 ## Review feedback
 
@@ -160,6 +163,9 @@ keep `.env.local` for Nuxt and the CLI.
 - Keep replies brief: lead with the result or next action, and skip filler,
   preamble, and restating the request. Add detail only for decisions or risk.
 - Answer the specific question asked first; put related context after it.
+- Never end a turn with a prose question. Use the `question` tool so the thread
+  shows it is waiting; unless the user already answered, a prose question is
+  missed when the thread settles.
 - Present lists and multi-part answers as bullet points, not comma-spliced
   prose.
 - Use emojis where they add meaning or make status easier to scan; skip purely

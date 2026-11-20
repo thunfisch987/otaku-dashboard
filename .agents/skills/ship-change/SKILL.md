@@ -124,25 +124,69 @@ Then, when asked to babysit or merge, watch it:
 - After fixes: rerun checks, push, and reply in the review thread with
   `pull_request_respond` when available.
 
+## Questions and settlement
+
+Ask with the harness question tool, never in prose: `question` in OpenCode/T3,
+`AskUserQuestion` in Claude Code, `request_user_input` in Codex. A prose
+question is only text, so the thread still settles and the question can be
+missed.
+
+A pending question blocks auto-settle. If the PR is already merged or the thread
+settled during this turn, unsettle it before asking:
+
+1. `t3_thread_organize` with `action: "unsettle"`.
+2. `t3_thread_organize` with `action: "mark_unread"` when it should return to
+   the inbox.
+3. Ask with the `question` tool. The thread stays waiting until the user
+   answers.
+
+Ask only when the goal is ambiguous, a required check cannot pass, the next step
+is outside this skill's grant, or you cannot prove the change. Put the PR link,
+current state, blocker, and 2–5 options in the question, with your
+recommendation first. Decide everything else yourself and list those decisions
+in the final report.
+
 ## 7. Merge and cleanup
 
 Merge only when asked. The merge style is squash. Use `pull_request_merge`
-when available; otherwise:
+when available; otherwise `gh pr merge <number> --squash`.
+
+After the merge, delete the remote branch when it still exists:
 
 ```sh
-gh pr merge <number> --squash --delete-branch
+git push origin --delete <branch>
 ```
 
-Then run the local cleanup from the primary checkout (the one with `main`
-checked out; a linked worktree cannot switch to it):
+Skip this when GitHub's "Automatically delete head branches" already removed it.
+
+Do not remove the worktree from this thread. T3 owns that lifecycle:
+
+- **Settings → Worktrees → Cleanup → Delete merged worktrees** removes a
+  T3-managed worktree after its PR merges and its commits are in the default
+  branch. Squash and rebase merges count.
+- Active sessions and shared worktrees are skipped, so a pending question keeps
+  the worktree until the thread settles.
+- Branches and thread history are kept. "Keep worktrees with local changes"
+  defaults to "Uncommitted changes", which deletes ignored files such as `.env`
+  and build output.
+
+From a linked worktree you cannot switch to `main`, delete the branch you have
+checked out, or remove the worktree you are running in. Do not try, and do not
+`cd` to the primary checkout to remove your own worktree.
+
+Local branch cleanup happens only from the primary checkout, after confirming
+the PR is `MERGED` and its head SHA equals `git rev-parse <branch>`:
 
 ```sh
 git switch main
 git pull --ff-only
-git worktree remove <path> # first: the branch stays checked out until removal
-git branch -d <branch>
+git branch -D <branch>
 git fetch --prune
 ```
+
+When you are in a linked worktree, report the worktree path, branch, and merge
+commit, and leave that block to the parent or user. Never force-remove a
+worktree or branch.
 
 Report the PR URL and the merge commit SHA. When the deploy is automatic, say
 the deploy is running; do not claim production works without checking it.
@@ -157,7 +201,12 @@ merged":
 2. Before deleting a branch, check it against its PR: the PR must be `MERGED`
    and its `headRefOid` must equal `git rev-parse <branch>`. Anything newer is
    work done after the merge; report it instead of deleting. Without a PR, use
-   `git merge-base --is-ancestor` and ask before deleting a squash merge.
-3. Report unmerged branches, dirty worktrees, and stashes before deleting
-   anything. Delete clean merged branches and worktrees without extra
-   confirmation; ask about the rest. Never force-remove.
+   `git merge-base --is-ancestor` and ask before deleting a squash merge. A
+   verified squash merge needs `git branch -D`.
+3. Never remove the worktree the thread is running in. T3's "Delete merged
+   worktrees" cleanup owns merged worktrees; report the rest.
+4. Report unmerged branches, dirty worktrees, and stashes before deleting
+   anything. From the primary checkout, delete clean merged branches and other
+   clean worktrees without extra confirmation; ask about the rest. From a linked
+   worktree, report the `git worktree remove` and `git branch -D` commands for
+   the primary instead of running them. Never force-remove.
