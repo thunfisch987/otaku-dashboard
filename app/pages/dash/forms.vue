@@ -187,41 +187,60 @@
 					</div>
 				</UCard>
 
-				<UCard
-					variant="subtle"
-					class="border-dashed"
+				<UCollapsible
+					v-model:open="createProductOpen"
+					:unmount-on-hide="false"
+					class="rounded-lg border border-dashed border-default bg-elevated/50"
 				>
-					<template #header>
-						<div>
-							<h3 class="font-semibold">
+					<button
+						type="button"
+						class="flex w-full items-start justify-between gap-4 p-4 text-left sm:px-6"
+					>
+						<span class="min-w-0">
+							<span class="block font-semibold">
 								Create an inventory product
-							</h3>
-							<p class="text-sm text-muted">
-								Choose a menu category to add the product
-								directly to that preorder section.
-							</p>
+							</span>
+							<span class="mt-1 block text-sm text-muted">
+								{{ createProductSummary }}
+							</span>
+							<span
+								v-if="!createProductOpen && newProductHasInput"
+								class="mt-1 block text-sm text-warning"
+							>
+								Product details entered — expand to review or
+								create it.
+							</span>
+						</span>
+						<UIcon
+							name="i-lucide-chevron-down"
+							class="mt-1 size-5 shrink-0 text-muted transition-transform duration-200"
+							:class="{ 'rotate-180': createProductOpen }"
+						/>
+					</button>
+					<template #content>
+						<div class="border-t border-default p-4 sm:p-6">
+							<InventoryProductFormFields
+								v-model:state="newProduct"
+								:onigiri-pricing="onigiriPricing"
+								compact
+								show-supply-cost
+							/>
+							<div class="mt-3 flex flex-wrap items-end gap-3">
+								<UButton
+									class="min-h-11"
+									icon="i-lucide-package-plus"
+									:loading="createProductPending"
+									:disabled="
+										!newProduct.productname.trim() ||
+										createProductPending
+									"
+									@click="createInventoryProduct"
+									>Create product</UButton
+								>
+							</div>
 						</div>
 					</template>
-					<InventoryProductFormFields
-						v-model:state="newProduct"
-						:onigiri-pricing="onigiriPricing"
-						compact
-						show-supply-cost
-					/>
-					<div class="mt-3 flex flex-wrap items-end gap-3">
-						<UButton
-							class="min-h-11"
-							icon="i-lucide-package-plus"
-							:loading="createProductPending"
-							:disabled="
-								!newProduct.productname.trim() ||
-								createProductPending
-							"
-							@click="createInventoryProduct"
-							>Create product</UButton
-						>
-					</div>
-				</UCard>
+				</UCollapsible>
 
 				<div class="flex flex-wrap gap-3">
 					<UButton
@@ -395,6 +414,7 @@ import type { Id } from '~~/convex/_generated/dataModel';
 import { CalendarDateTime, type CalendarDate } from '@internationalized/date';
 import {
 	parseProductMoney,
+	productCategories,
 	type ProductCreationFormState,
 	type ProductCategory,
 } from '~/components/Inventory/types';
@@ -459,6 +479,44 @@ const newProduct = reactive<ProductCreationFormState>({
 	category: 'onigiri' as ProductCategory,
 	supplier: 'Otaku' as 'HDJ' | 'Otaku',
 	amount: 0,
+});
+// Collapsed by default so the optional create-product form does not push the
+// section pickers down; the header still states where a new product lands.
+const createProductOpen = ref(false);
+const createProductSummary = computed(() => {
+	if (newProduct.category === 'other') {
+		return 'Creates an inventory product only; it is not added to this form.';
+	}
+	const label =
+		productCategories.find((entry) => entry.value === newProduct.category)
+			?.label ?? 'selected';
+	return `Creates an inventory product and adds it to the ${label} section of this form.`;
+});
+const newProductHasInput = computed(() => {
+	if (
+		newProduct.productname.trim().length > 0 ||
+		(newProduct.supplyCost ?? '').trim().length > 0 ||
+		newProduct.amount > 0
+	) {
+		return true;
+	}
+	// Shared Onigiri prices prefill the price fields, so only a value that
+	// differs from that prefill counts as an entry by the operator.
+	const shared =
+		newProduct.category === 'onigiri' ? onigiriPricing.value : null;
+	const typed = (value: string | undefined, prefill: string) => {
+		const input = String(value ?? '').trim();
+		return input.length > 0 && input !== prefill;
+	};
+	return (
+		typed(newProduct.price, shared ? formatMoneyInput(shared.price) : '') ||
+		typed(
+			newProduct.helperPrice,
+			shared?.helperPrice === undefined
+				? ''
+				: formatMoneyInput(shared.helperPrice),
+		)
+	);
 });
 const pageError = ref<{ title: string; message: string } | null>(null);
 const toast = useToast();
