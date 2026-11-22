@@ -3,10 +3,8 @@
 		<button
 			type="button"
 			role="switch"
+			aria-label="Dark mode"
 			:aria-checked="isDark"
-			:aria-label="
-				isDark ? 'Switch to light mode' : 'Switch to dark mode'
-			"
 			class="aspect-[5/3] h-11 shrink-0 cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:h-12"
 			:class="isDark ? 'is-dark' : 'is-light'"
 			@click="isDark = !isDark"
