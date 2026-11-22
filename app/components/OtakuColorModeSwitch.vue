@@ -7,7 +7,7 @@
 			:aria-label="
 				isDark ? 'Switch to light mode' : 'Switch to dark mode'
 			"
-			class="aspect-[5/3] h-11 shrink-0 cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:h-15"
+			class="aspect-[5/3] h-11 shrink-0 cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:h-12"
 			:class="isDark ? 'is-dark' : 'is-light'"
 			@click="isDark = !isDark"
 		>
@@ -125,7 +125,7 @@
 		</button>
 		<template #fallback>
 			<div
-				class="aspect-[5/3] h-11 shrink-0 rounded-full bg-elevated sm:h-15"
+				class="aspect-[5/3] h-11 shrink-0 rounded-full bg-elevated sm:h-12"
 			/>
 		</template>
 	</ClientOnly>
