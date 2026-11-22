@@ -150,7 +150,7 @@ const isDark = computed({
    colors rather than a theme token, so it stays correct in both modes. */
 .track {
 	fill: #ff6948;
-	transition: fill 400ms cubic-bezier(0.4, 0, 0.2, 1);
+	transition: fill 300ms ease;
 }
 
 .is-dark .track {
@@ -176,10 +176,88 @@ const isDark = computed({
 	fill: #ffffff;
 }
 
-.sun,
-.moon,
+/*
+ * Spring curves sampled from a damped oscillator, so both the thumb and the
+ * sun/moon settle with the overshoot the design's microinteraction uses. The
+ * cubic-bezier line is the fallback for browsers without `linear()`.
+ */
 .thumb {
-	transition: transform 400ms cubic-bezier(0.4, 0, 0.2, 1);
+	transition: transform 620ms cubic-bezier(0.34, 1.56, 0.64, 1);
+	transition-timing-function: linear(
+		0,
+		0.035 2.94%,
+		0.1271 5.88%,
+		0.2577 8.82%,
+		0.4096 11.76%,
+		0.5679 14.71%,
+		0.7206 17.65%,
+		0.8586 20.59%,
+		0.9759 23.53%,
+		1.0691 26.47%,
+		1.1373 29.41%,
+		1.1814 32.35%,
+		1.2036 35.29%,
+		1.2073 38.24%,
+		1.1962 41.18%,
+		1.1744 44.12%,
+		1.1456 47.06%,
+		1.1134 50%,
+		1.0806 52.94%,
+		1.0496 55.88%,
+		1.022 58.82%,
+		0.999 61.76%,
+		0.9811 64.71%,
+		0.9684 67.65%,
+		0.9606 70.59%,
+		0.9571 73.53%,
+		0.9573 76.47%,
+		0.9603 79.41%,
+		0.9653 82.35%,
+		0.9716 85.29%,
+		0.9784 88.24%,
+		0.9851 91.18%,
+		0.9914 94.12%,
+		0.9969 97.06%,
+		1.0014 100%
+	);
+}
+
+.sun,
+.moon {
+	transition: transform 720ms cubic-bezier(0.34, 1.4, 0.64, 1);
+	transition-timing-function: linear(
+		0,
+		0.0469 3.33%,
+		0.1632 6.67%,
+		0.3172 10%,
+		0.4834 13.33%,
+		0.6434 16.67%,
+		0.785 20%,
+		0.9015 23.33%,
+		0.9904 26.67%,
+		1.0524 30%,
+		1.0905 33.33%,
+		1.1087 36.67%,
+		1.1117 40%,
+		1.1039 43.33%,
+		1.0893 46.67%,
+		1.0714 50%,
+		1.0528 53.33%,
+		1.0353 56.67%,
+		1.0202 60%,
+		1.008 63.33%,
+		0.9989 66.67%,
+		0.9927 70%,
+		0.9891 73.33%,
+		0.9876 76.67%,
+		0.9876 80%,
+		0.9888 83.33%,
+		0.9905 86.67%,
+		0.9926 90%,
+		0.9946 93.33%,
+		0.9965 96.67%,
+		0.9982 100%
+	);
 }
 
 /* Light: sun sits inside the pill on the right, thumb on the left. */
