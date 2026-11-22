@@ -132,7 +132,7 @@
 <script setup lang="ts">
 const colorMode = useColorMode();
 
-const clipId = useId() ?? 'color-mode-switch-clip';
+const clipId = useId();
 
 // Rendered inside `ClientOnly`, so the resolved mode is always available here.
 const isDark = computed({
@@ -170,16 +170,14 @@ const isDark = computed({
 	fill: #ffcf24;
 }
 
-.thumb {
-	fill: #ffffff;
-}
-
 /*
- * Spring curves sampled from a damped oscillator, so both the thumb and the
- * sun/moon settle with the overshoot the design's microinteraction uses. The
- * cubic-bezier line is the fallback for browsers without `linear()`.
+ * Spring curves sampled from a damped oscillator (stiffness 180/damping 12 for
+ * the thumb, 150/14 for the icons), so both settle with the overshoot the
+ * design's microinteraction uses. The cubic-bezier line is the fallback for
+ * browsers without `linear()`.
  */
 .thumb {
+	fill: #ffffff;
 	transition: transform 620ms cubic-bezier(0.34, 1.56, 0.64, 1);
 	transition-timing-function: linear(
 		0,
@@ -216,7 +214,7 @@ const isDark = computed({
 		0.9851 91.18%,
 		0.9914 94.12%,
 		0.9969 97.06%,
-		1.0014 100%
+		1 100%
 	);
 }
 
@@ -254,7 +252,7 @@ const isDark = computed({
 		0.9926 90%,
 		0.9946 93.33%,
 		0.9965 96.67%,
-		0.9982 100%
+		1 100%
 	);
 }
 
