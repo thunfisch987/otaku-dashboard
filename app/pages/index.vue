@@ -65,15 +65,18 @@ const { user, fetchSession } = useUserSession();
 // the sign-in buttons flash before the redirect.
 const status = ref<SignInStatus>('checking');
 
-watch(
-	user,
-	(currentUser) => {
-		if (!currentUser) return;
-		status.value = 'redirecting';
-		void navigateTo('/dash/dashboard', { replace: true });
-	},
-	{ immediate: true },
-);
+function redirectToDashboard() {
+	status.value = 'redirecting';
+	void navigateTo('/dash/dashboard', { replace: true });
+}
+
+// Redirect only after hydration: the session is already resolved on the
+// client, so changing the status during setup would make the first client
+// render differ from the server's pending copy.
+watch(user, (currentUser) => {
+	if (!currentUser) return;
+	redirectToDashboard();
+});
 
 async function checkSession() {
 	status.value = 'checking';
@@ -101,14 +104,18 @@ async function checkSession() {
 		clearTimeout(timeoutId);
 	}
 
-	// A user arriving here is redirected by the watcher above.
+	// A user arriving here is redirected by the watcher or the mount check.
 	if (user.value) return;
 
 	status.value = 'signed-out';
 }
 
 onMounted(() => {
-	if (user.value) return;
+	if (user.value) {
+		redirectToDashboard();
+		return;
+	}
+
 	void checkSession();
 });
 </script>
