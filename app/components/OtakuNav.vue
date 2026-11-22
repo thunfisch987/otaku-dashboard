@@ -82,15 +82,7 @@
 					</UButton>
 				</template>
 			</ClientOnly>
-			<UColorModeButton>
-				<template #fallback>
-					<UButton
-						loading
-						variant="ghost"
-						color="neutral"
-					/>
-				</template>
-			</UColorModeButton>
+			<OtakuColorModeSwitch />
 		</template>
 
 		<template #body>
