@@ -7,7 +7,7 @@
       "dependencies": {
         "@better-auth/infra": "0.4.31",
         "@better-auth/passkey": "1.7.21",
-        "@convex-dev/better-auth": "0.13.0",
+        "@convex-dev/better-auth": "0.13.1",
         "@nuxt/eslint": "^1.17.0",
         "@nuxt/image": "^2.2.1",
         "@nuxt/ui": "^4.13.0",
@@ -291,7 +291,7 @@
 
     "@compodium/nuxt": ["@compodium/nuxt@0.1.0-beta.14", "", { "dependencies": { "@compodium/core": "^0.1.0-beta.14", "@nuxt/devtools-kit": "^3.4.2", "consola": "^3.4.2", "defu": "^6.1.7", "pathe": "^2.0.3", "ufo": "^1.6.4" }, "peerDependencies": { "@nuxt/kit": ">=3.15" } }, "sha512-gn1w44x2Pb4BylKL6Dr8X4MT2qal3QHlW2tcVXQ5vupDg80SO7ZzPTq47uKUQss/RrogTOOiRKIGMWKN9P8NKw=="],
 
-    "@convex-dev/better-auth": ["@convex-dev/better-auth@0.13.0", "", { "dependencies": { "@better-fetch/fetch": "^1.3.3", "common-tags": "^1.8.2", "convex-helpers": "^0.1.128", "jose": "^6.1.0", "semver": "^7.7.3", "type-fest": "^5.0.0", "zod": "^4.0.0" }, "peerDependencies": { "better-auth": ">=1.7.16 <1.8.0", "convex": "^1.25.0", "react": "^18.3.1 || ^19.0.0" } }, "sha512-U82uCij3drlk8ktHeo6sUrPP06KIPEo1FCmB2VFKnQb+Xbv10gUf05SGJYKiPH1mmCrG2ylFRfUFku3I9vnCTw=="],
+    "@convex-dev/better-auth": ["@convex-dev/better-auth@0.13.1", "", { "dependencies": { "@better-fetch/fetch": "^1.3.3", "common-tags": "^1.8.2", "convex-helpers": "^0.1.128", "jose": "^6.1.0", "semver": "^7.7.3", "type-fest": "^5.0.0", "zod": "^4.0.0" }, "peerDependencies": { "better-auth": ">=1.7.25 <1.8.0", "convex": "^1.25.0", "react": "^18.3.1 || ^19.0.0" } }, "sha512-xztRo6i9SyJJXklvmeXpnSuxAsvOMgd4WwGjCT48WO/jdlRTYOGvvuctdRN19Ebvg6Lk/AflxBGE7+HUvwIyXg=="],
 
     "@csstools/css-tokenizer": ["@csstools/css-tokenizer@4.0.2", "", {}, "sha512-OoKoR0f76dCY666JlcbhmVTs2drYj1GUXZTYTcbUgJjh9Nv41aFfZ21bPQTERm5+L5cBDo466NltB2lplS5GBw=="],
 
