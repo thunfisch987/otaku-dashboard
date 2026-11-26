@@ -21,7 +21,7 @@
         "maska": "^3.2.2",
         "nuxt": "4.6.4",
         "nuxt-convex": "0.1.2",
-        "nuxt-typed-router": "4.0.10",
+        "nuxt-typed-router": "4.0.12",
         "unenv": "^1.10.0",
         "vue": "^3.5.44",
         "vue-router": "^5.4.0",
@@ -1933,7 +1933,7 @@
 
     "my-bad": ["my-bad@0.2.12", "", { "dependencies": { "clickable-path": "^0.1.1", "errx": "^0.2.2", "fnv1a-64": "^0.1.2" }, "peerDependencies": { "vite": ">=6" }, "optionalPeers": ["vite"] }, "sha512-AUIllvH8rjgkGEHEBcHbKmQyq2G8mhZ+U7kOhh7UKhS6cZROFHOP5KQ2uo13IcXbK7CWxEyfs/hNNKuz6x42TQ=="],
 
-    "nanoid": ["nanoid@5.1.6", "", { "bin": { "nanoid": "bin/nanoid.js" } }, "sha512-c7+7RQ+dMB5dPwwCp4ee1/iV/q2P6aK1mTZcfr1BTuVlyW9hJYiMPybJCcnBlQtuSmTIWNeazm/zqNoZSSElBg=="],
+    "nanoid": ["nanoid@5.1.16", "", { "bin": { "nanoid": "bin/nanoid.js" } }, "sha512-kVrnsrJqMR8+oLJnGEmSWw9BivK5mt7H3FZatVRjrc5wGqFYuBxX1yG7+A7Gi5AefkX6t/oCkizcQgpu0cY1dQ=="],
 
     "nanostores": ["nanostores@1.5.5", "", {}, "sha512-FixtE239Gl6Gz0ZGCK0WzvNwObNCIwVT+L7zQcf1QgcA6AzBxblzqe9OT88qiucNkhsjSOqiogSaF5jVbJiqSA=="],
 
@@ -1975,7 +1975,7 @@
 
     "nuxt-convex": ["nuxt-convex@0.1.2", "", { "dependencies": { "@nuxt/kit": "^4.6.2", "@valibot/to-json-schema": "^1.8.0", "consola": "^3.4.2", "defu": "^6.1.7", "pathe": "^2.0.3", "valibot": "^1.5.0", "vue-convex": "0.1.2" }, "peerDependencies": { "@convex-dev/r2": ">=0.9.1", "convex": ">=1.25.0", "nuxt": ">=4.6.0", "vue": "^3.5.0" }, "optionalPeers": ["@convex-dev/r2"] }, "sha512-6b549iZynwDTuElM5YKwkVLewRGnf8QnVDFzLZqujBjEp3U+EhJDUgU44jZHKCkntU/tMfjI6SC5h7JDceL5Qw=="],
 
-    "nuxt-typed-router": ["nuxt-typed-router@4.0.10", "", { "dependencies": { "@nuxt/kit": "4.4.7", "better-sqlite3": "^12.6.2", "chalk": "5.6.2", "defu": "6.1.4", "lodash-es": "4.17.23", "log-symbols": "7.0.1", "mkdirp": "3.0.1", "nanoid": "5.1.6", "pathe": "2.0.3", "prettier": "3.8.1" } }, "sha512-q93oGLaEDQNuzImteAAYBsDCD2QVrwAUJ0xum1/8B8h/SM/Lp5pljoPHP3mWAHC7FFIJsGBMeVlYIokOnV8J1A=="],
+    "nuxt-typed-router": ["nuxt-typed-router@4.0.12", "", { "dependencies": { "@nuxt/kit": "4.4.7", "better-sqlite3": "^12.6.2", "chalk": "5.6.2", "defu": "6.1.4", "lodash-es": "4.17.23", "log-symbols": "7.0.1", "mkdirp": "3.0.1", "nanoid": "5.1.16", "pathe": "2.0.3", "prettier": "3.8.1" } }, "sha512-/v1b3TLIojUbZTP8p/MIW1QMvHpClul1wSAu6y6cnc1mAJytcLffaqCSC1FeLmmoneWvmKmc0wlMdqoocYh3VA=="],
 
     "nypm": ["nypm@0.6.12", "", { "dependencies": { "citty": "^0.2.2", "pathe": "^2.0.3", "tinyexec": "^1.3.1" }, "bin": { "nypm": "./dist/cli.mjs" } }, "sha512-4AhWntz+ds/P5kz1rN25yGegTPYsO5ffOy+8S0TeuXKZrgjlmgcEBLA1xubzcP/dWX4zYfNybv4TQERlL9Z0LQ=="],
 
