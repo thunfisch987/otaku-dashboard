@@ -11,7 +11,7 @@
         "@nuxt/eslint": "^1.17.0",
         "@nuxt/image": "^2.2.1",
         "@nuxt/ui": "^4.13.0",
-        "@nuxtjs/better-auth": "0.3.17",
+        "@nuxtjs/better-auth": "0.3.18",
         "@nuxtjs/color-mode": "^4.1.0",
         "@tanstack/vue-table": "^8.21.3",
         "@vite-pwa/nuxt": "^1.1.1",
@@ -559,7 +559,7 @@
 
     "@nuxt/vite-server": ["@nuxt/vite-server@4.7.0", "", { "dependencies": { "@nuxt/kit": "4.7.0", "defu": "^6.1.7", "exsolve": "^1.2.0", "mocked-exports": "^0.1.1", "my-bad": "^1.3.1", "pathe": "^2.0.3", "rou3": "^0.9.2", "srvx": "1.0.8", "ufo": "^1.6.4", "ultrahtml": "^1.7.0" }, "peerDependencies": { "nuxt": "^4.7.0", "vite": "^8.3.8" } }, "sha512-17Gskw8mKi50bQJOfUSDlTJEK9k9Z7ZVKH9jgTYMomrCNmTSsJjG53JJeqpR2qMv5HskuIPRt5TnKbEBajvHyg=="],
 
-    "@nuxtjs/better-auth": ["@nuxtjs/better-auth@0.3.17", "", { "dependencies": { "@nuxt/devtools-kit": "^4.0.0", "@nuxt/kit": "^4.6.2", "@types/node": "^26.0.0", "consola": "^3.4.2", "cookie-es": "^3.1.1", "defu": "^6.1.7", "get-port-please": "^3.2.0", "h3": "^2.0.8", "jiti": "^2.7.0", "nostics": "^1.3.0", "pathe": "^2.0.3", "radix3": "^1.1.2", "std-env": "^4.3.0", "ufo": "^1.6.4", "zod": "^4.6.7" }, "peerDependencies": { "@nuxt/test-utils": "^4.1.0", "@nuxthub/core": ">=0.10.5", "auth": "1.7.25", "better-auth": ">=1.7.3 <2" }, "optionalPeers": ["@nuxt/test-utils", "@nuxthub/core", "auth"] }, "sha512-KnD34WB5tAN8fUqWKqeIs0qff05pZtvOZnc6G7bKR63u9khkRp54QMvjG0X/oB+XI5JRwYTdxqukutmL/PZ+sg=="],
+    "@nuxtjs/better-auth": ["@nuxtjs/better-auth@0.3.18", "", { "dependencies": { "@nuxt/devtools-kit": "^4.0.0", "@nuxt/kit": "^4.6.2", "@types/node": "^26.0.0", "consola": "^3.4.2", "cookie-es": "^3.1.1", "defu": "^6.1.7", "get-port-please": "^3.2.0", "h3": "^2.0.8", "jiti": "^2.7.0", "nostics": "^1.3.0", "pathe": "^2.0.3", "radix3": "^1.1.2", "std-env": "^4.3.0", "ufo": "^1.6.4", "zod": "^4.6.7" }, "peerDependencies": { "@nuxt/test-utils": "^4.1.0", "@nuxthub/core": ">=0.10.5", "auth": "1.7.27", "better-auth": ">=1.7.3 <2" }, "optionalPeers": ["@nuxt/test-utils", "@nuxthub/core", "auth"] }, "sha512-aog8YBrb+O1ZZ2SQ9zo0LZF2K4HdnmZh2WPzAztQNFRxLqFnaRLRctHd+6nu9VAZ1Ld8B9TDOLqNjW+U8rxIFQ=="],
 
     "@nuxtjs/color-mode": ["@nuxtjs/color-mode@4.1.0", "", { "dependencies": { "@nuxt/kit": "^4.6.2", "defu": "^6.1.7", "exsolve": "^1.1.3", "pathe": "^2.0.3", "pkg-types": "^2.4.0", "verkit": "^0.5.0" } }, "sha512-RWXqS42JJjw6ngewTnWRlSsxajGKWEiI10zN4syr7p32HDIkQtwUr5qVqRpBnXcRXznu+2sZ0m40u2S/p8J2Hw=="],
 
@@ -2679,8 +2679,6 @@
 
     "@nuxtjs/better-auth/h3": ["h3@2.0.8", "", { "dependencies": { "rou3": "^1.0.0", "srvx": "^1.0.6" }, "peerDependencies": { "crossws": "^0.4.12", "ocache": ">=0.3.0" }, "optionalPeers": ["crossws", "ocache"], "bin": { "h3": "./bin/h3.mjs" } }, "sha512-ENuKlF9kC6E6PrvY1PUyE0qkrnnPTIt2/v48uyEEfTVfgoiqBCE0uwwf++2XrWwT1gxjQBDLQ8PAsmZVniKvTw=="],
 
-    "@nuxtjs/better-auth/nostics": ["nostics@1.3.0", "", {}, "sha512-wzRsrJwNlFbqIRQt8aCeL2WE8USip/uuvGSOZV1D02CxX8ABTMbw8IywKjH7yWHETMXbWJI4OBpihg9rmz2Vyg=="],
-
     "@parcel/watcher-wasm/napi-wasm": ["napi-wasm@1.1.3", "", { "bundled": true }, "sha512-h/4nMGsHjZDCYmQVNODIrYACVJ+I9KItbG+0si6W/jSjdA9JbWDoU4LLeMXVcEQGHjttI2tuXqDrbGF7qkUHHg=="],
 
     "@rolldown/binding-wasm32-wasi/@emnapi/core": ["@emnapi/core@2.0.0-beta.2", "", { "dependencies": { "@emnapi/wasi-threads": "2.2.0", "tslib": "^2.4.0" } }, "sha512-MzCVoWtcg4Pm2B3je5mMvYMvj3MmBKw+fU7vbsJc9/iT8ip6/eYIHo/Dsm/mr+wsHB6SEyJDuxB09Yy6r/8+4A=="],
@@ -3034,6 +3032,8 @@
     "@nuxt/nitro-v3-server/vue/@vue/runtime-dom": ["@vue/runtime-dom@3.5.46", "", { "dependencies": { "@vue/reactivity": "3.5.46", "@vue/runtime-core": "3.5.46", "@vue/shared": "3.5.46", "csstype": "^3.2.4" } }, "sha512-6L7lbBvXTYBFFjIt25a0pgdpmn3Ns8RqUnNVibRzF4bgyiWJvqOhKEV5MXYWKlCttZE3aGeJN8mveo+6IrIKXA=="],
 
     "@nuxt/nitro-v3-server/vue/@vue/server-renderer": ["@vue/server-renderer@3.5.46", "", { "dependencies": { "@vue/compiler-ssr": "3.5.46", "@vue/runtime-dom": "3.5.46", "@vue/shared": "3.5.46" } }, "sha512-4mc0YWREc6OZ5pDCigvKPDzIUV+aciiH92yvyTS6xaHHxW/80rMceQQn11pYe7OEEBt2YQgYWR9zF8QF30GJUQ=="],
+
+    "@nuxtjs/better-auth/@nuxt/devtools-kit/nostics": ["nostics@1.3.0", "", {}, "sha512-wzRsrJwNlFbqIRQt8aCeL2WE8USip/uuvGSOZV1D02CxX8ABTMbw8IywKjH7yWHETMXbWJI4OBpihg9rmz2Vyg=="],
 
     "@rolldown/binding-wasm32-wasi/@emnapi/core/@emnapi/wasi-threads": ["@emnapi/wasi-threads@2.2.0", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-JP7OYH38Q7+pyTAe14raZHLQIK7BDKbdwji+Xi3pcd/6QkJYQH3SX4wu6EplGrGJWRepoNzedfm0G3B9Z4e9Rw=="],
 
