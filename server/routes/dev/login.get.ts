@@ -7,16 +7,18 @@
  * first-party and nuxt-convex's cookie→JWT exchange keeps working exactly like
  * a human login.
  *
+ * Helpers come from `nuxt/server` (Nitro v3 / h3 v2) rather than `h3`: the
+ * upstream `Set-Cookie` headers are forwarded by returning a `Response`, which
+ * keeps the Better Auth cookie attributes exactly as the proxy emitted them.
+ *
  * Usage: http://localhost:3001/dev/login?next=/dash/dashboard
  */
 import {
 	createError,
-	defineEventHandler,
+	defineHandler,
 	getQuery,
 	getRequestURL,
-	sendRedirect,
-	setResponseHeader,
-} from 'h3';
+} from 'nuxt/server';
 
 const DEFAULT_NEXT = '/dash/dashboard';
 const PRODUCTION_HOST_SUFFIX = 'lilbitgay.de';
@@ -56,22 +58,22 @@ function isProductionSite(siteUrl: string | undefined): boolean {
 	}
 }
 
-export default defineEventHandler(async (event) => {
+export default defineHandler(async (event) => {
 	const siteUrl = process.env.NUXT_PUBLIC_SITE_URL ?? process.env.SITE_URL;
 	if (
 		!import.meta.dev ||
 		process.env.ENABLE_DEV_TOOLS !== 'true' ||
 		isProductionSite(siteUrl)
 	) {
-		throw createError({ statusCode: 404, statusMessage: 'Not Found' });
+		throw createError({ status: 404, statusText: 'Not Found' });
 	}
 
 	const email = process.env.DEV_AUTH_EMAIL?.trim();
 	const password = process.env.DEV_AUTH_PASSWORD;
 	if (!email || !password) {
 		throw createError({
-			statusCode: 500,
-			statusMessage: 'Dev login is not configured',
+			status: 500,
+			statusText: 'Dev login is not configured',
 			message:
 				'Set DEV_AUTH_EMAIL and DEV_AUTH_PASSWORD in .env.local, then ' +
 				'restart Nuxt. See AGENTS.md, "Verifying signed-in surfaces".',
@@ -92,8 +94,8 @@ export default defineEventHandler(async (event) => {
 			message?: string;
 		} | null;
 		throw createError({
-			statusCode: 401,
-			statusMessage: 'Dev login failed',
+			status: 401,
+			statusText: 'Dev login failed',
 			message:
 				data?.message ??
 				'Check that the dev operator exists (bun run seed:dev) and that ' +
@@ -101,10 +103,10 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-	const cookies = response.headers.getSetCookie();
-	if (cookies.length > 0) {
-		setResponseHeader(event, 'set-cookie', cookies);
+	const headers = new Headers({ location: next });
+	for (const cookie of response.headers.getSetCookie()) {
+		headers.append('set-cookie', cookie);
 	}
 
-	return sendRedirect(event, next, 302);
+	return new Response(null, { status: 302, headers });
 });
