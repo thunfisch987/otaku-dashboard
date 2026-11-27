@@ -81,7 +81,11 @@ export default defineHandler(async (event) => {
 	}
 
 	const next = safeNextPath(getQuery(event).next);
-	const origin = getRequestURL(event).origin;
+	// h3 v1 read `x-forwarded-proto` unconditionally; h3 v2 needs the opt-in.
+	// `bun run dev:tail` forwards HTTPS from Tailscale to the plaintext dev
+	// server, so without this the origin would claim `http://…:8443` and the
+	// sign-in fetch below would fail.
+	const origin = getRequestURL(event, { xForwardedProto: true }).origin;
 
 	const response = await fetch(`${origin}/api/auth/sign-in/email`, {
 		method: 'POST',
