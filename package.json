@@ -40,7 +40,7 @@
 		"maska": "^3.2.2",
 		"nuxt": "4.7.0",
 		"nuxt-convex": "0.1.2",
-		"nuxt-typed-router": "4.0.12",
+		"nuxt-typed-router": "4.0.13",
 		"unenv": "^1.10.0",
 		"vue": "^3.5.44",
 		"vue-router": "^5.4.0",
