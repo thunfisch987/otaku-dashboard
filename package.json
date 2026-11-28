@@ -33,7 +33,7 @@
 		"@nuxtjs/better-auth": "0.3.18",
 		"@nuxtjs/color-mode": "^4.1.0",
 		"@tanstack/vue-table": "^8.21.3",
-		"@vite-pwa/nuxt": "^1.1.1",
+		"@vite-pwa/nuxt": "^2.0.0",
 		"better-auth": "1.7.21",
 		"convex": "^1.48.0",
 		"ipx": "4.1.0",
